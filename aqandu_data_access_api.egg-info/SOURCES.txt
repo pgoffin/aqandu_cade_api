@@ -1,0 +1,8 @@
+MANIFEST.in
+aqandu_data_access_api/__init__.py
+aqandu_data_access_api/aqandu_data_access_api.py
+aqandu_data_access_api.egg-info/PKG-INFO
+aqandu_data_access_api.egg-info/SOURCES.txt
+aqandu_data_access_api.egg-info/dependency_links.txt
+aqandu_data_access_api.egg-info/requires.txt
+aqandu_data_access_api.egg-info/top_level.txt

@@ -9,8 +9,8 @@ from influxdb import InfluxDBClient
 from flask_compress import Compress
 from flask_cors import CORS
 
-app = Flask(__name__)   # create the application instance :)
-app.config.from_object('config.py')
+app = Flask(__name__, instance_relative_config=True)   # create the application instance :)
+app.config.from_object('config')
 app.config.from_pyfile('config.py')
 
 

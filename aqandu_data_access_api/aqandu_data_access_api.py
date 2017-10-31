@@ -19,7 +19,7 @@ influxCLient = InfluxDBClient(
         port=app.config['INFLUX_PORT'],
         username=app.config['INFLUX_USERNAME'],
         password=app.config['INFLUX_PASSWORD'],
-        database=app.config['INFLUX_POLLING_DATABASE    '],
+        database=app.config['INFLUX_POLLING_DATABASE'],
         ssl=app.config['SSL'],
         verify_ssl=app.config['SSL'])
 
@@ -173,7 +173,7 @@ def getAllSensorsLonger():
 # def getDataFrom(sensorID, startDate, endDate):
 def getDataFrom():
 
-    queryParameters= request.args
+    queryParameters = request.args
     print(queryParameters)
 
     # TODO do some parameter checking

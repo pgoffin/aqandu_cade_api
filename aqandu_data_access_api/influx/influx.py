@@ -1,6 +1,7 @@
-import time
+
 import requests
 import sys
+import time
 
 from datetime import datetime
 from flask import jsonify, request, Blueprint
@@ -32,7 +33,7 @@ influx = Blueprint('influx', __name__)
 # # sentry = Sentry(app, dsn=config['sentry'])
 
 
-@influx.route('/api/v1/sensorsShorter', methods=['GET'])
+@influx.route('/api/sensorsShorter', methods=['GET'])
 def getAllSensors():
     influxClient = InfluxDBClient(
             host=current_app.config['INFLUX_HOST'],
@@ -58,7 +59,7 @@ def getAllSensors():
     return jsonify(data)
 
 
-@influx.route('/api/v1/sensorsLonger', methods=['GET'])
+@influx.route('/api/sensorsLonger', methods=['GET'])
 def getAllSensorsLonger():
 
     TIMESTAMP = datetime.now().isoformat()
@@ -182,7 +183,7 @@ def getAllSensorsLonger():
 
     print(stationstoBeShowed)
 
-    print("*********** Time to download:", end - start)
+    print("*********** Time to download:", end - start, '***********')
 
     return jsonify(stations)
 
@@ -190,9 +191,10 @@ def getAllSensorsLonger():
 # for each tag check purpleAir, DAQ and mesowest for the location data
 
 
-@influx.route('/api/v1/dataFrom', methods=['GET'])
+# /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z
+@influx.route('/api/rawDataFrom', methods=['GET'])
 # def getDataFrom(sensorID, startDate, endDate):
-def getDataFrom():
+def getRawDataFrom():
 
     influxClient = InfluxDBClient(
             host=current_app.config['INFLUX_HOST'],
@@ -205,6 +207,8 @@ def getDataFrom():
 
     queryParameters = request.args
     print(queryParameters)
+    jsonParameters = request.get_json(force=True)
+    print('jsonParameters', jsonParameters)
 
     # TODO do some parameter checking
 
@@ -225,9 +229,52 @@ def getDataFrom():
 
     end = time.time()
 
-    print("*********** Time to download:", end - start)
+    print("*********** Time to download:", end - start, '***********')
 
     return jsonify(pmTimeSeries)
+
+
+@influx.route('/api/processedDataFrom', methods=['GET'])
+def getProcessedDataFrom():
+
+    influxClient = InfluxDBClient(
+            host=current_app.config['INFLUX_HOST'],
+            port=current_app.config['INFLUX_PORT'],
+            username=current_app.config['INFLUX_USERNAME'],
+            password=current_app.config['INFLUX_PASSWORD'],
+            database=current_app.config['INFLUX_POLLING_DATABASE'],
+            ssl=current_app.config['SSL'],
+            verify_ssl=current_app.config['SSL'])
+
+    queryParameters = request.args
+    print(queryParameters)
+
+    # TODO do some parameter checking
+
+    query = "SELECT " + queryParameters['function'] + "(\"pm2.5 (ug/m^3)\") FROM airQuality " \
+            "WHERE ID = '" + queryParameters['id'] + "' " \
+            "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ")"
+
+    start = time.time()
+
+    data = influxClient.query(query, epoch=None)
+    data = data.raw
+
+    # parse the data
+    theValues = data['series'][0]['values']
+    pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
+
+    # print(pmTimeSeries)
+
+    end = time.time()
+
+    print("*********** Time to download:", end - start, '***********')
+
+    return jsonify(pmTimeSeries)
+
+
+
+
 
 # # if __name__ == "__main__":
 #     app.run(debug=True)

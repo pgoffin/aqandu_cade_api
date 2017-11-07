@@ -1,0 +1,23 @@
+-e git+https://github.com/pgoffin/aqandu_cade_api.git@364a790b65b6c9719dad9f8a32aca22bf8f62a76#egg=aqandu_data_access_api
+certifi==2017.11.5
+chardet==3.0.4
+click==6.7
+flake8==3.5.0
+Flask==0.12.2
+Flask-Compress==1.4.0
+Flask-Cors==3.0.3
+idna==2.6
+influxdb==4.1.1
+itsdangerous==0.24
+Jinja2==2.9.6
+MarkupSafe==1.0
+mccabe==0.6.1
+pycodestyle==2.3.1
+pyflakes==1.6.0
+pymongo==3.5.1
+python-dateutil==2.6.1
+pytz==2017.3
+requests==2.18.4
+six==1.11.0
+urllib3==1.22
+Werkzeug==0.12.2

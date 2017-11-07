@@ -207,8 +207,8 @@ def getRawDataFrom():
 
     queryParameters = request.args
     print(queryParameters)
-    jsonParameters = request.get_json(force=True)
-    print('jsonParameters', jsonParameters)
+    # jsonParameters = request.get_json(force=True)
+    # print('jsonParameters', jsonParameters)
 
     # TODO do some parameter checking
 

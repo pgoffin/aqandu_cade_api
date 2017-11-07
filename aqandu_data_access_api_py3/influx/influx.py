@@ -33,6 +33,7 @@ influx = Blueprint('influx', __name__)
 # # sentry = Sentry(app, dsn=config['sentry'])
 
 
+
 @influx.route('/api/sensorsShorter', methods=['GET'])
 def getAllSensors():
     influxClient = InfluxDBClient(

@@ -13,33 +13,53 @@ mongo = Blueprint('mongo', __name__)
 
 
 # adds sensor data to the db
-def add_sensor(db, mac_address, email):
-    now = datetime.utcnow()
-
-    db.insert_one({"sensor_mac": mac_address,
-                   "sensor_holder": email,
-                   "created_at":  now})
+# def add_sensor(mac_address, email):
+#     now = datetime.utcnow()
+#     print(now)
+#
+#     theCollection.insert_one({"sensor_mac": mac_address,
+#                         "sensor_holder": email,
+#                         "created_at": now})
 
 
 @mongo.route('/api/registerSensor', methods=['POST'])
 def registerSensor():
 
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
-        user=current_app.config['user'],
-        password=current_app.config['password'],
-        host=current_app.config['host'],
-        port=current_app.config['port'],
-        database=current_app.config['database'])
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
 
     mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+    print(db)
 
-    queryParameters = request.args
+    # queryParameters = request.args
+    # print(queryParameters)
+    # test1 = request.get_json(force=True)
+    # print(test1)
+    queryParameters = request.get_json()
+    print(queryParameters)
 
     # Do parameter checking
 
     try:
         start = time.time()
-        add_sensor(mongoClient.sensor, queryParameters['sensor_mac'], queryParameters['sensor_holder'])
+        print(queryParameters['sensor_mac'], queryParameters['sensor_holder'])
+
+        now = datetime.utcnow()
+        print(now)
+
+        aSensor = {"sensor_mac": queryParameters['sensor_mac'],
+                   "sensor_holder": queryParameters['sensor_holder'],
+                   "created_at": now}
+
+        db.sensors.insert_one(aSensor)
+
+        # add_sensor(queryParameters['sensor_mac'], queryParameters['sensor_holder'])
+
         end = time.time()
 
         print("*********** Time to insert:", end - start)

@@ -1,13 +1,16 @@
 import time
+import logging
 
 from datetime import datetime
 from flask import jsonify, request, Blueprint
 # from influxdb import InfluxDBClient
-from pymongo import MongoClient, DESCENDING
+from pymongo import MongoClient
 
 # from .. import app
 from flask import current_app
 
+logging.basicConfig(level=logging.DEBUG)
+LOGGER = logging.getLogger(__name__)
 
 mongo = Blueprint('mongo', __name__)
 
@@ -51,6 +54,10 @@ def registerSensor():
 
         now = datetime.utcnow()
         print(now)
+
+        aResult = db.sensors.find_one()
+        print(aResult)
+        LOGGER.info("Adding event: %s", aResult)
 
         aSensor = {"sensor_mac": queryParameters['sensor_mac'],
                    "sensor_holder": queryParameters['sensor_holder'],

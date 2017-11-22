@@ -58,7 +58,7 @@ def getLiveSensors():
             ssl=current_app.config['SSL'],
             verify_ssl=current_app.config['SSL'])
 
-    query = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm, \"Sensor Model\" " \
+    query = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
             "FROM airQuality WHERE time >= '" + yesterdayStr + "' " \
             "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
             "LIMIT 400"

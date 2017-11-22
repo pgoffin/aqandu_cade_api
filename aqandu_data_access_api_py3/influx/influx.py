@@ -67,14 +67,13 @@ def getLiveSensors():
     data = influxClient.query(query, epoch='ms')
     data = data.raw
 
-    theValues = data['series'][0]['values']
-    theColumns = data['series'][0]['columns']
+    # print(data['series'])
 
-    dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+    dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
+
     end = time.time()
 
     print("*********** Time to download:", end - start)
-    # print(data)
 
     return jsonify(dataSeries)
 
@@ -259,7 +258,6 @@ def getRawDataFrom():
 
     # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
     dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
-
 
     end = time.time()
 

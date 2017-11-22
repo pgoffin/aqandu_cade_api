@@ -3,10 +3,8 @@ import logging
 
 from datetime import datetime
 from flask import jsonify, request, Blueprint
-# from influxdb import InfluxDBClient
 from pymongo import MongoClient
 
-# from .. import app
 from flask import current_app
 
 logging.basicConfig(level=logging.DEBUG)
@@ -15,6 +13,7 @@ LOGGER = logging.getLogger(__name__)
 mongo = Blueprint('mongo', __name__)
 
 
+# http://air.eng.utah.edu/dbapi/api/registerSensor
 @mongo.route('/api/registerSensor', methods=['POST'])
 def registerSensor():
 
@@ -36,7 +35,7 @@ def registerSensor():
     queryParameters = request.get_json()
     print(queryParameters)
 
-    # Do parameter checking
+    # TODO  Do parameter checking
 
     try:
         start = time.time()
@@ -52,6 +51,6 @@ def registerSensor():
 
         print("*********** Time to insert:", end - start)
 
-        return jsonify(message='The event was added.')
+        return jsonify(message='The sensor was registered.')
     except Exception:
         return jsonify(message='An error occurred.')

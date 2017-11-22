@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_compress import Compress
 from flask_cors import CORS
+# from raven.contrib.flask import Sentry
 
 from aqandu_data_access_api_py3.influx.influx import influx
 from aqandu_data_access_api_py3.mongo.mongo import mongo
@@ -15,8 +16,8 @@ app.register_blueprint(mongo)
 
 
 Compress(app)
-CORS(app)
-# sentry = Sentry(app, dsn=config['sentry'])
+# CORS(app)
+# sentry = Sentry(app, dsn=app.config['SENTRY'])
 
 
 @app.route("/")

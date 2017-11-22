@@ -13,29 +13,35 @@ from flask import current_app
 
 influx = Blueprint('influx', __name__)
 
-# app = Flask(__name__, instance_relative_config=True)   # create the application instance
-# app.config.from_object('config')
-# app.config.from_pyfile('config.py')
 
-
-# influxCLient = InfluxDBClient(
-#         host=app.config['INFLUX_HOST'],
-#         port=app.config['INFLUX_PORT'],
-#         username=app.config['INFLUX_USERNAME'],
-#         password=app.config['INFLUX_PASSWORD'],
-#         database=app.config['INFLUX_POLLING_DATABASE'],
-#         ssl=app.config['SSL'],
-#         verify_ssl=app.config['SSL'])
-
-#
-# Compress(app)
-# CORS(app)
-# # sentry = Sentry(app, dsn=config['sentry'])
-
+# lookup table to transform querString to influx column name
+lookupQueryParameterToInflux = {
+    'pm2.5': '\"pm2.5 (ug/m^3)\"',
+    'altitude': '\"Altitude (m)\"',
+    'humidity': '\"Humidity (%)\"',
+    'id': 'ID',
+    'latitude': 'Latitude',
+    'longitude': 'Longitude',
+    'ozon': '\"Ozon concentration (ppb)\"',
+    'pressure': '\"Pressure (Pa)\"',
+    'sensor_model': '\"Sensor Model\"',
+    'sensor_source': '\"Sensor Source\"',
+    'sensor_version': '\"Sensor Version\"',
+    'sensor_error': '\"Sensor error code\"',
+    'solar_radiation': '\"Solar radiation (W/m**2)\"',
+    'start': 'Start',
+    'temp': '\"Temp (*C)\"',
+    'wind_direction': '\"Wind direction (compass degree)\"',
+    'wind_gust': '\"Wind gust (m/s)\"',
+    'wind_speed': '\"Wind speed (m/s)\"',
+    'pm1': '\"pm1.0 (ug/m^3)\"',
+    'pm10': '\"pm10.0 (ug/m^3)\"'
+}
 
 
 @influx.route('/api/sensorsShorter', methods=['GET'])
 def getAllSensors():
+
     influxClient = InfluxDBClient(
             host=current_app.config['INFLUX_HOST'],
             port=current_app.config['INFLUX_PORT'],
@@ -192,9 +198,9 @@ def getAllSensorsLonger():
 # for each tag check purpleAir, DAQ and mesowest for the location data
 
 
-# /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z
+# /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=all
+# /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=pm2.5,pm1
 @influx.route('/api/rawDataFrom', methods=['GET'])
-# def getDataFrom(sensorID, startDate, endDate):
 def getRawDataFrom():
 
     influxClient = InfluxDBClient(
@@ -213,7 +219,20 @@ def getRawDataFrom():
 
     # TODO do some parameter checking
 
-    query = "SELECT \"pm2.5 (ug/m^3)\", ID FROM airQuality " \
+    whatToShow = queryParameters['show'].split(',')
+
+    # create the selection string
+    if 'all' in whatToShow:
+        selectString = "*"
+    else:
+        selectString = 'ID'
+        for show in whatToShow:
+            showExists = lookupQueryParameterToInflux.get(show)
+
+            if show != 'id' and showExists is not None:
+                selectString = selectString + ", " + showExists
+
+    query = "SELECT " + selectString + " FROM airQuality " \
             "WHERE ID = '" + queryParameters['id'] + "' " \
             "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
 
@@ -222,17 +241,18 @@ def getRawDataFrom():
     data = influxClient.query(query, epoch=None)
     data = data.raw
 
-    # parse the data
     theValues = data['series'][0]['values']
-    pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
+    theColumns = data['series'][0]['columns']
 
-    # print(pmTimeSeries)
+    # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
+    dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+
 
     end = time.time()
 
     print("*********** Time to download:", end - start, '***********')
 
-    return jsonify(pmTimeSeries)
+    return jsonify(dataSeries)
 
 
 @influx.route('/api/processedDataFrom', methods=['GET'])
@@ -272,10 +292,3 @@ def getProcessedDataFrom():
     print("*********** Time to download:", end - start, '***********')
 
     return jsonify(pmTimeSeries)
-
-
-
-
-
-# # if __name__ == "__main__":
-#     app.run(debug=True)

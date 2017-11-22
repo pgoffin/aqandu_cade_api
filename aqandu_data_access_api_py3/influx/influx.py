@@ -58,19 +58,25 @@ def getLiveSensors():
             ssl=current_app.config['SSL'],
             verify_ssl=current_app.config['SSL'])
 
-    query = "SELECT LAST(\"pm2.5 (ug/m^3)\") AS pm, \"Sensor Model\" FROM airQuality WHERE time >= '" + yesterdayStr + "' " \
+    query = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm, \"Sensor Model\" " \
+            "FROM airQuality WHERE time >= '" + yesterdayStr + "' " \
             "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
             "LIMIT 400"
 
     start = time.time()
     data = influxClient.query(query, epoch='ms')
     data = data.raw
+
+    theValues = data['series'][0]['values']
+    theColumns = data['series'][0]['columns']
+
+    dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
     end = time.time()
 
     print("*********** Time to download:", end - start)
     # print(data)
 
-    return jsonify(data)
+    return jsonify(dataSeries)
 
 
 @influx.route('/api/sensorsLonger', methods=['GET'])

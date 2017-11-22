@@ -3,7 +3,7 @@ import requests
 import sys
 import time
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import jsonify, request, Blueprint
 from influxdb import InfluxDBClient
 
@@ -39,8 +39,15 @@ lookupQueryParameterToInflux = {
 }
 
 
-@influx.route('/api/sensorsShorter', methods=['GET'])
-def getAllSensors():
+@influx.route('/api/liveSensors', methods=['GET'])
+def getLiveSensors():
+    """Get sensors that are active (pushed data) since yesterday (beginning of day)"""
+
+    now = datetime.now()
+    yesterday = now - timedelta(days=1)
+
+    yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
+    yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     influxClient = InfluxDBClient(
             host=current_app.config['INFLUX_HOST'],
@@ -51,9 +58,9 @@ def getAllSensors():
             ssl=current_app.config['SSL'],
             verify_ssl=current_app.config['SSL'])
 
-    query = "SELECT MEAN(\"pm2.5 (ug/m^3)\") FROM airQuality WHERE time >= '2017-09-06T00:00:00Z' " \
-            "GROUP BY ID, Latitude, Longitude " \
-            "LIMIT 100"
+    query = "SELECT LAST(\"pm2.5 (ug/m^3)\") AS pm, \"Sensor Model\" FROM airQuality WHERE time >= '" + yesterdayStr + "' " \
+            "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
+            "LIMIT 400"
 
     start = time.time()
     data = influxClient.query(query, epoch='ms')

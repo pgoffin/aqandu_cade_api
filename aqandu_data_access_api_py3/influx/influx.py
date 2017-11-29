@@ -16,7 +16,7 @@ influx = Blueprint('influx', __name__)
 
 # lookup table to transform querString to influx column name
 lookupQueryParameterToInflux = {
-    'pm2.5': '\"pm2.5 (ug/m^3)\"',
+    'pm25': '\"pm2.5 (ug/m^3)\"',
     'altitude': '\"Altitude (m)\"',
     'humidity': '\"Humidity (%)\"',
     'id': 'ID',
@@ -66,8 +66,6 @@ def getLiveSensors():
     start = time.time()
     data = influxClient.query(query, epoch='ms')
     data = data.raw
-
-    # print(data['series'])
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
 
@@ -211,7 +209,7 @@ def getAllSensorsLonger():
 
 
 # /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=all
-# /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=pm2.5,pm1
+# /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=pm25,pm1
 @influx.route('/api/rawDataFrom', methods=['GET'])
 def getRawDataFrom():
 
@@ -230,19 +228,21 @@ def getRawDataFrom():
     # print('jsonParameters', jsonParameters)
 
     # TODO do some parameter checking
+    # TODO check if queryParameters exist if not write excpetion
 
-    whatToShow = queryParameters['show'].split(',')
-
-    # create the selection string
-    if 'all' in whatToShow:
-        selectString = "*"
-    else:
-        selectString = 'ID'
-        for show in whatToShow:
-            showExists = lookupQueryParameterToInflux.get(show)
-
-            if show != 'id' and showExists is not None:
-                selectString = selectString + ", " + showExists
+    selectString = createSelection('raw', queryParameters)
+    # whatToShow = queryParameters['show'].split(',')
+    #
+    # # create the selection string
+    # if 'all' in whatToShow:
+    #     selectString = "*"
+    # else:
+    #     selectString = 'ID'
+    #     for show in whatToShow:
+    #         showExists = lookupQueryParameterToInflux.get(show)
+    #
+    #         if show != 'id' and showExists is not None:
+    #             selectString = selectString + ", " + showExists
 
     query = "SELECT " + selectString + " FROM airQuality " \
             "WHERE ID = '" + queryParameters['id'] + "' " \
@@ -266,6 +266,7 @@ def getRawDataFrom():
     return jsonify(dataSeries)
 
 
+# http://0.0.0.0:5000/api/processedDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&function=mean&functionArg=pm25&timeInterval=30m
 @influx.route('/api/processedDataFrom', methods=['GET'])
 def getProcessedDataFrom():
 
@@ -282,8 +283,11 @@ def getProcessedDataFrom():
     print(queryParameters)
 
     # TODO do some parameter checking
+    # TODO check if queryParameters exist if not write excpetion
 
-    query = "SELECT " + queryParameters['function'] + "(\"pm2.5 (ug/m^3)\") FROM airQuality " \
+    selectString = createSelection('processed', queryParameters)
+
+    query = "SELECT " + selectString + " FROM airQuality " \
             "WHERE ID = '" + queryParameters['id'] + "' " \
             "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ")"
 
@@ -294,7 +298,7 @@ def getProcessedDataFrom():
 
     # parse the data
     theValues = data['series'][0]['values']
-    pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
+    pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
 
     # print(pmTimeSeries)
 
@@ -303,3 +307,33 @@ def getProcessedDataFrom():
     print("*********** Time to download:", end - start, '***********')
 
     return jsonify(pmTimeSeries)
+
+
+# HELPER FUNCTIONS
+
+def createSelection(typeOfQuery, querystring):
+    """Creates the selection string for the SELECT statement."""
+
+    if typeOfQuery == 'raw':
+
+        whatToShow = querystring['show'].split(',')
+
+        # create the selection string
+        if 'all' in whatToShow:
+            selectString = "*"
+        else:
+            selectString = 'ID'
+            for show in whatToShow:
+                showExists = lookupQueryParameterToInflux.get(show)
+
+                if show != 'id' and showExists is not None:
+                    selectString = selectString + ", " + showExists
+
+    elif typeOfQuery == 'processed':
+        argument = querystring['functionArg']
+        argumentExists = lookupQueryParameterToInflux.get(argument)
+
+        if argumentExists is not None:
+            selectString = querystring['function'] + "(" + argumentExists + ")"
+
+    return selectString

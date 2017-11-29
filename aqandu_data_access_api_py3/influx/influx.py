@@ -6,13 +6,14 @@ import time
 from datetime import datetime, timedelta
 from flask import jsonify, request, Blueprint
 from influxdb import InfluxDBClient
+from werkzeug.local import LocalProxy
 
 # from .. import app
 from flask import current_app
 
 
 influx = Blueprint('influx', __name__)
-
+logger = LocalProxy(lambda: current_app.logger)
 
 # lookup table to transform querString to influx column name
 lookupQueryParameterToInflux = {
@@ -42,6 +43,8 @@ lookupQueryParameterToInflux = {
 @influx.route('/api/liveSensors', methods=['GET'])
 def getLiveSensors():
     """Get sensors that are active (pushed data) since yesterday (beginning of day)"""
+
+    logger.info('liveSensors request started')
 
     now = datetime.now()
     yesterday = now - timedelta(days=1)
@@ -78,6 +81,8 @@ def getLiveSensors():
 
 @influx.route('/api/sensorsLonger', methods=['GET'])
 def getAllSensorsLonger():
+
+    logger.info('sensorsLonger request started')
 
     TIMESTAMP = datetime.now().isoformat()
 
@@ -213,6 +218,8 @@ def getAllSensorsLonger():
 @influx.route('/api/rawDataFrom', methods=['GET'])
 def getRawDataFrom():
 
+    logger.info('rawDataFrom request started')
+
     influxClient = InfluxDBClient(
             host=current_app.config['INFLUX_HOST'],
             port=current_app.config['INFLUX_PORT'],
@@ -270,6 +277,8 @@ def getRawDataFrom():
 @influx.route('/api/processedDataFrom', methods=['GET'])
 def getProcessedDataFrom():
 
+    logger.info('processedDataFrom request started')
+
     influxClient = InfluxDBClient(
             host=current_app.config['INFLUX_HOST'],
             port=current_app.config['INFLUX_PORT'],
@@ -298,7 +307,7 @@ def getProcessedDataFrom():
 
     # parse the data
     theValues = data['series'][0]['values']
-    pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
+    pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
 
     # print(pmTimeSeries)
 

@@ -1,10 +1,13 @@
 from flask import Flask
 from flask_compress import Compress
-from flask_cors import CORS
+# from flask_cors import CORS
+import logging
+import logging.handlers as handlers
 # from raven.contrib.flask import Sentry
 
 from aqandu_data_access_api_py3.influx.influx import influx
 from aqandu_data_access_api_py3.mongo.mongo import mongo
+
 
 app = Flask(__name__, instance_relative_config=True)   # create the application instance
 app.config.from_object('config')
@@ -13,6 +16,21 @@ app.config.from_pyfile('config.py')
 # register the blueprints
 app.register_blueprint(influx)
 app.register_blueprint(mongo)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# theFile = logging.FileHandler('aqanduAPI.log')
+# theFile.setLevel(logging.INFO)
+# logger.addHandler(theFile)
+
+logHandler = handlers.TimedRotatingFileHandler('aqanduAPI.log', when='D', interval=1, backupCount=3)
+logHandler.setLevel(logging.INFO)
+logHandler.setFormatter(formatter)
+app.logger.addHandler(logHandler)
+
 
 
 Compress(app)

@@ -1,11 +1,13 @@
 
 import requests
+import pprint
 import sys
 import time
 
 from datetime import datetime, timedelta
 from flask import jsonify, request, Blueprint
 from influxdb import InfluxDBClient
+from pymongo import MongoClient
 from werkzeug.local import LocalProxy
 
 # from .. import app
@@ -61,14 +63,18 @@ def getLiveSensors():
             ssl=current_app.config['SSL'],
             verify_ssl=current_app.config['SSL'])
 
-    query = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
+    queryInflux = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
             "FROM airQuality WHERE time >= '" + yesterdayStr + "' " \
             "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
             "LIMIT 400"
 
     start = time.time()
-    data = influxClient.query(query, epoch='ms')
+    data = influxClient.query(queryInflux, epoch='ms')
     data = data.raw
+
+    liveAirUs = getAllCurrentlyLiveAirUs()
+    print(liveAirUs)
+
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
 
@@ -238,18 +244,6 @@ def getRawDataFrom():
     # TODO check if queryParameters exist if not write excpetion
 
     selectString = createSelection('raw', queryParameters)
-    # whatToShow = queryParameters['show'].split(',')
-    #
-    # # create the selection string
-    # if 'all' in whatToShow:
-    #     selectString = "*"
-    # else:
-    #     selectString = 'ID'
-    #     for show in whatToShow:
-    #         showExists = lookupQueryParameterToInflux.get(show)
-    #
-    #         if show != 'id' and showExists is not None:
-    #             selectString = selectString + ", " + showExists
 
     query = "SELECT " + selectString + " FROM airQuality " \
             "WHERE ID = '" + queryParameters['id'] + "' " \
@@ -346,3 +340,27 @@ def createSelection(typeOfQuery, querystring):
             selectString = querystring['function'] + "(" + argumentExists + ")"
 
     return selectString
+
+
+def getAllCurrentlyLiveAirUs():
+
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+    print(db)
+    liveAirUs = []
+    print(db.sensors.count())
+
+    cursor = db.sensors.find({})
+    print(cursor)
+    for doc in cursor:
+        print(doc)
+    #     liveAirUs.append({'mac': aSensor['sensor_mac'], 'registeredAt': aSensor['created_at']})
+
+    return liveAirUs

@@ -361,7 +361,7 @@ def getAllCurrentlyLiveAirUs():
     print(cursor)
     for doc in cursor:
         print(doc)
-        logger.info('a doc: ' + doc)
+        logger.info(doc)
     #     liveAirUs.append({'mac': aSensor['sensor_mac'], 'registeredAt': aSensor['created_at']})
 
     return liveAirUs

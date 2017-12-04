@@ -70,10 +70,41 @@ def getLiveSensors():
     data = influxClient.query(queryInflux, epoch='ms')
     data = data.raw
 
-    liveAirUs = getAllCurrentlyLiveAirUs()
-    print('liveAirUs', liveAirUs)
-
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
+
+    liveAirUs = getAllCurrentlyLiveAirUs()
+    logger.info(liveAirUs)
+
+    influxClientAirU = InfluxDBClient(
+            host=current_app.config['INFLUX_HOST'],
+            port=current_app.config['INFLUX_PORT'],
+            username=current_app.config['INFLUX_USERNAME'],
+            password=current_app.config['INFLUX_PASSWORD'],
+            database=current_app.config['INFLUX_AIRU_DATABASE'],
+            ssl=current_app.config['SSL'],
+            verify_ssl=current_app.config['SSL'])
+
+    for airU in liveAirUs:
+        queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
+                              "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + ""\
+                              " WHERE ID = '" + airU['mac'] + "' and time >= '" + yesterdayStr + "'" \
+
+        dataAirU_lat = influxClientAirU.query(queryInfluxAirU_lat, epoch='ms')
+        dataAirU_lat = dataAirU_lat.raw
+
+        avgLat = dataAirU_lat['series'][0]['values'][0][1]
+
+        queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
+                              "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + ""\
+                              " WHERE ID = '" + airU["mac"] + "' and time >= '" + yesterdayStr + "' " \
+
+        dataAirU_lng = influxClientAirU.query(queryInfluxAirU_lng, epoch='ms')
+        dataAirU_lng = dataAirU_lng.raw
+
+        avgLng = dataAirU_lng['series'][0]['values'][0][1]
+
+        anAirU = {"ID": airU['mac'], "Latitude": avgLat, "Longitude": avgLng, "Sensor Source": 'airu'}
+        dataSeries.append(anAirU)
 
     end = time.time()
 
@@ -353,6 +384,6 @@ def getAllCurrentlyLiveAirUs():
     liveAirUs = []
 
     for aSensor in db.sensors.find():
-        liveAirUs.append({'mac': aSensor['sensor_mac'], 'registeredAt': aSensor['created_at']})
+        liveAirUs.append({'mac': aSensor['sensor_mac'].split(':').join(''), 'registeredAt': aSensor['created_at']})
 
     return liveAirUs

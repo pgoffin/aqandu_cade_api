@@ -73,8 +73,7 @@ def getLiveSensors():
     data = data.raw
 
     liveAirUs = getAllCurrentlyLiveAirUs()
-    print(liveAirUs)
-
+    print('liveAirUs', liveAirUs)
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
 
@@ -353,15 +352,9 @@ def getAllCurrentlyLiveAirUs():
 
     mongoClient = MongoClient(mongodb_url)
     db = mongoClient.airudb
-    print(db)
     liveAirUs = []
-    print(db.sensors.count())
 
-    cursor = db.sensors.find({})
-    print(cursor)
-    for doc in cursor:
-        print(doc)
-        logger.info(doc)
-    #     liveAirUs.append({'mac': aSensor['sensor_mac'], 'registeredAt': aSensor['created_at']})
+    for doc in db.sensors.find():
+        liveAirUs.append({'mac': aSensor['sensor_mac'], 'registeredAt': aSensor['created_at']})
 
     return liveAirUs

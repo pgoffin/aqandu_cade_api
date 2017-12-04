@@ -1,6 +1,4 @@
-
 import requests
-import pprint
 import sys
 import time
 
@@ -64,9 +62,9 @@ def getLiveSensors():
             verify_ssl=current_app.config['SSL'])
 
     queryInflux = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
-            "FROM airQuality WHERE time >= '" + yesterdayStr + "' " \
-            "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
-            "LIMIT 400"
+                  "FROM airQuality WHERE time >= '" + yesterdayStr + "' " \
+                  "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
+                  "LIMIT 400"
 
     start = time.time()
     data = influxClient.query(queryInflux, epoch='ms')
@@ -354,7 +352,7 @@ def getAllCurrentlyLiveAirUs():
     db = mongoClient.airudb
     liveAirUs = []
 
-    for doc in db.sensors.find():
+    for aSensor in db.sensors.find():
         liveAirUs.append({'mac': aSensor['sensor_mac'], 'registeredAt': aSensor['created_at']})
 
     return liveAirUs

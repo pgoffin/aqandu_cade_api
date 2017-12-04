@@ -384,6 +384,6 @@ def getAllCurrentlyLiveAirUs():
     liveAirUs = []
 
     for aSensor in db.sensors.find():
-        liveAirUs.append({'mac': aSensor['sensor_mac'].split(':').join(''), 'registeredAt': aSensor['created_at']})
+        liveAirUs.append({'mac': ''.joing(aSensor['sensor_mac'].split(':')), 'registeredAt': aSensor['created_at']})
 
     return liveAirUs

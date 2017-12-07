@@ -36,8 +36,44 @@ lookupQueryParameterToInflux = {
     'wind_gust': '\"Wind gust (m/s)\"',
     'wind_speed': '\"Wind speed (m/s)\"',
     'pm1': '\"pm1.0 (ug/m^3)\"',
-    'pm10': '\"pm10.0 (ug/m^3)\"'
+    'pm10': '\"pm10.0 (ug/m^3)\"',
+    'posix': 'POSIX',
+    'secActive': 'SecActive'
 }
+
+
+lookupParameterToAirUInflux = {
+    'altitude': 'Altitude',
+    'humidity': 'Humidity',
+    'latitude': 'Latitude',
+    'longitude': 'Longitude',
+    'pm1': 'PM1',
+    'pm10': 'PM10',
+    'pm25': '\"PM2.5\"',
+    'temperature': 'Temperature',
+    'posix': 'POSIX',
+    'secActive': 'SecActive',
+    'errors': 'Errors',
+}
+
+# with app.app_context():
+#     influxClientPolling = InfluxDBClient(
+#             host=current_app.config['INFLUX_HOST'],
+#             port=current_app.config['INFLUX_PORT'],
+#             username=current_app.config['INFLUX_USERNAME'],
+#             password=current_app.config['INFLUX_PASSWORD'],
+#             database=current_app.config['INFLUX_POLLING_DATABASE'],
+#             ssl=current_app.config['SSL'],
+#             verify_ssl=current_app.config['SSL'])
+#
+#     influxClientAirU = InfluxDBClient(
+#             host=current_app.config['INFLUX_HOST'],
+#             port=current_app.config['INFLUX_PORT'],
+#             username=current_app.config['INFLUX_USERNAME'],
+#             password=current_app.config['INFLUX_PASSWORD'],
+#             database=current_app.config['INFLUX_AIRU_DATABASE'],
+#             ssl=current_app.config['SSL'],
+#             verify_ssl=current_app.config['SSL'])
 
 
 @influx.route('/api/liveSensors', methods=['GET'])
@@ -52,14 +88,14 @@ def getLiveSensors():
     yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
     yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    influxClient = InfluxDBClient(
-            host=current_app.config['INFLUX_HOST'],
-            port=current_app.config['INFLUX_PORT'],
-            username=current_app.config['INFLUX_USERNAME'],
-            password=current_app.config['INFLUX_PASSWORD'],
-            database=current_app.config['INFLUX_POLLING_DATABASE'],
-            ssl=current_app.config['SSL'],
-            verify_ssl=current_app.config['SSL'])
+    influxClientPolling = InfluxDBClient(
+                host=current_app.config['INFLUX_HOST'],
+                port=current_app.config['INFLUX_PORT'],
+                username=current_app.config['INFLUX_USERNAME'],
+                password=current_app.config['INFLUX_PASSWORD'],
+                database=current_app.config['INFLUX_POLLING_DATABASE'],
+                ssl=current_app.config['SSL'],
+                verify_ssl=current_app.config['SSL'])
 
     queryInflux = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
                   "FROM airQuality WHERE time >= '" + yesterdayStr + "' " \
@@ -67,7 +103,7 @@ def getLiveSensors():
                   "LIMIT 400"
 
     start = time.time()
-    data = influxClient.query(queryInflux, epoch='ms')
+    data = influxClientPolling.query(queryInflux, epoch='ms')
     data = data.raw
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
@@ -76,13 +112,13 @@ def getLiveSensors():
     logger.info(liveAirUs)
 
     influxClientAirU = InfluxDBClient(
-            host=current_app.config['INFLUX_HOST'],
-            port=current_app.config['INFLUX_PORT'],
-            username=current_app.config['INFLUX_USERNAME'],
-            password=current_app.config['INFLUX_PASSWORD'],
-            database=current_app.config['INFLUX_AIRU_DATABASE'],
-            ssl=current_app.config['SSL'],
-            verify_ssl=current_app.config['SSL'])
+                host=current_app.config['INFLUX_HOST'],
+                port=current_app.config['INFLUX_PORT'],
+                username=current_app.config['INFLUX_USERNAME'],
+                password=current_app.config['INFLUX_PASSWORD'],
+                database=current_app.config['INFLUX_AIRU_DATABASE'],
+                ssl=current_app.config['SSL'],
+                verify_ssl=current_app.config['SSL'])
 
     for airU in liveAirUs:
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
@@ -103,7 +139,7 @@ def getLiveSensors():
 
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
 
-        anAirU = {"ID": airU['mac'], "Latitude": avgLat, "Longitude": avgLng, "Sensor Source": 'airu'}
+        anAirU = {"ID": airU['mac'], "Latitude": avgLat, "Longitude": avgLng, "Sensor Source": 'AirU'}
         dataSeries.append(anAirU)
 
     end = time.time()
@@ -120,14 +156,14 @@ def getAllSensorsLonger():
 
     TIMESTAMP = datetime.now().isoformat()
 
-    influxClient = InfluxDBClient(
-            host=current_app.config['INFLUX_HOST'],
-            port=current_app.config['INFLUX_PORT'],
-            username=current_app.config['INFLUX_USERNAME'],
-            password=current_app.config['INFLUX_PASSWORD'],
-            database=current_app.config['INFLUX_POLLING_DATABASE'],
-            ssl=current_app.config['SSL'],
-            verify_ssl=current_app.config['SSL'])
+    influxClientPolling = InfluxDBClient(
+                host=current_app.config['INFLUX_HOST'],
+                port=current_app.config['INFLUX_PORT'],
+                username=current_app.config['INFLUX_USERNAME'],
+                password=current_app.config['INFLUX_PASSWORD'],
+                database=current_app.config['INFLUX_POLLING_DATABASE'],
+                ssl=current_app.config['SSL'],
+                verify_ssl=current_app.config['SSL'])
 
     stations = {}
 
@@ -222,7 +258,7 @@ def getAllSensorsLonger():
     end = time.time()
 
     query = "SHOW TAG VALUES from airQuality WITH KEY = ID"
-    data = influxClient.query(query, epoch=None)
+    data = influxClientPolling.query(query, epoch=None)
     data = data.raw
 
     theValues = data['series'][0]['values']
@@ -247,48 +283,104 @@ def getAllSensorsLonger():
 # for each tag check purpleAir, DAQ and mesowest for the location data
 
 
-# /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=all
+# /api/rawDataFrom?id=1010&sensorSource=AirU&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=all
 # /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=pm25,pm1
 @influx.route('/api/rawDataFrom', methods=['GET'])
 def getRawDataFrom():
 
-    logger.info('rawDataFrom request started')
+    airUdbs = ['altitude', 'humidity', 'latitude', 'longitude', 'pm1', 'pm25', 'pm10', 'posix', 'secActive', 'temperature']
 
-    influxClient = InfluxDBClient(
-            host=current_app.config['INFLUX_HOST'],
-            port=current_app.config['INFLUX_PORT'],
-            username=current_app.config['INFLUX_USERNAME'],
-            password=current_app.config['INFLUX_PASSWORD'],
-            database=current_app.config['INFLUX_POLLING_DATABASE'],
-            ssl=current_app.config['SSL'],
-            verify_ssl=current_app.config['SSL'])
+    logger.info('rawDataFrom request started')
 
     queryParameters = request.args
     print(queryParameters)
     # jsonParameters = request.get_json(force=True)
     # print('jsonParameters', jsonParameters)
 
-    # TODO do some parameter checking
-    # TODO check if queryParameters exist if not write excpetion
+# TODO get the data for airUs
+    if queryParameters['sensorSource'] == 'AirU':
+        print('airU')
+        logger.info(queryParameters['sensorSource'])
 
-    selectString = createSelection('raw', queryParameters)
+        start = time.time()
 
-    query = "SELECT " + selectString + " FROM airQuality " \
-            "WHERE ID = '" + queryParameters['id'] + "' " \
-            "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
+        # create createSelection
+        whatToShow = queryParameters['show'].split(',')
 
-    start = time.time()
+        # http://0.0.0.0:5000/api/rawDataFrom?id=D0B5C2F31E1F&sensorSource=AirU&start=2017-12-02T22:17:00Z&end=2017-12-03T22:17:00Z&show=all
+        if 'all' in whatToShow:
 
-    data = influxClient.query(query, epoch=None)
-    data = data.raw
+            influxClientAirU = InfluxDBClient(
+                        host=current_app.config['INFLUX_HOST'],
+                        port=current_app.config['INFLUX_PORT'],
+                        username=current_app.config['INFLUX_USERNAME'],
+                        password=current_app.config['INFLUX_PASSWORD'],
+                        database=current_app.config['INFLUX_AIRU_DATABASE'],
+                        ssl=current_app.config['SSL'],
+                        verify_ssl=current_app.config['SSL'])
 
-    theValues = data['series'][0]['values']
-    theColumns = data['series'][0]['columns']
+            # query each db
+            dataSeries = []
+            for aDB in airUdbs:
+                print(aDB, lookupParameterToAirUInflux.get(aDB))
+                queryAirU = "SELECT ID, SensorModel, " + lookupParameterToAirUInflux.get(aDB) + " FROM " + aDB + " " \
+                            "WHERE ID = '" + queryParameters['id'] + "' " \
+                            "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
 
-    # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
-    dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+                print(queryAirU)
 
-    end = time.time()
+                dataAirU = influxClientAirU.query(queryAirU, epoch=None)
+                dataAirU = dataAirU.raw
+
+                valuesAirU = dataAirU['series'][0]['values']
+                columnsAirU = dataAirU['series'][0]['columns']
+
+                if not dataSeries:
+                    dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                else:
+                    newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+
+                    # print(list(zip(dataSeries, newDataSeries)))
+                    # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)
+                    dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
+
+        end = time.time()
+
+    else:
+        # print('tesing')
+
+        influxClientPolling = InfluxDBClient(
+                    host=current_app.config['INFLUX_HOST'],
+                    port=current_app.config['INFLUX_PORT'],
+                    username=current_app.config['INFLUX_USERNAME'],
+                    password=current_app.config['INFLUX_PASSWORD'],
+                    database=current_app.config['INFLUX_POLLING_DATABASE'],
+                    ssl=current_app.config['SSL'],
+                    verify_ssl=current_app.config['SSL'])
+
+        # TODO do some parameter checking
+        # TODO check if queryParameters exist if not write excpetion
+
+        selectString = createSelection('raw', queryParameters)
+
+        query = "SELECT " + selectString + " FROM airQuality " \
+                "WHERE ID = '" + queryParameters['id'] + "' " \
+                "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
+        print(query)
+        start = time.time()
+
+        data = influxClientPolling.query(query, epoch=None)
+        data = data.raw
+
+        print(data)
+
+        theValues = data['series'][0]['values']
+        theColumns = data['series'][0]['columns']
+
+        # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
+        dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+
+        end = time.time()
 
     print("*********** Time to download:", end - start, '***********')
 
@@ -301,14 +393,14 @@ def getProcessedDataFrom():
 
     logger.info('processedDataFrom request started')
 
-    influxClient = InfluxDBClient(
-            host=current_app.config['INFLUX_HOST'],
-            port=current_app.config['INFLUX_PORT'],
-            username=current_app.config['INFLUX_USERNAME'],
-            password=current_app.config['INFLUX_PASSWORD'],
-            database=current_app.config['INFLUX_POLLING_DATABASE'],
-            ssl=current_app.config['SSL'],
-            verify_ssl=current_app.config['SSL'])
+    influxClientPolling = InfluxDBClient(
+                host=current_app.config['INFLUX_HOST'],
+                port=current_app.config['INFLUX_PORT'],
+                username=current_app.config['INFLUX_USERNAME'],
+                password=current_app.config['INFLUX_PASSWORD'],
+                database=current_app.config['INFLUX_POLLING_DATABASE'],
+                ssl=current_app.config['SSL'],
+                verify_ssl=current_app.config['SSL'])
 
     queryParameters = request.args
     print(queryParameters)
@@ -324,7 +416,7 @@ def getProcessedDataFrom():
 
     start = time.time()
 
-    data = influxClient.query(query, epoch=None)
+    data = influxClientPolling.query(query, epoch=None)
     data = data.raw
 
     # parse the data
@@ -340,6 +432,35 @@ def getProcessedDataFrom():
     return jsonify(pmTimeSeries)
 
 
+@influx.route('/api/lastValue', methods=['GET'])
+def getLastValuesForLiveSensor():
+
+    logger.info('lastPM request started')
+
+    influxClientPolling = InfluxDBClient(
+                host=current_app.config['INFLUX_HOST'],
+                port=current_app.config['INFLUX_PORT'],
+                username=current_app.config['INFLUX_USERNAME'],
+                password=current_app.config['INFLUX_PASSWORD'],
+                database=current_app.config['INFLUX_POLLING_DATABASE'],
+                ssl=current_app.config['SSL'],
+                verify_ssl=current_app.config['SSL'])
+
+    queryParameters = request.args
+    print(queryParameters['fieldKey'])
+
+    query = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['fieldKey']) + "), ID FROM airQuality GROUP BY ID"
+
+    data = influxClientPolling.query(query, epoch=None)
+    data = data.raw
+
+    dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
+
+    lastValueObject = {aSensor["ID"]: aSensor for aSensor in dataSeries}
+
+    return jsonify(lastValueObject)
+
+
 # HELPER FUNCTIONS
 
 def createSelection(typeOfQuery, querystring):
@@ -347,19 +468,24 @@ def createSelection(typeOfQuery, querystring):
 
     if typeOfQuery == 'raw':
 
-        whatToShow = querystring['show'].split(',')
+        # db = querystring['sensorSource']
 
+        show = querystring['show'].split(',')
+
+        # if db != 'AirU':
         # create the selection string
-        if 'all' in whatToShow:
+        if 'all' in show:
             selectString = "*"
         else:
             selectString = 'ID'
-            for show in whatToShow:
-                showExists = lookupQueryParameterToInflux.get(show)
+            for aShow in show:
+                showExists = lookupQueryParameterToInflux.get(aShow)
 
-                if show != 'id' and showExists is not None:
+                if aShow != 'id' and showExists is not None:
                     selectString = selectString + ", " + showExists
-
+        # else:
+        #     # AirU
+            # if 'all' in show:
     elif typeOfQuery == 'processed':
         argument = querystring['functionArg']
         argumentExists = lookupQueryParameterToInflux.get(argument)

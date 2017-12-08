@@ -122,8 +122,8 @@ def getLiveSensors():
 
     for airU in liveAirUs:
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
-                              "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + ""\
-                              " WHERE ID = '" + airU['mac'] + "' and time >= '" + yesterdayStr + "'" \
+                              "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + " "\
+                              "WHERE ID = '" + airU['mac'] + "' and time >= '" + yesterdayStr + "'" \
 
         dataAirU_lat = influxClientAirU.query(queryInfluxAirU_lat, epoch='ms')
         dataAirU_lat = dataAirU_lat.raw
@@ -131,15 +131,26 @@ def getLiveSensors():
         avgLat = dataAirU_lat['series'][0]['values'][0][1]
 
         queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
-                              "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + ""\
-                              " WHERE ID = '" + airU["mac"] + "' and time >= '" + yesterdayStr + "' " \
+                              "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
+                              "WHERE ID = '" + airU["mac"] + "' and time >= '" + yesterdayStr + "' " \
 
         dataAirU_lng = influxClientAirU.query(queryInfluxAirU_lng, epoch='ms')
         dataAirU_lng = dataAirU_lng.raw
 
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
 
-        anAirU = {"ID": airU['mac'], "Latitude": avgLat, "Longitude": avgLng, "Sensor Source": 'airu'}
+        queryInfluxAirU_lastPM25 = "SELECT LAST(\"pm2.5 (ug/m^3)\") AS pm25, ID " \
+                                   "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
+                                   "WHERE ID = '" + airU["mac"] + "' and time >= '" + yesterdayStr + "' " \
+
+        dataAirU_lastPM25 = influxClientAirU.query(queryInfluxAirU_lastPM25, epoch='ms')
+        dataAirU_lastPM25 = dataAirU_lastPM25.raw
+
+        lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
+        pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]
+
+
+        anAirU = {'ID': airU['mac'], 'Latitude': avgLat, 'Longitude': avgLng, 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
         dataSeries.append(anAirU)
 
     end = time.time()

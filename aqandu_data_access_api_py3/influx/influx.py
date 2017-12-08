@@ -139,7 +139,7 @@ def getLiveSensors():
 
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
 
-        queryInfluxAirU_lastPM25 = "SELECT LAST(\"pm2.5 (ug/m^3)\") AS pm25, ID " \
+        queryInfluxAirU_lastPM25 = "SELECT LAST("+lookupParameterToAirUInflux.get('pm25') + ") AS pm25, ID " \
                                    "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_PM25'] + " "\
                                    "WHERE ID = '" + airU["mac"] + "' and time >= '" + yesterdayStr + "' " \
 

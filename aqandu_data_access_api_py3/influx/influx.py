@@ -298,8 +298,9 @@ def getRawDataFrom():
     # print('jsonParameters', jsonParameters)
 
 # TODO get the data for airUs
+    dataSeries = []
     if queryParameters['sensorSource'] == 'airu':
-        print('airU')
+        print('airu')
         logger.info(queryParameters['sensorSource'])
 
         start = time.time()
@@ -308,55 +309,60 @@ def getRawDataFrom():
         whatToShow = queryParameters['show'].split(',')
 
         # http://0.0.0.0:5000/api/rawDataFrom?id=D0B5C2F31E1F&sensorSource=AirU&start=2017-12-02T22:17:00Z&end=2017-12-03T22:17:00Z&show=all
+
+
+        influxClientAirU = InfluxDBClient(
+                    host=current_app.config['INFLUX_HOST'],
+                    port=current_app.config['INFLUX_PORT'],
+                    username=current_app.config['INFLUX_USERNAME'],
+                    password=current_app.config['INFLUX_PASSWORD'],
+                    database=current_app.config['INFLUX_AIRU_DATABASE'],
+                    ssl=current_app.config['SSL'],
+                    verify_ssl=current_app.config['SSL'])
+
+        # query each db
+        toShow = []
         if 'all' in whatToShow:
+            toShow = airUdbs
+        else:
+            toShow = whatToShow
 
-            influxClientAirU = InfluxDBClient(
-                        host=current_app.config['INFLUX_HOST'],
-                        port=current_app.config['INFLUX_PORT'],
-                        username=current_app.config['INFLUX_USERNAME'],
-                        password=current_app.config['INFLUX_PASSWORD'],
-                        database=current_app.config['INFLUX_AIRU_DATABASE'],
-                        ssl=current_app.config['SSL'],
-                        verify_ssl=current_app.config['SSL'])
+        for aDB in toShow:
 
-            # query each db
-            dataSeries = []
-            for aDB in airUdbs:
+            queryAirU = "SELECT ID, SensorModel, " + lookupParameterToAirUInflux.get(aDB) + " FROM " + aDB + " " \
+                        "WHERE ID = '" + queryParameters['id'] + "' " \
+                        "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
 
-                queryAirU = "SELECT ID, SensorModel, " + lookupParameterToAirUInflux.get(aDB) + " FROM " + aDB + " " \
-                            "WHERE ID = '" + queryParameters['id'] + "' " \
-                            "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
+            print(queryAirU)
 
-                print(queryAirU)
+            dataAirU = influxClientAirU.query(queryAirU, epoch=None)
+            dataAirU = dataAirU.raw
 
-                dataAirU = influxClientAirU.query(queryAirU, epoch=None)
-                dataAirU = dataAirU.raw
+            valuesAirU = dataAirU['series'][0]['values']
+            columnsAirU = dataAirU['series'][0]['columns']
 
-                valuesAirU = dataAirU['series'][0]['values']
-                columnsAirU = dataAirU['series'][0]['columns']
+            if not dataSeries:
+                dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+            else:
+                newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
 
-                if not dataSeries:
-                    dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
-                else:
-                    newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                # print(list(zip(dataSeries, newDataSeries)))
+                # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)
+                # dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
 
-                    # print(list(zip(dataSeries, newDataSeries)))
-                    # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)
-                    # dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
+                tmpList = []
+                for dict1, dict2 in list(zip(dataSeries, newDataSeries)):
+                    # print(elem1, elem2)
+                    if dict1['time'].split('.')[0] == dict2['time'].split('.')[0]:
+                        # replace the time attribute with a new key so it does not copy over the dict1's time when being merged
+                        dict2['time_' + aDB] = dict2.pop('time')
+                        mergedObject = mergeTwoDicts(dict1, dict2)
 
-                    tmpList = []
-                    for dict1, dict2 in list(zip(dataSeries, newDataSeries)):
-                        # print(elem1, elem2)
-                        if dict1['time'].split('.')[0] == dict2['time'].split('.')[0]:
-                            # replace the time attribute with a new key so it does not copy over the dict1's time when being merged
-                            dict2['time_' + aDB] = dict2.pop('time')
-                            mergedObject = mergeTwoDicts(dict1, dict2)
+                        tmpList.append(mergedObject)
 
-                            tmpList.append(mergedObject)
+                dataSeries = tmpList
 
-                    dataSeries = tmpList
-
-                    # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
+                # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
 
         end = time.time()
 

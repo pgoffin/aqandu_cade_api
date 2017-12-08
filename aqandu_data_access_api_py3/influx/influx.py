@@ -283,7 +283,7 @@ def getAllSensorsLonger():
 # for each tag check purpleAir, DAQ and mesowest for the location data
 
 
-# /api/rawDataFrom?id=1010&sensorSource=AirU&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=all
+# /api/rawDataFrom?id=1010&sensorSource=PurpleAir&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=all
 # /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=pm25,pm1
 @influx.route('/api/rawDataFrom', methods=['GET'])
 def getRawDataFrom():
@@ -322,7 +322,7 @@ def getRawDataFrom():
             # query each db
             dataSeries = []
             for aDB in airUdbs:
-                print(aDB, lookupParameterToAirUInflux.get(aDB))
+
                 queryAirU = "SELECT ID, SensorModel, " + lookupParameterToAirUInflux.get(aDB) + " FROM " + aDB + " " \
                             "WHERE ID = '" + queryParameters['id'] + "' " \
                             "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
@@ -342,7 +342,21 @@ def getRawDataFrom():
 
                     # print(list(zip(dataSeries, newDataSeries)))
                     # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)
-                    dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
+                    # dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
+
+                    tmpList = []
+                    for dict1, dict2 in list(zip(dataSeries, newDataSeries)):
+                        # print(elem1, elem2)
+                        if dict1['time'].split('.')[0] == dict2['time'].split('.')[0]:
+                            # replace the time attribute with a new key so it does not copy over the dict1's time when being merged
+                            dict2['time_' + aDB] = dict2.pop('time')
+                            mergedObject = mergeTwoDicts(dict1, dict2)
+
+                            tmpList.append(mergedObject)
+
+                    dataSeries = tmpList
+
+                    # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
 
         end = time.time()
 
@@ -430,6 +444,7 @@ def getProcessedDataFrom():
 
     return jsonify(pmTimeSeries)
 
+
 # http://0.0.0.0:5000/api/lastValue?fieldKey=pm25
 @influx.route('/api/lastValue', methods=['GET'])
 def getLastValuesForLiveSensor():
@@ -512,3 +527,10 @@ def getAllCurrentlyLiveAirUs():
         liveAirUs.append({'mac': ''.join(aSensor['sensor_mac'].split(':')), 'registeredAt': aSensor['created_at']})
 
     return liveAirUs
+
+
+# https://stackoverflow.com/questions/38987/how-to-merge-two-dictionaries-in-a-single-expression
+def mergeTwoDicts(x, y):
+    z = x.copy()   # start with x's keys and values
+    z.update(y)    # modifies z with y's keys and values & returns None
+    return z

@@ -143,16 +143,17 @@ def getLiveSensors():
                                    "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
                                    "WHERE ID = '" + airU["mac"] + "' and time >= '" + yesterdayStr + "' " \
 
+        logger.info('TESTINNGGGGGGG')
         logger.info(queryInfluxAirU_lastPM25)
 
         dataAirU_lastPM25 = influxClientAirU.query(queryInfluxAirU_lastPM25, epoch='ms')
         dataAirU_lastPM25 = dataAirU_lastPM25.raw
 
+        logger.info('TESTINNGGGGGGG2')
         logger.info(dataAirU_lastPM25)
 
         lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
         pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]
-
 
         anAirU = {'ID': airU['mac'], 'Latitude': avgLat, 'Longitude': avgLng, 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
         dataSeries.append(anAirU)

@@ -345,7 +345,13 @@ def getRawDataFrom():
 
         for aDB in toShow:
 
-            queryAirU = "SELECT ID, SensorModel, " + lookupParameterToAirUInflux.get(aDB) + " FROM " + aDB + " " \
+            if aDB == 'pm25':
+                # normalizing to pm25
+                fieldString = lookupParameterToAirUInflux.get(aDB) + 'AS pm25'
+            else:
+                fieldString = lookupParameterToAirUInflux.get(aDB)
+
+            queryAirU = "SELECT ID, SensorModel, " + fieldString + " FROM " + aDB + " " \
                         "WHERE ID = '" + queryParameters['id'] + "' " \
                         "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
 
@@ -518,6 +524,9 @@ def createSelection(typeOfQuery, querystring):
                 showExists = lookupQueryParameterToInflux.get(aShow)
 
                 if aShow != 'id' and showExists is not None:
+                    if aShow == 'pm25':
+                        showExists = showExists + ' AS pm25'
+
                     selectString = selectString + ", " + showExists
         # else:
         #     # AirU
@@ -527,7 +536,10 @@ def createSelection(typeOfQuery, querystring):
         argumentExists = lookupQueryParameterToInflux.get(argument)
 
         if argumentExists is not None:
-            selectString = querystring['function'] + "(" + argumentExists + ")"
+            alias = ''
+            if argument == 'pm25':
+                alias = alias + ' AS pm25 '
+            selectString = querystring['function'] + "(" + argumentExists + ")" + alias
 
     return selectString
 

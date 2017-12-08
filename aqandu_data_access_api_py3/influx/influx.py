@@ -298,7 +298,7 @@ def getRawDataFrom():
     # print('jsonParameters', jsonParameters)
 
 # TODO get the data for airUs
-    if queryParameters['sensorSource'] == 'AirU':
+    if queryParameters['sensorSource'] == 'airu':
         print('airU')
         logger.info(queryParameters['sensorSource'])
 
@@ -347,7 +347,6 @@ def getRawDataFrom():
         end = time.time()
 
     else:
-        # print('tesing')
 
         influxClientPolling = InfluxDBClient(
                     host=current_app.config['INFLUX_HOST'],
@@ -431,7 +430,7 @@ def getProcessedDataFrom():
 
     return jsonify(pmTimeSeries)
 
-
+# http://0.0.0.0:5000/api/lastValue?fieldKey=pm25
 @influx.route('/api/lastValue', methods=['GET'])
 def getLastValuesForLiveSensor():
 

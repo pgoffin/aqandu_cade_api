@@ -139,7 +139,7 @@ def getLiveSensors():
 
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
 
-        anAirU = {"ID": airU['mac'], "Latitude": avgLat, "Longitude": avgLng, "Sensor Source": 'AirU'}
+        anAirU = {"ID": airU['mac'], "Latitude": avgLat, "Longitude": avgLng, "Sensor Source": 'airu'}
         dataSeries.append(anAirU)
 
     end = time.time()

@@ -79,7 +79,7 @@ def sensorIsConnected():
                 port=current_app.config['INFLUX_PORT'],
                 username=current_app.config['INFLUX_USERNAME'],
                 password=current_app.config['INFLUX_PASSWORD'],
-                database=current_app.config['INFLUX_AIRU_LOGGING_SENSOR_CONNECTION'],
+                database=current_app.config['INFLUX_AIRU_LOGGING_SENSOR_CONNECTION_DB'],
                 ssl=current_app.config['SSL'],
                 verify_ssl=current_app.config['SSL'])
 
@@ -120,7 +120,7 @@ def sensorIsConnected():
 
         try:
             aMeasurement = {
-                'measurement': 'logSensorConnection',
+                'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR'],
                 'fields': {
                     'email': queryParameters['email'],
                     'phone': queryParameters['phone'],

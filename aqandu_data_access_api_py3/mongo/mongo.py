@@ -62,7 +62,7 @@ def sensorIsConnected():
 
     LOGGER.info('sensorIsConnected POST request started')
 
-    print('testing6')
+    LOGGER.info('testing6')
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
         password=current_app.config['MONGO_PASSWORD'],
@@ -81,31 +81,31 @@ def sensorIsConnected():
     # test1 = request.get_json(force=True)
     # print(test1)
     queryParameters = request.get_json()
-    print(queryParameters)
+    LOGGER.info(queryParameters)
 
     # TODO  Do parameter checking
 
     try:
         start = time.time()
         now = datetime.utcnow()
-        print('testing4')
+        LOGGER.info('testing4')
         aSensor = {"sensor_mac": queryParameters['mac'],
                    "email": queryParameters['email'],
                    "phone": queryParameters['phone'],
                    "mapVisibility": queryParameters['mapVisibility'],
                    "created_at": now}
 
-        print('testing1')
+        LOGGER.info('testing1')
         sendMessage(client, current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE'])
-        print('testing2')
+        LOGGER.info('testing2')
         db.sensors.insert_one(aSensor)
-        print('testing3')
+        LOGGER.info('testing3')
 
 
 
         end = time.time()
 
-        print("*********** Time to insert:", end - start)
+        LOGGER.info("*********** Time to insert:", end - start)
 
         return jsonify(message='The sensor was registered.')
     except Exception:

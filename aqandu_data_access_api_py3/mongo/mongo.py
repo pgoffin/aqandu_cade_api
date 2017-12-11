@@ -1,5 +1,6 @@
 import time
 # import logging
+import distutils
 
 from datetime import datetime
 from flask import jsonify, request, Blueprint
@@ -117,7 +118,7 @@ def sensorIsConnected():
             'fields': {
                 'email': queryParameters['email'],
                 'phone': queryParameters['phone'],
-                'mapVisibility': queryParameters['mapVisibility']
+                'mapVisibility': bool(distutils.util.strtobool(queryParameters['mapVisibility']))
             },
             'tags': {
                 'MACaddress': queryParameters['mac']

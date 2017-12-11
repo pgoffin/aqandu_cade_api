@@ -118,30 +118,27 @@ def sensorIsConnected():
 
         end = time.time()
 
-        try:
-            aMeasurement = {
-                'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
-                'fields': {
-                    'email': queryParameters['email'],
-                    'phone': queryParameters['phone'],
-                    'map visibility': queryParameters['mapVisibility'],
-                },
-                'tags': {
-                    'MAC address': queryParameters['mac']
-                }
+        aMeasurement = {
+            'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
+            'fields': {
+                'email': queryParameters['email'],
+                'phone': queryParameters['phone'],
+                'map visibility': queryParameters['mapVisibility'],
+            },
+            'tags': {
+                'MAC address': queryParameters['mac']
             }
+        }
 
-            influxClientLoggingSensorConnections.write(aMeasurement)
-        except InfluxDBClientError as e:
-            LOGGER.error('InfluxDBClientError:\tWriting to influxdb lead to a write error.\n')
-            LOGGER.error(aSensor)
-            LOGGER.error(e)
-        else:
-            LOGGER.error('Logging sensor connection successfull.')
+        influxClientLoggingSensorConnections.write(aMeasurement)
 
         LOGGER.info("*********** Time to insert:", end - start)
 
         return jsonify(message='The sensor was registered.')
+    except InfluxDBClientError as e:
+        LOGGER.error('InfluxDBClientError:\tWriting to influxdb lead to a write error.\n')
+        LOGGER.error(aSensor)
+        LOGGER.error(e)
     except Exception:
         return jsonify(message='An error occurred.')
 

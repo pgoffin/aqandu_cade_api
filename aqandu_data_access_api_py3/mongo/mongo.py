@@ -125,7 +125,7 @@ def sensorIsConnected():
         }
 
         LOGGER.info(aMeasurement)
-        # influxClientLoggingSensorConnections.write_points([aMeasurement])
+        influxClientLoggingSensorConnections.write_points([aMeasurement])
 
         LOGGER.info('testing1')
         sendMessage(client, current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE'], queryParameters['mac'])

@@ -32,7 +32,6 @@ logHandler.setFormatter(formatter)
 app.logger.addHandler(logHandler)
 
 
-
 Compress(app)
 # CORS(app)
 # sentry = Sentry(app, dsn=app.config['SENTRY'])

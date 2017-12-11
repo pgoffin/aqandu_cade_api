@@ -4,6 +4,8 @@ import logging
 from datetime import datetime
 from flask import jsonify, request, Blueprint
 from flask import current_app
+from influxdb import InfluxDBClient
+from influxdb.exceptions import InfluxDBClientError
 from pymongo import MongoClient
 from twilio.rest import Client
 
@@ -62,7 +64,6 @@ def sensorIsConnected():
 
     LOGGER.info('sensorIsConnected POST request started')
 
-    LOGGER.info('testing6')
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
         password=current_app.config['MONGO_PASSWORD'],
@@ -73,22 +74,36 @@ def sensorIsConnected():
     mongoClient = MongoClient(mongodb_url)
     db = mongoClient.airudb
 
+    influxClientLoggingSensorConnections = InfluxDBClient(
+                host=current_app.config['INFLUX_HOST'],
+                port=current_app.config['INFLUX_PORT'],
+                username=current_app.config['INFLUX_USERNAME'],
+                password=current_app.config['INFLUX_PASSWORD'],
+                database=current_app.config['INFLUX_AIRU_LOGGING_SENSOR_CONNECTION'],
+                ssl=current_app.config['SSL'],
+                verify_ssl=current_app.config['SSL'])
+
     # TWILIO client
     client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
 
-    # queryParameters = request.args
-    # print(queryParameters)
-    # test1 = request.get_json(force=True)
-    # print(test1)
     queryParameters = request.get_json()
     LOGGER.info(queryParameters)
 
-    # TODO  Do parameter checking
+    # TODO Do parameter checking
+    # TODO Add the request to an influxdb (logging)
+    # TODO https://stackoverflow.com/questions/3759981/get-ip-address-of-visitors
+    # TODO https://stackoverflow.com/questions/33818540/how-to-get-the-first-client-ip-from-x-forwarded-for-behind-nginx-gunicorn?noredirect=1&lq=1
 
     try:
         start = time.time()
         now = datetime.utcnow()
         LOGGER.info('testing4')
+
+        # TODO check if mac,email or mac,phone exists already
+        # if it already exists do nothin
+        # if mac exists, but phone or email is new update
+        # if mac does not yet exist insert
+
         aSensor = {"sensor_mac": queryParameters['mac'],
                    "email": queryParameters['email'],
                    "phone": queryParameters['phone'],
@@ -96,14 +111,33 @@ def sensorIsConnected():
                    "created_at": now}
 
         LOGGER.info('testing1')
-        sendMessage(client, current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE'])
+        sendMessage(client, current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE'], queryParameters['mac'])
         LOGGER.info('testing2')
         db.sensors.insert_one(aSensor)
         LOGGER.info('testing3')
 
-
-
         end = time.time()
+
+        try:
+            aMeasurement = {
+                'measurement': 'logSensorConnection',
+                'fields': {
+                    'email': queryParameters['email'],
+                    'phone': queryParameters['phone'],
+                    'map visibility': queryParameters['mapVisibility'],
+                },
+                'tags': {
+                    'MAC address': queryParameters['mac']
+                }
+            }
+
+            influxClientLoggingSensorConnections.write(aMeasurement)
+        except InfluxDBClientError as e:
+            LOGGER.error('InfluxDBClientError:\tWriting to influxdb lead to a write error.\n')
+            LOGGER.error(aSensor)
+            LOGGER.error(e)
+        else:
+            LOGGER.error('Logging sensor connection successfull.')
 
         LOGGER.info("*********** Time to insert:", end - start)
 
@@ -112,12 +146,12 @@ def sensorIsConnected():
         return jsonify(message='An error occurred.')
 
 
-def sendMessage(twilioClient, messageFrom):
-    print('message being sent')
+def sendMessage(twilioClient, messageFrom, mac):
+    LOGGER.info('message being sent')
 
     message = twilioClient.messages.create(
-        to = "+18015583223",
-        from_ = messageFrom,
-        body = "Hello from AQandU!")
+        to="+18015583223",
+        from_=messageFrom,
+        body="Hello from AQandU! Your sensor " + mac + " is now connected!!")
 
-    print(message.sid)
+    LOGGER.info(message.sid)

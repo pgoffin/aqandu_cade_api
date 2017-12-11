@@ -1,5 +1,5 @@
 import time
-import logging
+# import logging
 
 from datetime import datetime
 from flask import jsonify, request, Blueprint
@@ -8,9 +8,11 @@ from influxdb import InfluxDBClient
 from influxdb.exceptions import InfluxDBClientError
 from pymongo import MongoClient
 from twilio.rest import Client
+from werkzeug.local import LocalProxy
 
-logging.basicConfig(level=logging.DEBUG)
-LOGGER = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.DEBUG)
+# LOGGER = logging.getLogger(__name__)
+LOGGER = LocalProxy(lambda: current_app.logger)
 
 mongo = Blueprint('mongo', __name__)
 
@@ -139,7 +141,7 @@ def sensorIsConnected():
 
         return jsonify(message='The sensor was registered.')
     except InfluxDBClientError as e:
-        LOGGER.error('InfluxDBClientError:\tWriting to influxdb lead to a write error.\n')
+        LOGGER.error('InfluxDBClientError:\tWriting to influxdb lead to a write error.')
         LOGGER.error(aSensor)
         LOGGER.error(e)
     except Exception:

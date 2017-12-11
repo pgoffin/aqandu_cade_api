@@ -59,6 +59,9 @@ def registerSensor():
 # http://air.eng.utah.edu/dbapi/api/sensorIsConnected?sensor_mac=F4:5E:AB:9C:02:DF&email=pink@sci.com&phone=+8015583223&mapVisibility=true
 @mongo.route('/api/sensorIsConnected', methods=['POST'])
 def sensorIsConnected():
+
+    LOGGER.info('sensorIsConnected POST request started')
+
     print('testing6')
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],

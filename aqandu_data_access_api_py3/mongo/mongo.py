@@ -112,19 +112,19 @@ def sensorIsConnected():
                    "mapVisibility": queryParameters['mapVisibility'],
                    "created_at": now}
 
-        # aMeasurement = {
-        #     'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
-        #     'fields': {
-        #         'email': queryParameters['email'],
-        #         'phone': queryParameters['phone'],
-        #         'mapVisibility': queryParameters['mapVisibility']
-        #     },
-        #     'tags': {
-        #         'MACaddress': queryParameters['mac']
-        #     }
-        # }
+        aMeasurement = {
+            'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
+            'fields': {
+                'email': queryParameters['email'],
+                'phone': queryParameters['phone'],
+                'mapVisibility': queryParameters['mapVisibility']
+            },
+            'tags': {
+                'MACaddress': queryParameters['mac']
+            }
+        }
 
-        LOGGER.info('testing5')
+        LOGGER.info(aMeasurement)
         # influxClientLoggingSensorConnections.write_points([aMeasurement])
 
         LOGGER.info('testing1')

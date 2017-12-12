@@ -114,8 +114,8 @@ def sensorIsConnected():
             'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
             'fields': {
                 'email': queryParameters['email'],
-                'phone': queryParameters['phone'],
-                'mapVisibility': bool(distutils.util.strtobool(queryParameters['mapVisibility']))
+                'mapVisibility': bool(distutils.util.strtobool(queryParameters['mapVisibility'])),
+                'phone': queryParameters['phone']
             },
             'tags': {
                 'macAddress': queryParameters['mac']
@@ -127,14 +127,19 @@ def sensorIsConnected():
 
         # logging every connection attempt
         influxClientLoggingSensorConnections.write_points([sensorConnectionMeasurement])
+        LOGGER.info('testing1')
 
         endInfluxWrite = time.time()
+        LOGGER.info('testing2')
         timeToWriteInflux = endInfluxWrite - startInfluxWrite
-        LOGGER.info("*********** Time to write to influx:" + timeToWriteInflux)
+        LOGGER.info('testing3')
+        LOGGER.info('*********** Time to write to influx: ' + timeToWriteInflux)
+        LOGGER.info('testing4')
 
         # check if already entry with given MAC address if no insert, if yes more checks
         startMongoWrite = time.time()
         entryWithGivenMAC = db.sensors.find_one({'sensorMac': queryParameters['mac']})
+        LOGGER.info('testing5')
         LOGGER.info(entryWithGivenMAC)
         if entryWithGivenMAC is None:
             db.sensors.insert_one(aSensor)

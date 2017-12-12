@@ -133,7 +133,7 @@ def sensorIsConnected():
         LOGGER.info('testing2')
         timeToWriteInflux = endInfluxWrite - startInfluxWrite
         LOGGER.info('testing3')
-        LOGGER.info('*********** Time to write to influx: ' + timeToWriteInflux)
+        LOGGER.info('*********** Time to write to influx: %s', timeToWriteInflux)
         LOGGER.info('testing4')
 
         # check if already entry with given MAC address if no insert, if yes more checks

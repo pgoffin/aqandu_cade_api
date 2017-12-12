@@ -149,13 +149,14 @@ def sensorIsConnected():
         LOGGER.info('*********** Time to write to Mongo: %s', timeToWriteMongo)
 
         #  if there is a phone number prefer phone
+         theMessage = 'Hello from AQandU! Your sensor with MAC address ' + queryParameters['mac'] + ' is now connected to the internet and is gathering data. Thank you for participating!'
         if queryParameters['phone'] != '':
             LOGGER.info('sending a text')
             startSendText = time.time()
 
             sender = current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE']
-            recipient = queryParameters['email']
-            theMessage = 'Hello from AQandU! Your sensor with MAC address ' + queryParameters['mac'] + ' is now connected to the internet and is gathering data. Thank you for participating!'
+            recipient = queryParameters['phone']
+
             sendText(client, sender, recipient, theMessage)
 
             endSendText = time.time()

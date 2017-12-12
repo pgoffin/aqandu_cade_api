@@ -127,31 +127,26 @@ def sensorIsConnected():
 
         # logging every connection attempt
         influxClientLoggingSensorConnections.write_points([sensorConnectionMeasurement])
-        LOGGER.info('testing1')
 
         endInfluxWrite = time.time()
-        LOGGER.info('testing2')
         timeToWriteInflux = endInfluxWrite - startInfluxWrite
-        LOGGER.info('testing3')
         LOGGER.info('*********** Time to write to influx: %s', timeToWriteInflux)
-        LOGGER.info('testing4')
 
         # check if already entry with given MAC address if no insert, if yes more checks
         startMongoWrite = time.time()
         entryWithGivenMAC = db.sensors.find_one({'sensorMac': queryParameters['mac']})
-        LOGGER.info('testing5')
         LOGGER.info(entryWithGivenMAC)
         if entryWithGivenMAC is None:
             db.sensors.insert_one(aSensor)
-            LOGGER.info(queryParameters['mac'] + ' inserted into Mongo db')
+            LOGGER.info('%s inserted into Mongo db.', queryParameters['mac'])
         else:
             # a mac address will always have only one entry, if there is already an entry replace it with the new entry
             db.sensors.replace_one({'_id': entryWithGivenMAC['_id']}, aSensor)
-            LOGGER.info(queryParameters['mac'] + ' was already present. Replaced with new information.')
+            LOGGER.info('%s was already present. Replaced with new information.', queryParameters['mac'])
 
         endMongoWrite = time.time()
         timeToWriteMongo = endMongoWrite - startMongoWrite
-        LOGGER.info("*********** Time to write to Mongo:" + timeToWriteMongo)
+        LOGGER.info('*********** Time to write to Mongo: %s', timeToWriteMongo)
 
         #  if there is a phone number prefer phone
         if queryParameters['phone'] != '':
@@ -165,7 +160,7 @@ def sensorIsConnected():
 
             endSendText = time.time()
             timeToSendText = endSendText - startSendText
-            LOGGER.info("*********** Time to send text:" + timeToSendText)
+            LOGGER.info('*********** Time to send text: %s', timeToSendText)
 
         elif queryParameters['email'] != '':
 
@@ -185,7 +180,7 @@ def sensorIsConnected():
             # mail.send(msg)
             endSendEmail = time.time()
             timeToSendEmail = endSendEmail - startSendEmail
-            LOGGER.info("*********** Time to send Email:" + timeToSendEmail)
+            LOGGER.info('*********** Time to send Email: %s', timeToSendEmail)
 
         else:
             LOGGER.info('no phone number and no email address')

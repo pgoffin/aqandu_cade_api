@@ -1,19 +1,24 @@
 import time
 # import logging
 import distutils
+from threading import Thread
 
 from datetime import datetime
 from flask import jsonify, request, Blueprint
 from flask import current_app
+from flask_mail import Message
 from influxdb import InfluxDBClient
 from influxdb.exceptions import InfluxDBClientError
 from pymongo import MongoClient
 from twilio.rest import Client
 from werkzeug.local import LocalProxy
 
+from aqandu_data_access_api_py3 import mail, app
+
 # logging.basicConfig(level=logging.DEBUG)
 # LOGGER = logging.getLogger(__name__)
 LOGGER = LocalProxy(lambda: current_app.logger)
+# theMail = LocalProxy(lambda: current_app.mail)
 
 mongo = Blueprint('mongo', __name__)
 
@@ -93,27 +98,19 @@ def sensorIsConnected():
     LOGGER.info(queryParameters)
 
     # TODO Do parameter checking
-    # TODO Add the request to an influxdb (logging)
-    # TODO https://stackoverflow.com/questions/3759981/get-ip-address-of-visitors
-    # TODO https://stackoverflow.com/questions/33818540/how-to-get-the-first-client-ip-from-x-forwarded-for-behind-nginx-gunicorn?noredirect=1&lq=1
+    # TODO add the tweak to use threads: http://www.patricksoftwareblog.com/sending-email/
+    # TODO check if the MAC address is in our list of MAC addresses
 
     try:
-        start = time.time()
         now = datetime.utcnow()
-        LOGGER.info('testing4')
 
-        # TODO check if mac,email or mac,phone exists already
-        # if it already exists do nothin
-        # if mac exists, but phone or email is new update
-        # if mac does not yet exist insert
-
-        aSensor = {"sensor_mac": queryParameters['mac'],
+        aSensor = {"macAddress": queryParameters['mac'],
                    "email": queryParameters['email'],
                    "phone": queryParameters['phone'],
                    "mapVisibility": queryParameters['mapVisibility'],
-                   "created_at": now}
+                   "createdAt": now}
 
-        aMeasurement = {
+        sensorConnectionMeasurement = {
             'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
             'fields': {
                 'email': queryParameters['email'],
@@ -121,26 +118,75 @@ def sensorIsConnected():
                 'mapVisibility': bool(distutils.util.strtobool(queryParameters['mapVisibility']))
             },
             'tags': {
-                'MACaddress': queryParameters['mac']
+                'macAddress': queryParameters['mac']
             }
         }
 
-        LOGGER.info(aMeasurement)
-        influxClientLoggingSensorConnections.write_points([aMeasurement])
+        LOGGER.info(sensorConnectionMeasurement)
+        startInfluxWrite = time.time()
 
-        LOGGER.info('testing1')
-        sendMessage(client, current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE'], queryParameters['mac'])
-        LOGGER.info('testing2')
-        db.sensors.insert_one(aSensor)
-        LOGGER.info('testing3')
+        # logging every connection attempt
+        influxClientLoggingSensorConnections.write_points([sensorConnectionMeasurement])
 
-        end = time.time()
+        endInfluxWrite = time.time()
+        timeToWriteInflux = endInfluxWrite - startInfluxWrite
+        LOGGER.info("*********** Time to write to influx:" + timeToWriteInflux)
 
+        # check if already entry with given MAC address if no insert, if yes more checks
+        startMongoWrite = time.time()
+        entryWithGivenMAC = db.sensors.find_one({'sensorMac': queryParameters['mac']})
+        LOGGER.info(entryWithGivenMAC)
+        if entryWithGivenMAC is None:
+            db.sensors.insert_one(aSensor)
+            LOGGER.info(queryParameters['mac'] + ' inserted into Mongo db')
+        else:
+            # a mac address will always have only one entry, if there is already an entry replace it with the new entry
+            db.sensors.replace_one({'_id': entryWithGivenMAC['_id']}, aSensor)
+            LOGGER.info(queryParameters['mac'] + ' was already present. Replaced with new information.')
 
+        endMongoWrite = time.time()
+        timeToWriteMongo = endMongoWrite - startMongoWrite
+        LOGGER.info("*********** Time to write to Mongo:" + timeToWriteMongo)
 
-        LOGGER.info("*********** Time to insert:", end - start)
+        #  if there is a phone number prefer phone
+        if queryParameters['phone'] != '':
+            LOGGER.info('sending a text')
+            startSendText = time.time()
+
+            sender = current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE']
+            recipient = queryParameters['email']
+            theMessage = 'Hello from AQandU! Your sensor with MAC address ' + queryParameters['mac'] + ' is now connected to the internet and is gathering data. Thank you for participating!'
+            sendText(client, sender, recipient, theMessage)
+
+            endSendText = time.time()
+            timeToSendText = endSendText - startSendText
+            LOGGER.info("*********** Time to send text:" + timeToSendText)
+
+        elif queryParameters['email'] != '':
+
+            LOGGER.info('sending an email')
+            startSendEmail = time.time()
+
+            aSubject = 'AQandU sensor is connected'
+            recipients = [queryParameters['email']]
+            # textBody = 'Hello from AQandU! Your sensor with MAC address ' + queryParameters['mac'] + ' is now connected to the internet and is gathering data. Thank you for participating!'
+
+            sendEmail(aSubject, recipients, theMessage)
+            # msg = Message(subject='AQandU sensor is connected',
+            #               body='Hello from AQandU!! Your sensor is now connected to the internet and is gathering data. Thank you for participating!',
+            #               recipients=[queryParameters['email']])
+
+            LOGGER.info('testing3')
+            # mail.send(msg)
+            endSendEmail = time.time()
+            timeToSendEmail = endSendEmail - startSendEmail
+            LOGGER.info("*********** Time to send Email:" + timeToSendEmail)
+
+        else:
+            LOGGER.info('no phone number and no email address')
 
         return jsonify(message='The sensor was registered.')
+
     except InfluxDBClientError as e:
         LOGGER.error('InfluxDBClientError:\tWriting to influxdb lead to a write error.')
         LOGGER.error(aSensor)
@@ -149,12 +195,28 @@ def sensorIsConnected():
         return jsonify(message='An error occurred.')
 
 
-def sendMessage(twilioClient, messageFrom, mac):
-    LOGGER.info('message being sent')
+def sendText(twilioClient, sender, recipient, message):
+    """Sends a text"""
+    LOGGER.info('Text is being sent.')
 
     message = twilioClient.messages.create(
-        to="+18015583223",
-        from_=messageFrom,
-        body="Hello from AQandU! Your sensor " + mac + " is now connected!!")
+        to=recipient,
+        from_=sender,
+        body=message)
 
     LOGGER.info(message.sid)
+
+
+def sendAsyncEmail(msg):
+    with app.app_context():
+        mail.send(msg)
+
+
+def sendEmail(subject, recipients, text_body):
+    """Sends an email"""
+    msg = Message(subject, recipients=recipients)
+    msg.body = text_body
+    # msg.html = html_body
+    thr = Thread(target=sendAsyncEmail, args=[msg])
+    thr.start()
+    # mail.send(msg)

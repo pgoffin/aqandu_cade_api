@@ -1,19 +1,21 @@
 from flask import Flask
 from flask_compress import Compress
+from flask_mail import Mail
 # from flask_cors import CORS
 import logging
 import logging.handlers as handlers
 # from raven.contrib.flask import Sentry
 
-from aqandu_data_access_api_py3.influx.influx import influx
-from aqandu_data_access_api_py3.mongo.mongo import mongo
-
-
 app = Flask(__name__, instance_relative_config=True)   # create the application instance
 app.config.from_object('config')
 app.config.from_pyfile('config.py')
 
+mail = Mail(app)
+
 # register the blueprints
+from aqandu_data_access_api_py3.influx.influx import influx
+from aqandu_data_access_api_py3.mongo.mongo import mongo
+
 app.register_blueprint(influx)
 app.register_blueprint(mongo)
 
@@ -35,6 +37,8 @@ app.logger.addHandler(logHandler)
 Compress(app)
 # CORS(app)
 # sentry = Sentry(app, dsn=app.config['SENTRY'])
+
+
 
 
 @app.route("/")

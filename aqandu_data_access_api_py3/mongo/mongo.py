@@ -1,5 +1,4 @@
 import time
-# import logging
 import distutils
 from threading import Thread
 
@@ -15,55 +14,9 @@ from werkzeug.local import LocalProxy
 
 from aqandu_data_access_api_py3 import mail, app
 
-# logging.basicConfig(level=logging.DEBUG)
-# LOGGER = logging.getLogger(__name__)
 LOGGER = LocalProxy(lambda: current_app.logger)
-# theMail = LocalProxy(lambda: current_app.mail)
 
 mongo = Blueprint('mongo', __name__)
-
-
-# http://air.eng.utah.edu/dbapi/api/registerSensor
-@mongo.route('/api/registerSensor', methods=['POST'])
-def registerSensor():
-
-    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
-        user=current_app.config['MONGO_USER'],
-        password=current_app.config['MONGO_PASSWORD'],
-        host=current_app.config['MONGO_HOST'],
-        port=current_app.config['MONGO_PORT'],
-        database=current_app.config['MONGO_DATABASE'])
-
-    mongoClient = MongoClient(mongodb_url)
-    db = mongoClient.airudb
-    print(db)
-
-    # queryParameters = request.args
-    # print(queryParameters)
-    # test1 = request.get_json(force=True)
-    # print(test1)
-    queryParameters = request.get_json()
-    print(queryParameters)
-
-    # TODO  Do parameter checking
-
-    try:
-        start = time.time()
-        now = datetime.utcnow()
-
-        aSensor = {"sensor_mac": queryParameters['sensor_mac'],
-                   "sensor_holder": queryParameters['sensor_holder'],
-                   "created_at": now}
-
-        db.sensors.insert_one(aSensor)
-
-        end = time.time()
-
-        print("*********** Time to insert:", end - start)
-
-        return jsonify(message='The sensor was registered.')
-    except Exception:
-        return jsonify(message='An error occurred.')
 
 
 # http://air.eng.utah.edu/dbapi/api/sensorIsConnected?sensor_mac=F4:5E:AB:9C:02:DF&email=pink@sci.com&phone=+8015583223&mapVisibility=true
@@ -98,7 +51,6 @@ def sensorIsConnected():
     LOGGER.info(queryParameters)
 
     # TODO Do parameter checking
-    # TODO add the tweak to use threads: http://www.patricksoftwareblog.com/sending-email/
     # TODO check if the MAC address is in our list of MAC addresses
 
     try:
@@ -214,4 +166,3 @@ def sendEmail(subject, recipients, text_body):
     # msg.html = html_body
     thr = Thread(target=sendAsyncEmail, args=[msg])
     thr.start()
-    # mail.send(msg)

@@ -134,7 +134,7 @@ def sensorIsConnected():
 
         # check if already entry with given MAC address if no insert, if yes more checks
         startMongoWrite = time.time()
-        entryWithGivenMAC = db.sensors.find_one({'sensorMac': queryParameters['mac']})
+        entryWithGivenMAC = db.sensors.find_one({'macAddress': queryParameters['mac']})
         LOGGER.info(entryWithGivenMAC)
         if entryWithGivenMAC is None:
             db.sensors.insert_one(aSensor)
@@ -170,15 +170,9 @@ def sensorIsConnected():
 
             aSubject = 'AQandU sensor is connected'
             recipients = [queryParameters['email']]
-            # textBody = 'Hello from AQandU! Your sensor with MAC address ' + queryParameters['mac'] + ' is now connected to the internet and is gathering data. Thank you for participating!'
 
             sendEmail(aSubject, recipients, theMessage)
-            # msg = Message(subject='AQandU sensor is connected',
-            #               body='Hello from AQandU!! Your sensor is now connected to the internet and is gathering data. Thank you for participating!',
-            #               recipients=[queryParameters['email']])
 
-            LOGGER.info('testing3')
-            # mail.send(msg)
             endSendEmail = time.time()
             timeToSendEmail = endSendEmail - startSendEmail
             LOGGER.info('*********** Time to send Email: %s', timeToSendEmail)

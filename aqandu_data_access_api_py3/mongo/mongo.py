@@ -114,8 +114,10 @@ def sensorIsConnected():
             endSendText = time.time()
             timeToSendText = endSendText - startSendText
             LOGGER.info('*********** Time to send text: %s', timeToSendText)
+        else:
+            LOGGER.info('no phone number provided')
 
-        elif queryParameters['email'] != '':
+        if queryParameters['email'] != '':
 
             LOGGER.info('sending an email')
             startSendEmail = time.time()
@@ -130,7 +132,7 @@ def sensorIsConnected():
             LOGGER.info('*********** Time to send Email: %s', timeToSendEmail)
 
         else:
-            LOGGER.info('no phone number and no email address')
+            LOGGER.info('no email address provided')
 
         return jsonify(message='The sensor was registered.')
 

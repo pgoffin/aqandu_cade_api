@@ -108,7 +108,7 @@ def getLiveSensors():
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
 
-    liveAirUs = getAllCurrentlyLiveAirUs()
+    liveAirUs = getAllCurrentlyLiveAirUs()  # call to mongodb
     logger.info(liveAirUs)
 
     influxClientAirU = InfluxDBClient(
@@ -123,7 +123,7 @@ def getLiveSensors():
     for airU in liveAirUs:
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + airU['mac'] + "' and time >= '" + yesterdayStr + "'" \
+                              "WHERE ID = '" + airU['macAddress'] + "' and time >= '" + yesterdayStr + "'" \
 
         dataAirU_lat = influxClientAirU.query(queryInfluxAirU_lat, epoch='ms')
         dataAirU_lat = dataAirU_lat.raw
@@ -132,7 +132,7 @@ def getLiveSensors():
 
         queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + airU["mac"] + "' and time >= '" + yesterdayStr + "' " \
+                              "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + yesterdayStr + "' " \
 
         dataAirU_lng = influxClientAirU.query(queryInfluxAirU_lng, epoch='ms')
         dataAirU_lng = dataAirU_lng.raw
@@ -141,7 +141,7 @@ def getLiveSensors():
 
         queryInfluxAirU_lastPM25 = "SELECT LAST("+lookupParameterToAirUInflux.get('pm25') + ") AS pm25, ID " \
                                    "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_PM25'] + " "\
-                                   "WHERE ID = '" + airU["mac"] + "' and time >= '" + yesterdayStr + "' " \
+                                   "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + yesterdayStr + "' " \
 
         logger.info('TESTINNGGGGGGG')
         logger.info(queryInfluxAirU_lastPM25)
@@ -155,7 +155,7 @@ def getLiveSensors():
         lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
         pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]
 
-        anAirU = {'ID': airU['mac'], 'Latitude': avgLat, 'Longitude': avgLng, 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
+        anAirU = {'ID': airU['macAddress'], 'Latitude': avgLat, 'Longitude': avgLng, 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
         dataSeries.append(anAirU)
 
     end = time.time()
@@ -558,7 +558,7 @@ def getAllCurrentlyLiveAirUs():
     liveAirUs = []
 
     for aSensor in db.sensors.find():
-        liveAirUs.append({'mac': ''.join(aSensor['sensor_mac'].split(':')), 'registeredAt': aSensor['created_at']})
+        liveAirUs.append({'macAddress': ''.join(aSensor['macAddress'].split(':')), 'registeredAt': aSensor['createdAt']})
 
     return liveAirUs
 

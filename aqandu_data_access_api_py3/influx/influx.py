@@ -41,7 +41,7 @@ lookupQueryParameterToInflux = {
     'secActive': 'SecActive'
 }
 
-
+# keys are also measurement names, values are the respective field key
 lookupParameterToAirUInflux = {
     'altitude': 'Altitude',
     'humidity': 'Humidity',
@@ -55,6 +55,7 @@ lookupParameterToAirUInflux = {
     'secActive': 'SecActive',
     'errors': 'Errors',
 }
+
 
 # with app.app_context():
 #     influxClientPolling = InfluxDBClient(
@@ -500,7 +501,28 @@ def getLastValuesForLiveSensor():
 
     lastValueObject = {aSensor["ID"]: aSensor for aSensor in dataSeries}
 
-    return jsonify(lastValueObject)
+    # getting the airu data
+    influxClientAirU = InfluxDBClient(
+                host=current_app.config['INFLUX_HOST'],
+                port=current_app.config['INFLUX_PORT'],
+                username=current_app.config['INFLUX_USERNAME'],
+                password=current_app.config['INFLUX_PASSWORD'],
+                database=current_app.config['INFLUX_AIRU_DATABASE'],
+                ssl=current_app.config['SSL'],
+                verify_ssl=current_app.config['SSL'])
+
+    queryAirU = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['fieldKey']) + "), ID FROM " + queryParameters['fieldKey'] + " GROUP BY ID"
+
+    dataAirU = influxClientAirU.query(queryAirU, epoch=None)
+    dataAirU = dataAirU.raw
+
+    dataSeriesAirU = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataAirU['series']))
+
+    lastValueObjectAirU = {anAirU["ID"]: anAirU for anAirU in dataSeriesAirU}
+
+    allLastValues = mergeTwoDicts(lastValueObject, lastValueObjectAirU)
+
+    return jsonify(allLastValues)
 
 
 # HELPER FUNCTIONS

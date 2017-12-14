@@ -492,9 +492,9 @@ def getLastValuesForLiveSensor():
     queryParameters = request.args
     print(queryParameters['fieldKey'])
 
-    query = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['fieldKey']) + "), ID FROM airQuality GROUP BY ID"
+    queryPolling = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['fieldKey']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality GROUP BY ID"
 
-    data = influxClientPolling.query(query, epoch=None)
+    data = influxClientPolling.query(queryPolling, epoch=None)
     data = data.raw
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
@@ -519,6 +519,9 @@ def getLastValuesForLiveSensor():
     dataSeriesAirU = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataAirU['series']))
 
     lastValueObjectAirU = {anAirU["ID"]: anAirU for anAirU in dataSeriesAirU}
+
+    for key, val in lastValueObjectAirU.items():
+        val['Sensor Source'] = 'airu'
 
     allLastValues = mergeTwoDicts(lastValueObject, lastValueObjectAirU)
 

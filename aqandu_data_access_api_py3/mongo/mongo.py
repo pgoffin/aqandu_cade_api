@@ -20,8 +20,9 @@ mongo = Blueprint('mongo', __name__)
 
 
 # http://air.eng.utah.edu/dbapi/api/sensorIsConnected?sensor_mac=F4:5E:AB:9C:02:DF&email=pink@sci.com&phone=+8015583223&mapVisibility=true
-@mongo.route('/api/sensorIsConnected', methods=['POST'])
-def sensorIsConnected():
+# http://air.eng.utah.edu/dbapi/api/registerSensor
+@mongo.route('/api/registerSensor', methods=['POST'])
+def registerSensor():
 
     LOGGER.info('sensorIsConnected POST request started')
 
@@ -56,9 +57,13 @@ def sensorIsConnected():
     try:
         now = datetime.utcnow()
 
+        phoneNumber = queryParameters['phone']
+        if queryParameters['phone'] != '':
+            phoneNumber = '+1' + queryParameters['phone']
+
         aSensor = {"macAddress": queryParameters['mac'],
                    "email": queryParameters['email'],
-                   "phone": queryParameters['phone'],
+                   "phone": phoneNumber,
                    "mapVisibility": queryParameters['mapVisibility'],
                    "createdAt": now}
 
@@ -67,7 +72,7 @@ def sensorIsConnected():
             'fields': {
                 'email': queryParameters['email'],
                 'mapVisibility': bool(distutils.util.strtobool(queryParameters['mapVisibility'])),
-                'phone': queryParameters['phone']
+                'phone': phoneNumber
             },
             'tags': {
                 'macAddress': queryParameters['mac']
@@ -102,12 +107,12 @@ def sensorIsConnected():
 
         #  if there is a phone number prefer phone
         theMessage = 'Hello from AQandU! Your sensor with MAC address ' + queryParameters['mac'] + ' is now connected to the internet and is gathering data. Thank you for participating!'
-        if queryParameters['phone'] != '':
+        if phoneNumber != '':
             LOGGER.info('sending a text')
             startSendText = time.time()
 
             sender = current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE']
-            recipient = queryParameters['phone']
+            recipient = phoneNumber
 
             sendText(client, sender, recipient, theMessage)
 

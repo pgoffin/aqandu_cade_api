@@ -45,11 +45,14 @@ def registerSensor():
                 ssl=current_app.config['SSL'],
                 verify_ssl=current_app.config['SSL'])
 
-    # TWILIO client
-    client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
+    # # TWILIO client
+    # client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
 
     queryParameters = request.get_json()
     LOGGER.info(queryParameters)
+
+    macAddress = queryParameters['sensor_mac']
+    email = queryParameters['sensor_holder']
 
     # TODO Do parameter checking
     # TODO check if the MAC address is in our list of MAC addresses
@@ -57,25 +60,25 @@ def registerSensor():
     try:
         now = datetime.utcnow()
 
-        phoneNumber = queryParameters['phone']
-        if queryParameters['phone'] != '':
-            phoneNumber = '+1' + queryParameters['phone']
+        # phoneNumber = queryParameters['phone']
+        # if queryParameters['phone'] != '':
+        #     phoneNumber = '+1' + queryParameters['phone']
 
-        aSensor = {"macAddress": queryParameters['mac'],
-                   "email": queryParameters['email'],
-                   "phone": phoneNumber,
-                   "mapVisibility": queryParameters['mapVisibility'],
+        aSensor = {"macAddress": macAddress,
+                   "email": email,
+                   # "phone": phoneNumber,
+                   # "mapVisibility": queryParameters['mapVisibility'],
                    "createdAt": now}
 
         sensorConnectionMeasurement = {
             'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
             'fields': {
-                'email': queryParameters['email'],
-                'mapVisibility': bool(distutils.util.strtobool(queryParameters['mapVisibility'])),
-                'phone': phoneNumber
+                'email': email,
+                # 'mapVisibility': bool(distutils.util.strtobool(queryParameters['mapVisibility'])),
+                # 'phone': phoneNumber
             },
             'tags': {
-                'macAddress': queryParameters['mac']
+                'macAddress': macAddress
             }
         }
 
@@ -91,44 +94,44 @@ def registerSensor():
 
         # check if already entry with given MAC address if no insert, if yes more checks
         startMongoWrite = time.time()
-        entryWithGivenMAC = db.sensors.find_one({'macAddress': queryParameters['mac']})
+        entryWithGivenMAC = db.sensors.find_one({'macAddress': macAddress})
         LOGGER.info(entryWithGivenMAC)
         if entryWithGivenMAC is None:
             db.sensors.insert_one(aSensor)
-            LOGGER.info('%s inserted into Mongo db.', queryParameters['mac'])
+            LOGGER.info('%s inserted into Mongo db.', macAddress)
         else:
             # a mac address will always have only one entry, if there is already an entry replace it with the new entry
             db.sensors.replace_one({'_id': entryWithGivenMAC['_id']}, aSensor)
-            LOGGER.info('%s was already present. Replaced with new information.', queryParameters['mac'])
+            LOGGER.info('%s was already present. Replaced with new information.', macAddress)
 
         endMongoWrite = time.time()
         timeToWriteMongo = endMongoWrite - startMongoWrite
         LOGGER.info('*********** Time to write to Mongo: %s', timeToWriteMongo)
 
         #  if there is a phone number prefer phone
-        theMessage = 'Hello from AQandU! Your sensor with MAC address ' + queryParameters['mac'] + ' is now connected to the internet and is gathering data. Thank you for participating!'
-        if phoneNumber != '':
-            LOGGER.info('sending a text')
-            startSendText = time.time()
-
-            sender = current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE']
-            recipient = phoneNumber
-
-            sendText(client, sender, recipient, theMessage)
-
-            endSendText = time.time()
-            timeToSendText = endSendText - startSendText
-            LOGGER.info('*********** Time to send text: %s', timeToSendText)
-        else:
-            LOGGER.info('no phone number provided')
+        theMessage = 'Hello from AQandU! Your sensor with MAC address ' + macAddress + ' is now connected to the internet and is gathering data. Thank you for participating!'
+        # if phoneNumber != '':
+        #     LOGGER.info('sending a text to ' + phone)
+        #     startSendText = time.time()
+        #
+        #     sender = current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE']
+        #     recipient = phoneNumber
+        #
+        #     sendText(client, sender, recipient, theMessage)
+        #
+        #     endSendText = time.time()
+        #     timeToSendText = endSendText - startSendText
+        #     LOGGER.info('*********** Time to send text: %s', timeToSendText)
+        # else:
+        #     LOGGER.info('no phone number provided')
 
         if queryParameters['email'] != '':
 
-            LOGGER.info('sending an email')
+            LOGGER.info('sending an email to ' + email)
             startSendEmail = time.time()
 
             aSubject = 'AQandU sensor is connected'
-            recipients = [queryParameters['email']]
+            recipients = [email]
 
             sendEmail(aSubject, recipients, theMessage)
 

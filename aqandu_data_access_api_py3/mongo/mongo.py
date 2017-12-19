@@ -24,7 +24,7 @@ mongo = Blueprint('mongo', __name__)
 @mongo.route('/api/registerSensor', methods=['POST'])
 def registerSensor():
 
-    LOGGER.info('sensorIsConnected POST request started')
+    LOGGER.info('*********** registerSensor POST request started ***********')
 
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
@@ -125,7 +125,7 @@ def registerSensor():
         # else:
         #     LOGGER.info('no phone number provided')
 
-        if queryParameters['email'] != '':
+        if email != '':
 
             LOGGER.info('sending an email to ' + email)
             startSendEmail = time.time()

@@ -66,16 +66,16 @@ def registerSensor():
 
         aSensor = {"macAddress": macAddress,
                    "email": email,
-                   # "phone": phoneNumber,
-                   # "mapVisibility": queryParameters['mapVisibility'],
+                   "phone": "",             # set for consistency with further deployments
+                   "mapVisibility": True,   # set for consistency with further deployments
                    "createdAt": now}
 
         sensorConnectionMeasurement = {
             'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
             'fields': {
                 'email': email,
-                # 'mapVisibility': bool(distutils.util.strtobool(queryParameters['mapVisibility'])),
-                # 'phone': phoneNumber
+                'mapVisibility': bool(distutils.util.strtobool(True)),   # set for consistency with further deployments
+                'phone': "" # set for consistency with further deployments
             },
             'tags': {
                 'macAddress': macAddress

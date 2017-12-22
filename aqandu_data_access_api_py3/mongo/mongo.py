@@ -75,7 +75,7 @@ def registerSensor():
             'fields': {
                 'email': email,
                 'mapVisibility': bool(True),   # set for consistency with further deployments
-                'phone': "" # set for consistency with further deployments
+                'phone': ""  # set for consistency with further deployments
             },
             'tags': {
                 'macAddress': macAddress
@@ -109,7 +109,9 @@ def registerSensor():
         LOGGER.info('*********** Time to write to Mongo: %s', timeToWriteMongo)
 
         #  if there is a phone number prefer phone
-        theMessage = 'Hello from AQandU! Your sensor with MAC address ' + macAddress + ' is now connected to the internet and is gathering data. Thank you for participating!'
+        # theMessage = 'Hello from AQandU! Your sensor with MAC address ' + macAddress + ' is now connected to the internet and is gathering data. Thank you for participating!'
+        theMessage = 'Hello from AQandU! Your sensor is now connected to the internet and is gathering data. Thank you for participating! AQandU Team'
+
         # if phoneNumber != '':
         #     LOGGER.info('sending a text to ' + phone)
         #     startSendText = time.time()

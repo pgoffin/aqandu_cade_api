@@ -74,7 +74,7 @@ def registerSensor():
             'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
             'fields': {
                 'email': email,
-                'mapVisibility': bool(distutils.util.strtobool(True)),   # set for consistency with further deployments
+                'mapVisibility': bool(True),   # set for consistency with further deployments
                 'phone': "" # set for consistency with further deployments
             },
             'tags': {

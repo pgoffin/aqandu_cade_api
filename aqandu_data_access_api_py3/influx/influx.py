@@ -583,7 +583,8 @@ def getAllCurrentlyLiveAirUs():
     liveAirUs = []
 
     for aSensor in db.sensors.find():
-        liveAirUs.append({'macAddress': ''.join(aSensor['macAddress'].split(':')), 'registeredAt': aSensor['createdAt']})
+        if aSensor['macAddress']:
+            liveAirUs.append({'macAddress': ''.join(aSensor['macAddress'].split(':')), 'registeredAt': aSensor['createdAt']})
 
     return liveAirUs
 

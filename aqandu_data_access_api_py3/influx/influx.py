@@ -81,7 +81,7 @@ lookupParameterToAirUInflux = {
 def getLiveSensors():
     """Get sensors that are active (pushed data) since yesterday (beginning of day)"""
 
-    logger.info('liveSensors request started')
+    logger.info('*********** liveSensors request started ***********')
 
     now = datetime.now()
     yesterday = now - timedelta(days=1)
@@ -108,6 +108,19 @@ def getLiveSensors():
     data = data.raw
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
+    print(dataSeries)
+
+    # for aSensor in dataSeries:
+    #     for bSensor in dataSeries:
+    #         if aSensor['ID'] != bSensor['ID']:
+    #             if aSensor['Latitude'] == bSensor['Latitude'] and aSensor['Longitude'] == bSensor['Longitude']:
+    #                 bSensor['Longitude'] = bSensor['Longitude'] - 0.0005
+
+    for i in range(len(dataSeries)):
+        for j in range(i + 1, len(dataSeries)):
+            if dataSeries[i]['ID'] != dataSeries[j]['ID']:
+                if dataSeries[i]['Latitude'] == dataSeries[j]['Latitude'] and dataSeries[i]['Longitude'] == dataSeries[j]['Longitude']:
+                    dataSeries[j]['Longitude'] = dataSeries[j]['Longitude'] - 0.0005
 
     liveAirUs = getAllCurrentlyLiveAirUs()  # call to mongodb
     logger.info(liveAirUs)
@@ -144,13 +157,11 @@ def getLiveSensors():
                                    "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_PM25'] + " "\
                                    "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + yesterdayStr + "' " \
 
-        logger.info('TESTINNGGGGGGG')
         logger.info(queryInfluxAirU_lastPM25)
 
         dataAirU_lastPM25 = influxClientAirU.query(queryInfluxAirU_lastPM25, epoch='ms')
         dataAirU_lastPM25 = dataAirU_lastPM25.raw
 
-        logger.info('TESTINNGGGGGGG2')
         logger.info(dataAirU_lastPM25)
 
         lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
@@ -326,7 +337,6 @@ def getRawDataFrom():
         whatToShow = queryParameters['show'].split(',')
 
         # http://0.0.0.0:5000/api/rawDataFrom?id=D0B5C2F31E1F&sensorSource=AirU&start=2017-12-02T22:17:00Z&end=2017-12-03T22:17:00Z&show=all
-
 
         influxClientAirU = InfluxDBClient(
                     host=current_app.config['INFLUX_HOST'],

@@ -117,10 +117,14 @@ def getLiveSensors():
     #                 bSensor['Longitude'] = bSensor['Longitude'] - 0.0005
 
     for i in range(len(dataSeries)):
+        # logger.info('i is %s', i)
         for j in range(i + 1, len(dataSeries)):
+            # logger.info('j is %s', j)
+            # logger.info('dataSeries[i] is %s', dataSeries[i])
+            # logger.info('dataSeries[j] is %s', dataSeries[j])
             if dataSeries[i]['ID'] != dataSeries[j]['ID']:
                 if dataSeries[i]['Latitude'] == dataSeries[j]['Latitude'] and dataSeries[i]['Longitude'] == dataSeries[j]['Longitude']:
-                    dataSeries[j]['Longitude'] = dataSeries[j]['Longitude'] - 0.0005
+                    dataSeries[j]['Longitude'] = str(float(dataSeries[j]['Longitude']) - 0.0005)
 
     liveAirUs = getAllCurrentlyLiveAirUs()  # call to mongodb
     logger.info(liveAirUs)

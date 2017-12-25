@@ -179,7 +179,7 @@ def getLiveSensors(type):
         #     anAirU = {'ID': airU['macAddress'], 'Latitude': avgLat, 'Longitude': avgLng, 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
         #
         #     dataSeries.append(anAirU)
-        dataSeries = getInfluxPollingSensors(yesterdayStr)
+        dataSeries = getInfluxAirUSensors(yesterdayStr)
 
     elif type == 'all':
 
@@ -188,7 +188,7 @@ def getLiveSensors(type):
         pollingDataSeries = getInfluxPollingSensors(yesterdayStr)
         logger.info(pollingDataSeries)
 
-        airUDataSeries = getInfluxPollingSensors(yesterdayStr)
+        airUDataSeries = getInfluxAirUSensors(yesterdayStr)
         logger.info(airUDataSeries)
 
         dataSeries = pollingDataSeries + airUDataSeries

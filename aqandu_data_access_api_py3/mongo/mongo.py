@@ -94,7 +94,11 @@ def registerSensor():
 
         # check if already entry with given MAC address if no insert, if yes more checks
         startMongoWrite = time.time()
-        entryWithGivenMAC = db.sensors.find_one({'macAddress': macAddress})
+        if not macAddress:
+            entryWithGivenMAC = None
+        else:
+            entryWithGivenMAC = db.sensors.find_one({'macAddress': macAddress})
+
         LOGGER.info(entryWithGivenMAC)
         if entryWithGivenMAC is None:
             db.sensors.insert_one(aSensor)

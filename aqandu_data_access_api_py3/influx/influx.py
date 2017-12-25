@@ -183,11 +183,18 @@ def getLiveSensors(type):
 
     elif type == 'all':
 
+        logger.info('get all dataSeries started')
+
         pollingDataSeries = getInfluxPollingSensors(yesterdayStr)
+        logger.info(pollingDataSeries)
+
         airUDataSeries = getInfluxPollingSensors(yesterdayStr)
+        logger.info(airUDataSeries)
 
         dataSeries = pollingDataSeries + airUDataSeries
+        logger.info(dataSeries)
 
+        logger.info('get all dataSeries done')
 
     end = time.time()
 
@@ -628,6 +635,8 @@ def mergeTwoDicts(x, y):
 
 def getInfluxPollingSensors(aDateStr):
 
+    logger.info('influx polling started')
+
     influxClientPolling = InfluxDBClient(
                 host=current_app.config['INFLUX_HOST'],
                 port=current_app.config['INFLUX_PORT'],
@@ -647,7 +656,7 @@ def getInfluxPollingSensors(aDateStr):
     data = data.raw
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
-    print(dataSeries)
+    # print(dataSeries)
 
     # locating the double/parallel sensors (sensor with same location) and slightly changing the second sensors location, results in both dots visible
     for i in range(len(dataSeries)):
@@ -660,10 +669,16 @@ def getInfluxPollingSensors(aDateStr):
                 if dataSeries[i]['Latitude'] == dataSeries[j]['Latitude'] and dataSeries[i]['Longitude'] == dataSeries[j]['Longitude']:
                     dataSeries[j]['Longitude'] = str(float(dataSeries[j]['Longitude']) - 0.0005)
 
+    logger.info(dataSeries)
+
+    logger.info('influx polling done')
+
     return dataSeries
 
 
 def getInfluxAirUSensors(aDateString):
+
+    logger.info('influx airU started')
 
     dataSeries = []
 
@@ -715,5 +730,8 @@ def getInfluxAirUSensors(aDateString):
         anAirU = {'ID': airU['macAddress'], 'Latitude': avgLat, 'Longitude': avgLng, 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
 
         dataSeries.append(anAirU)
+
+    logger.info(dataSeries)
+    logger.info('influx airU done')
 
     return dataSeries

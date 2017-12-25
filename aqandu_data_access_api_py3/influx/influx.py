@@ -110,12 +110,7 @@ def getLiveSensors():
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
     print(dataSeries)
 
-    # for aSensor in dataSeries:
-    #     for bSensor in dataSeries:
-    #         if aSensor['ID'] != bSensor['ID']:
-    #             if aSensor['Latitude'] == bSensor['Latitude'] and aSensor['Longitude'] == bSensor['Longitude']:
-    #                 bSensor['Longitude'] = bSensor['Longitude'] - 0.0005
-
+    # locating the double/parallel sensors (sensor with same location) and slightly changing the second sensors location, results in both dots visible
     for i in range(len(dataSeries)):
         # logger.info('i is %s', i)
         for j in range(i + 1, len(dataSeries)):
@@ -158,7 +153,7 @@ def getLiveSensors():
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
 
         queryInfluxAirU_lastPM25 = "SELECT LAST("+lookupParameterToAirUInflux.get('pm25') + ") AS pm25, ID " \
-                                   "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_PM25'] + " "\
+                                   "FROM " + current_app.config['INFLUX_AIRU_PM25_MEASUREMENT'] + " "\
                                    "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + yesterdayStr + "' " \
 
         logger.info(queryInfluxAirU_lastPM25)

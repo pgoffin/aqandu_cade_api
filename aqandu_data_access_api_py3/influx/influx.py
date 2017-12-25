@@ -591,7 +591,8 @@ def getAllCurrentlyLiveAirUs():
     db = mongoClient.airudb
     liveAirUs = []
 
-    for aSensor in db.sensors.find():
+    # for aSensor in db.sensors.find():
+    for aSensor in db.liveSensors.find():
         if aSensor['macAddress']:
             liveAirUs.append({'macAddress': ''.join(aSensor['macAddress'].split(':')), 'registeredAt': aSensor['createdAt']})
 

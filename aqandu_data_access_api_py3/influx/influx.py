@@ -89,6 +89,7 @@ def getLiveSensors(type):
     # yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
     # yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
     yesterdayStr = yesterday.strftime('%Y-%m-%dT%H:%M:%SZ')
+    logger.info(yesterdayStr)
 
     dataSeries = []
     start = time.time()

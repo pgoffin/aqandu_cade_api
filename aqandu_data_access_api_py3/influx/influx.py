@@ -86,8 +86,9 @@ def getLiveSensors(type):
     now = datetime.now()
     yesterday = now - timedelta(days=1)
 
-    yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
-    yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
+    # yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
+    # yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
+    yesterdayStr = yesterday.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     dataSeries = []
     start = time.time()

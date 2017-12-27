@@ -535,6 +535,7 @@ def getAllCurrentlyLiveAirUs():
 
 def getMacToCustomSensorID():
 
+    logger.info('getMacToCustomSensorID started')
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
         password=current_app.config['MONGO_PASSWORD'],
@@ -549,7 +550,10 @@ def getMacToCustomSensorID():
     # for aSensor in db.sensors.find():
     for aSensor in db.macToCustomSensorID.find():
         macToCustomID[aSensor['macAddress']] = aSensor['customSensorID']
+        logger.info(aSensor['macAddress'])
+        logger.info(macToCustomID)
 
+    logger.info('getMacToCustomSensorID started')
     return macToCustomID
 
 

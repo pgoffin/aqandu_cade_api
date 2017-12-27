@@ -549,8 +549,9 @@ def getMacToCustomSensorID():
 
     # for aSensor in db.sensors.find():
     for aSensor in db.macToCustomSensorID.find():
-        macToCustomID[aSensor['macAddress']] = aSensor['customSensorID']
-        logger.info(aSensor['macAddress'])
+        theMAC = ''.join(aSensor['macAddress'].split(':'))
+        macToCustomID[theMAC] = aSensor['customSensorID']
+        logger.info(theMAC)
         logger.info(macToCustomID)
 
     logger.info('getMacToCustomSensorID started')

@@ -455,13 +455,14 @@ def getLastValuesForLiveSensor():
 
     dataSeriesAirU = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataAirU['series']))
 
-    # macToCustomID = getMacToCustomSensorID()
+    macToCustomID = getMacToCustomSensorID()
 
-    # lastValueObjectAirU = {macToCustomID[anAirU["ID"]]: anAirU for anAirU in dataSeriesAirU}
-    lastValueObjectAirU = {anAirU["ID"]: anAirU for anAirU in dataSeriesAirU}
+    lastValueObjectAirU = {macToCustomID[anAirU['ID']]: anAirU for anAirU in dataSeriesAirU}
+    # lastValueObjectAirU = {anAirU["ID"]: anAirU for anAirU in dataSeriesAirU}
 
     for key, val in lastValueObjectAirU.items():
         val['Sensor Source'] = 'airu'
+        val['ID'] = macToCustomID[val['ID']]
 
     allLastValues = mergeTwoDicts(lastValueObject, lastValueObjectAirU)
 
@@ -673,8 +674,8 @@ def getInfluxAirUSensors(aDateString):
         lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
         pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]
 
-        # anAirU = {'ID': macToCustomID[airU['macAddress']], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
-        anAirU = {'ID': airU['macAddress'], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
+        anAirU = {'ID': macToCustomID[airU['macAddress']], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
+        # anAirU = {'ID': airU['macAddress'], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
         logger.info(anAirU)
 
         dataSeries.append(anAirU)

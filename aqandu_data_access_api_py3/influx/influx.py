@@ -459,12 +459,18 @@ def getLastValuesForLiveSensor():
 
     macToCustomID = getMacToCustomSensorID()
 
-    lastValueObjectAirU = {macToCustomID[anAirU['ID']]: anAirU for anAirU in dataSeriesAirU}
+    lastValueObjectAirU = {anAirU['ID']: anAirU for anAirU in dataSeriesAirU}
     # lastValueObjectAirU = {anAirU["ID"]: anAirU for anAirU in dataSeriesAirU}
 
     for key, val in lastValueObjectAirU.items():
+
+        newID = key
+        if key in macToCustomID:
+            newID = macToCustomID[key]
+
+        key = newID
         val['Sensor Source'] = 'airu'
-        val['ID'] = macToCustomID[val['ID']]
+        val['ID'] = newID
 
     allLastValues = mergeTwoDicts(lastValueObject, lastValueObjectAirU)
 

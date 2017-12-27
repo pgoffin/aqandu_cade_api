@@ -632,9 +632,12 @@ def getInfluxAirUSensors(aDateString):
     for airU in liveAirUs:
         logger.info(airU)
 
+        macAddress = airU['macAddress']
+        logger.info(macAddress)
+
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + airU['macAddress'] + "' and time >= '" + aDateString + "'"
+                              "WHERE ID = '" + macAddress + "' and time >= '" + aDateString + "'"
 
         logger.info(queryInfluxAirU_lat)
 
@@ -643,14 +646,14 @@ def getInfluxAirUSensors(aDateString):
         logger.info(dataAirU_lat)
 
         if 'series' not in dataAirU_lat:
-            logger.info('%s missing latitude', airU["macAddress"])
+            logger.info('%s missing latitude', macAddress)
             continue
 
         avgLat = dataAirU_lat['series'][0]['values'][0][1]
 
         queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + aDateString + "' "
+                              "WHERE ID = '" + macAddress + "' and time >= '" + aDateString + "' "
 
         logger.info(queryInfluxAirU_lng)
 
@@ -659,14 +662,14 @@ def getInfluxAirUSensors(aDateString):
         logger.info(dataAirU_lng)
 
         if 'series' not in dataAirU_lng:
-            logger.info('%s missing longitude', airU["macAddress"])
+            logger.info('%s missing longitude', macAddress)
             continue
 
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
 
         queryInfluxAirU_lastPM25 = "SELECT LAST("+lookupParameterToAirUInflux.get('pm25') + ") AS pm25, ID " \
                                    "FROM " + current_app.config['INFLUX_AIRU_PM25_MEASUREMENT'] + " "\
-                                   "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + aDateString + "' "
+                                   "WHERE ID = '" + macAddress + "' and time >= '" + aDateString + "' "
 
         logger.info(queryInfluxAirU_lastPM25)
 
@@ -676,16 +679,21 @@ def getInfluxAirUSensors(aDateString):
         logger.info(dataAirU_lastPM25)
 
         if 'series' not in dataAirU_lastPM25:
-            logger.info('%s missing lastPM25', airU["macAddress"])
+            logger.info('%s missing lastPM25', macAddress)
             continue
 
         lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
         pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]
 
-        logger.info(airU['macAddress'])
-        logger.info(macToCustomID[airU['macAddress']])
+        # logger.info(airU['macAddress'])
 
-        anAirU = {'ID': macToCustomID[airU['macAddress']], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
+        newID = macAddress
+        if macAddress in macToCustomID:
+            newID = macToCustomID[macAddress]
+
+        logger.info('newID is %s', newID)
+
+        anAirU = {'ID': newID, 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
         # anAirU = {'ID': airU['macAddress'], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
         logger.info(anAirU)
 

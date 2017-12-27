@@ -622,6 +622,7 @@ def getInfluxAirUSensors(aDateString):
                 verify_ssl=current_app.config['SSL'])
 
     macToCustomID = getMacToCustomSensorID()
+    logger.info(macToCustomID)
 
     for airU in liveAirUs:
         logger.info(airU)
@@ -675,6 +676,9 @@ def getInfluxAirUSensors(aDateString):
 
         lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
         pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]
+
+        logger.info(airU['macAddress'])
+        logger.info(macToCustomID[airU['macAddress']])
 
         anAirU = {'ID': macToCustomID[airU['macAddress']], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
         # anAirU = {'ID': airU['macAddress'], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}

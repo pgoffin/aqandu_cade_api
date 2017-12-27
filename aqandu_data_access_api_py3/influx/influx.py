@@ -633,6 +633,10 @@ def getInfluxAirUSensors(aDateString):
         dataAirU_lat = dataAirU_lat.raw
         logger.info(dataAirU_lat)
 
+        if dataAirU_lat['series'] is None:
+            logger.info('%s missing latitude', airU["macAddress"])
+            continue
+
         avgLat = dataAirU_lat['series'][0]['values'][0][1]
 
         queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
@@ -644,6 +648,10 @@ def getInfluxAirUSensors(aDateString):
         dataAirU_lng = influxClientAirU.query(queryInfluxAirU_lng, epoch='ms')
         dataAirU_lng = dataAirU_lng.raw
         logger.info(dataAirU_lng)
+
+        if dataAirU_lng['series'] is None:
+            logger.info('%s missing longitude', airU["macAddress"])
+            continue
 
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
 
@@ -657,6 +665,10 @@ def getInfluxAirUSensors(aDateString):
         dataAirU_lastPM25 = dataAirU_lastPM25.raw
 
         logger.info(dataAirU_lastPM25)
+
+        if dataAirU_lastPM25['series'] is None:
+            logger.info('%s missing lastPM25', airU["macAddress"])
+            continue
 
         lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
         pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]

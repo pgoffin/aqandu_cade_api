@@ -621,27 +621,35 @@ def getInfluxAirUSensors(aDateString):
     macToCustomID = getMacToCustomSensorID()
 
     for airU in liveAirUs:
+        logger.info(airU)
+
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + airU['macAddress'] + "' and time >= '" + aDateString + "'" \
+                              "WHERE ID = '" + airU['macAddress'] + "' and time >= '" + aDateString + "'"
+
+        logger.info(queryInfluxAirU_lat)
 
         dataAirU_lat = influxClientAirU.query(queryInfluxAirU_lat, epoch='ms')
         dataAirU_lat = dataAirU_lat.raw
+        logger.info(dataAirU_lat)
 
         avgLat = dataAirU_lat['series'][0]['values'][0][1]
 
         queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + aDateString + "' " \
+                              "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + aDateString + "' "
+
+        logger.info(queryInfluxAirU_lng)
 
         dataAirU_lng = influxClientAirU.query(queryInfluxAirU_lng, epoch='ms')
         dataAirU_lng = dataAirU_lng.raw
+        logger.info(dataAirU_lng)
 
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
 
         queryInfluxAirU_lastPM25 = "SELECT LAST("+lookupParameterToAirUInflux.get('pm25') + ") AS pm25, ID " \
                                    "FROM " + current_app.config['INFLUX_AIRU_PM25_MEASUREMENT'] + " "\
-                                   "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + aDateString + "' " \
+                                   "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + aDateString + "' "
 
         logger.info(queryInfluxAirU_lastPM25)
 

@@ -1,5 +1,5 @@
-import requests
-import sys
+# import requests
+# import sys
 import time
 
 from datetime import datetime, timedelta
@@ -104,135 +104,135 @@ def getLiveSensors(type):
     return jsonify(dataSeries)
 
 
-@influx.route('/api/sensorsLonger', methods=['GET'])
-def getAllSensorsLonger():
-
-    logger.info('sensorsLonger request started')
-
-    TIMESTAMP = datetime.now().isoformat()
-
-    influxClientPolling = InfluxDBClient(
-                host=current_app.config['INFLUX_HOST'],
-                port=current_app.config['INFLUX_PORT'],
-                username=current_app.config['INFLUX_USERNAME'],
-                password=current_app.config['INFLUX_PASSWORD'],
-                database=current_app.config['INFLUX_POLLING_DATABASE'],
-                ssl=current_app.config['SSL'],
-                verify_ssl=current_app.config['SSL'])
-
-    stations = {}
-
-    # DAQ
-    DAQ_SITES = [{
-        'ID': 'Rose Park',
-        'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=rp',
-        'lat': 40.7955,
-        'lon': -111.9309,
-        'elevation': 1295,
-    }, {
-        'ID': 'Hawthorne',
-        'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=slc',
-        'lat': 40.7343,
-        'lon': -111.8721,
-        'elevation': 1306
-    }, {
-        'ID': 'Herriman',
-        'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=h3',
-        'lat': 40.496408,
-        'lon': -112.036305,
-        'elevation': 1534
-    }, {
-        'ID': 'Bountiful',
-        'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=bv',
-        'lat': 40.903,
-        'lon': -111.8845,
-        'elevation': None
-    }, {
-        'ID': 'Magna (Met only)',
-        'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=mg',
-        'lat': 40.7068,
-        'lon': -112.0947,
-        'elevation': None
-    }]
-
-    start = time.time()
-
-    for aStation in DAQ_SITES:
-        stations[str(aStation['ID'])] = {'ID': aStation['ID'], 'Latitude': aStation['lat'], 'Longitude': aStation['lon'], 'elevation': aStation['elevation']}
-
-    # PURPLE AIR
-    try:
-        purpleAirData = requests.get("https://map.purpleair.org/json")
-        purpleAirData.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        sys.stderr.write('%s\tProblem acquiring PurpleAir data (https://map.purpleair.org/json);\t%s.\n' % (TIMESTAMP, e))
-        return []
-    except requests.exceptions.Timeout as e:
-        sys.stderr.write('%s\tProblem acquiring PurpleAir data (https://map.purpleair.org/json);\t%s.\n' % (TIMESTAMP, e))
-        return []
-    except requests.exceptions.TooManyRedirects as e:
-        sys.stderr.write('%s\tProblem acquiring PurpleAir data (https://map.purpleair.org/json);\t%s.\n' % (TIMESTAMP, e))
-        return []
-    except requests.exceptions.RequestException as e:
-        sys.stderr.write('%s\tProblem acquiring PurpleAir data (https://map.purpleair.org/json);\t%s.\n' % (TIMESTAMP, e))
-        return []
-
-    purpleAirData = purpleAirData.json()['results']
-
-    for aStation in purpleAirData:
-        stations[str(aStation['ID'])] = {'ID': aStation['ID'], 'Latitude': aStation['Lat'], 'Longitude': aStation['Lon'],  'elevation': None}
-
-    # MESOWEST
-    mesowestURL = 'http://api.mesowest.net/v2/stations/timeseries?recent=15&token=demotoken&stid=mtmet,wbb,NAA,MSI01,UFD10,UFD11&vars=PM_25_concentration'
-
-    try:
-        mesowestData = requests.get(mesowestURL)
-        mesowestData.raise_for_status()
-    except requests.exceptions.HTTPError as e:
-        # statusCode = e.response.status_code
-        sys.stderr.write('%s\tProblem acquiring Mesowest data;\t%s.\n' % (TIMESTAMP, e))
-        return []
-    except requests.exceptions.Timeout as e:
-        # Maybe set up for a retry, or continue in a retry loop
-        sys.stderr.write('%s\tProblem acquiring Mesowest data;\t%s.\n' % (TIMESTAMP, e))
-        return []
-    except requests.exceptions.TooManyRedirects as e:
-        # Tell the user their URL was bad and try a different one
-        sys.stderr.write('%s\tProblem acquiring Mesowest data;\t%s.\n' % (TIMESTAMP, e))
-        return []
-    except requests.exceptions.RequestException as e:
-        # catastrophic error. bail.
-        sys.stderr.write('%s\tProblem acquiring Mesowest data;\t%s.\n' % (TIMESTAMP, e))
-        return []
-
-    mesowestData = mesowestData.json()['STATION']
-
-    for aStation in mesowestData:
-        stations[str(aStation['STID'])] = {'ID': aStation['STID'], 'Latitude': aStation['LATITUDE'], 'Longitude': aStation['LONGITUDE'],  'elevation': aStation['ELEVATION']}
-
-    end = time.time()
-
-    query = "SHOW TAG VALUES from airQuality WITH KEY = ID"
-    data = influxClientPolling.query(query, epoch=None)
-    data = data.raw
-
-    theValues = data['series'][0]['values']
-    allIDs = list(map(lambda x: str(x[1]), theValues))
-    print(stations)
-    print(allIDs)
-
-    stationstoBeShowed = []
-    for anID in allIDs:
-        sensorAvailable = stations.get(anID)
-
-        if sensorAvailable is not None:
-            stationstoBeShowed.append(sensorAvailable)
-
-    print(stationstoBeShowed)
-
-    print("*********** Time to download:", end - start, '***********')
-
-    return jsonify(stations)
+# @influx.route('/api/sensorsLonger', methods=['GET'])
+# def getAllSensorsLonger():
+#
+#     logger.info('sensorsLonger request started')
+#
+#     TIMESTAMP = datetime.now().isoformat()
+#
+#     influxClientPolling = InfluxDBClient(
+#                 host=current_app.config['INFLUX_HOST'],
+#                 port=current_app.config['INFLUX_PORT'],
+#                 username=current_app.config['INFLUX_USERNAME'],
+#                 password=current_app.config['INFLUX_PASSWORD'],
+#                 database=current_app.config['INFLUX_POLLING_DATABASE'],
+#                 ssl=current_app.config['SSL'],
+#                 verify_ssl=current_app.config['SSL'])
+#
+#     stations = {}
+#
+#     # DAQ
+#     DAQ_SITES = [{
+#         'ID': 'Rose Park',
+#         'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=rp',
+#         'lat': 40.7955,
+#         'lon': -111.9309,
+#         'elevation': 1295,
+#     }, {
+#         'ID': 'Hawthorne',
+#         'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=slc',
+#         'lat': 40.7343,
+#         'lon': -111.8721,
+#         'elevation': 1306
+#     }, {
+#         'ID': 'Herriman',
+#         'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=h3',
+#         'lat': 40.496408,
+#         'lon': -112.036305,
+#         'elevation': 1534
+#     }, {
+#         'ID': 'Bountiful',
+#         'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=bv',
+#         'lat': 40.903,
+#         'lon': -111.8845,
+#         'elevation': None
+#     }, {
+#         'ID': 'Magna (Met only)',
+#         'dataFeed': 'http://air.utah.gov/xmlFeed.php?id=mg',
+#         'lat': 40.7068,
+#         'lon': -112.0947,
+#         'elevation': None
+#     }]
+#
+#     start = time.time()
+#
+#     for aStation in DAQ_SITES:
+#         stations[str(aStation['ID'])] = {'ID': aStation['ID'], 'Latitude': aStation['lat'], 'Longitude': aStation['lon'], 'elevation': aStation['elevation']}
+#
+#     # PURPLE AIR
+#     try:
+#         purpleAirData = requests.get("https://map.purpleair.org/json")
+#         purpleAirData.raise_for_status()
+#     except requests.exceptions.HTTPError as e:
+#         sys.stderr.write('%s\tProblem acquiring PurpleAir data (https://map.purpleair.org/json);\t%s.\n' % (TIMESTAMP, e))
+#         return []
+#     except requests.exceptions.Timeout as e:
+#         sys.stderr.write('%s\tProblem acquiring PurpleAir data (https://map.purpleair.org/json);\t%s.\n' % (TIMESTAMP, e))
+#         return []
+#     except requests.exceptions.TooManyRedirects as e:
+#         sys.stderr.write('%s\tProblem acquiring PurpleAir data (https://map.purpleair.org/json);\t%s.\n' % (TIMESTAMP, e))
+#         return []
+#     except requests.exceptions.RequestException as e:
+#         sys.stderr.write('%s\tProblem acquiring PurpleAir data (https://map.purpleair.org/json);\t%s.\n' % (TIMESTAMP, e))
+#         return []
+#
+#     purpleAirData = purpleAirData.json()['results']
+#
+#     for aStation in purpleAirData:
+#         stations[str(aStation['ID'])] = {'ID': aStation['ID'], 'Latitude': aStation['Lat'], 'Longitude': aStation['Lon'],  'elevation': None}
+#
+#     # MESOWEST
+#     mesowestURL = 'http://api.mesowest.net/v2/stations/timeseries?recent=15&token=demotoken&stid=mtmet,wbb,NAA,MSI01,UFD10,UFD11&vars=PM_25_concentration'
+#
+#     try:
+#         mesowestData = requests.get(mesowestURL)
+#         mesowestData.raise_for_status()
+#     except requests.exceptions.HTTPError as e:
+#         # statusCode = e.response.status_code
+#         sys.stderr.write('%s\tProblem acquiring Mesowest data;\t%s.\n' % (TIMESTAMP, e))
+#         return []
+#     except requests.exceptions.Timeout as e:
+#         # Maybe set up for a retry, or continue in a retry loop
+#         sys.stderr.write('%s\tProblem acquiring Mesowest data;\t%s.\n' % (TIMESTAMP, e))
+#         return []
+#     except requests.exceptions.TooManyRedirects as e:
+#         # Tell the user their URL was bad and try a different one
+#         sys.stderr.write('%s\tProblem acquiring Mesowest data;\t%s.\n' % (TIMESTAMP, e))
+#         return []
+#     except requests.exceptions.RequestException as e:
+#         # catastrophic error. bail.
+#         sys.stderr.write('%s\tProblem acquiring Mesowest data;\t%s.\n' % (TIMESTAMP, e))
+#         return []
+#
+#     mesowestData = mesowestData.json()['STATION']
+#
+#     for aStation in mesowestData:
+#         stations[str(aStation['STID'])] = {'ID': aStation['STID'], 'Latitude': aStation['LATITUDE'], 'Longitude': aStation['LONGITUDE'],  'elevation': aStation['ELEVATION']}
+#
+#     end = time.time()
+#
+#     query = "SHOW TAG VALUES from airQuality WITH KEY = ID"
+#     data = influxClientPolling.query(query, epoch=None)
+#     data = data.raw
+#
+#     theValues = data['series'][0]['values']
+#     allIDs = list(map(lambda x: str(x[1]), theValues))
+#     print(stations)
+#     print(allIDs)
+#
+#     stationstoBeShowed = []
+#     for anID in allIDs:
+#         sensorAvailable = stations.get(anID)
+#
+#         if sensorAvailable is not None:
+#             stationstoBeShowed.append(sensorAvailable)
+#
+#     print(stationstoBeShowed)
+#
+#     print("*********** Time to download:", end - start, '***********')
+#
+#     return jsonify(stations)
 
 # get all ID tags
 # for each tag check purpleAir, DAQ and mesowest for the location data
@@ -245,23 +245,24 @@ def getRawDataFrom():
 
     airUdbs = ['altitude', 'humidity', 'latitude', 'longitude', 'pm1', 'pm25', 'pm10', 'posix', 'secActive', 'temperature']
 
-    logger.info('rawDataFrom request started')
+    logger.info('*********** rawDataFrom request started ***********')
 
     queryParameters = request.args
-    print(queryParameters)
+    logger.info(queryParameters)
     # jsonParameters = request.get_json(force=True)
     # print('jsonParameters', jsonParameters)
 
 # TODO get the data for airUs
     dataSeries = []
     if queryParameters['sensorSource'] == 'airu':
-        print('airu')
+        logger.info('airu')
         logger.info(queryParameters['sensorSource'])
 
         start = time.time()
 
         # create createSelection
         whatToShow = queryParameters['show'].split(',')
+        logger.info(whatToShow)
 
         # http://0.0.0.0:5000/api/rawDataFrom?id=D0B5C2F31E1F&sensorSource=AirU&start=2017-12-02T22:17:00Z&end=2017-12-03T22:17:00Z&show=all
 
@@ -345,7 +346,8 @@ def getRawDataFrom():
         query = "SELECT " + selectString + " FROM airQuality " \
                 "WHERE ID = '" + queryParameters['id'] + "' " \
                 "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
-        print(query)
+        logger.info(query)
+
         start = time.time()
 
         data = influxClientPolling.query(query, epoch=None)
@@ -361,7 +363,7 @@ def getRawDataFrom():
 
         end = time.time()
 
-    print("*********** Time to download:", end - start, '***********')
+    logger.info('*********** Time to download: %s ***********', end - start)
 
     return jsonify(dataSeries)
 
@@ -370,7 +372,7 @@ def getRawDataFrom():
 @influx.route('/api/processedDataFrom', methods=['GET'])
 def getProcessedDataFrom():
 
-    logger.info('processedDataFrom request started')
+    logger.info('*********** processedDataFrom request started ***********')
 
     influxClientPolling = InfluxDBClient(
                 host=current_app.config['INFLUX_HOST'],
@@ -382,7 +384,7 @@ def getProcessedDataFrom():
                 verify_ssl=current_app.config['SSL'])
 
     queryParameters = request.args
-    print(queryParameters)
+    logger.info(queryParameters)
 
     # TODO do some parameter checking
     # TODO check if queryParameters exist if not write excpetion
@@ -406,7 +408,7 @@ def getProcessedDataFrom():
 
     end = time.time()
 
-    print("*********** Time to download:", end - start, '***********')
+    logger.info('*********** Time to download: %s ***********', end - start)
 
     return jsonify(pmTimeSeries)
 
@@ -415,7 +417,7 @@ def getProcessedDataFrom():
 @influx.route('/api/lastValue', methods=['GET'])
 def getLastValuesForLiveSensor():
 
-    logger.info('lastPM request started')
+    logger.info('*********** lastPM request started ***********')
 
     influxClientPolling = InfluxDBClient(
                 host=current_app.config['INFLUX_HOST'],
@@ -427,7 +429,7 @@ def getLastValuesForLiveSensor():
                 verify_ssl=current_app.config['SSL'])
 
     queryParameters = request.args
-    print(queryParameters['fieldKey'])
+    logger.info(queryParameters['fieldKey'])
 
     queryPolling = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['fieldKey']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality GROUP BY ID"
 

@@ -633,7 +633,7 @@ def getInfluxAirUSensors(aDateString):
         dataAirU_lat = dataAirU_lat.raw
         logger.info(dataAirU_lat)
 
-        if dataAirU_lat['series'] is None:
+        if 'series' not in dataAirU_lat:
             logger.info('%s missing latitude', airU["macAddress"])
             continue
 
@@ -649,7 +649,7 @@ def getInfluxAirUSensors(aDateString):
         dataAirU_lng = dataAirU_lng.raw
         logger.info(dataAirU_lng)
 
-        if dataAirU_lng['series'] is None:
+        if 'series' not in dataAirU_lng:
             logger.info('%s missing longitude', airU["macAddress"])
             continue
 
@@ -666,7 +666,7 @@ def getInfluxAirUSensors(aDateString):
 
         logger.info(dataAirU_lastPM25)
 
-        if dataAirU_lastPM25['series'] is None:
+        if 'series' not in dataAirU_lastPM25:
             logger.info('%s missing lastPM25', airU["macAddress"])
             continue
 

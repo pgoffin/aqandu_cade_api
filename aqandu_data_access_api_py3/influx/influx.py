@@ -275,6 +275,12 @@ def getRawDataFrom():
                     ssl=current_app.config['SSL'],
                     verify_ssl=current_app.config['SSL'])
 
+        customIDToMAC = getCustomSensorIDToMAC()
+
+        theID = queryParameters['id']
+        if theID in customIDToMAC:
+            theID = customIDToMAC[theID]
+
         # query each db
         toShow = []
         if 'all' in whatToShow:
@@ -291,10 +297,10 @@ def getRawDataFrom():
                 fieldString = lookupParameterToAirUInflux.get(aDB)
 
             queryAirU = "SELECT ID, SensorModel, " + fieldString + " FROM " + aDB + " " \
-                        "WHERE ID = '" + queryParameters['id'] + "' " \
+                        "WHERE ID = '" + theID + "' " \
                         "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
 
-            print(queryAirU)
+            logger.info(queryAirU)
 
             dataAirU = influxClientAirU.query(queryAirU, epoch=None)
             dataAirU = dataAirU.raw
@@ -572,6 +578,31 @@ def getMacToCustomSensorID():
 
     logger.info('getMacToCustomSensorID started')
     return macToCustomID
+
+
+def getCustomSensorIDToMAC():
+
+    logger.info('getMacToCustomSensorID started')
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+    customIDToMAC = {}
+
+    # for aSensor in db.sensors.find():
+    for aSensor in db.macToCustomSensorID.find():
+        theMAC = ''.join(aSensor['macAddress'].split(':'))
+        customIDToMAC[aSensor['customSensorID']] = theMAC
+        logger.info(theMAC)
+        logger.info(customIDToMAC)
+
+    logger.info('getMacToCustomSensorID started')
+    return customIDToMAC
 
 
 # https://stackoverflow.com/questions/38987/how-to-merge-two-dictionaries-in-a-single-expression

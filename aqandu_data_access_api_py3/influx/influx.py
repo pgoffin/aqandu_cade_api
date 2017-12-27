@@ -57,26 +57,6 @@ lookupParameterToAirUInflux = {
 }
 
 
-# with app.app_context():
-#     influxClientPolling = InfluxDBClient(
-#             host=current_app.config['INFLUX_HOST'],
-#             port=current_app.config['INFLUX_PORT'],
-#             username=current_app.config['INFLUX_USERNAME'],
-#             password=current_app.config['INFLUX_PASSWORD'],
-#             database=current_app.config['INFLUX_POLLING_DATABASE'],
-#             ssl=current_app.config['SSL'],
-#             verify_ssl=current_app.config['SSL'])
-#
-#     influxClientAirU = InfluxDBClient(
-#             host=current_app.config['INFLUX_HOST'],
-#             port=current_app.config['INFLUX_PORT'],
-#             username=current_app.config['INFLUX_USERNAME'],
-#             password=current_app.config['INFLUX_PASSWORD'],
-#             database=current_app.config['INFLUX_AIRU_DATABASE'],
-#             ssl=current_app.config['SSL'],
-#             verify_ssl=current_app.config['SSL'])
-
-
 @influx.route('/api/liveSensors/<type>', methods=['GET'])
 def getLiveSensors(type):
     """Get sensors that are active (pushed data) since yesterday (beginning of day)"""
@@ -95,92 +75,11 @@ def getLiveSensors(type):
     start = time.time()
 
     if type == 'purpleAir':
-        # influxClientPolling = InfluxDBClient(
-        #             host=current_app.config['INFLUX_HOST'],
-        #             port=current_app.config['INFLUX_PORT'],
-        #             username=current_app.config['INFLUX_USERNAME'],
-        #             password=current_app.config['INFLUX_PASSWORD'],
-        #             database=current_app.config['INFLUX_POLLING_DATABASE'],
-        #             ssl=current_app.config['SSL'],
-        #             verify_ssl=current_app.config['SSL'])
-        #
-        # queryInflux = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
-        #               "FROM airQuality WHERE time >= '" + yesterdayStr + "' " \
-        #               "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
-        #               "LIMIT 400"
-        #
-
-        # data = influxClientPolling.query(queryInflux, epoch='ms')
-        # data = data.raw
-        #
-        # dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
-        # print(dataSeries)
-        #
-        # # locating the double/parallel sensors (sensor with same location) and slightly changing the second sensors location, results in both dots visible
-        # for i in range(len(dataSeries)):
-        #     # logger.info('i is %s', i)
-        #     for j in range(i + 1, len(dataSeries)):
-        #         # logger.info('j is %s', j)
-        #         # logger.info('dataSeries[i] is %s', dataSeries[i])
-        #         # logger.info('dataSeries[j] is %s', dataSeries[j])
-        #         if dataSeries[i]['ID'] != dataSeries[j]['ID']:
-        #             if dataSeries[i]['Latitude'] == dataSeries[j]['Latitude'] and dataSeries[i]['Longitude'] == dataSeries[j]['Longitude']:
-        #                 dataSeries[j]['Longitude'] = str(float(dataSeries[j]['Longitude']) - 0.0005)
-        #
-        # return jsonify(dataSeries)
 
         dataSeries = getInfluxPollingSensors(yesterdayStr)
 
     elif type == 'airU':
 
-        # liveAirUs = getAllCurrentlyLiveAirUs()  # call to mongodb
-        # logger.info(liveAirUs)
-        #
-        # influxClientAirU = InfluxDBClient(
-        #             host=current_app.config['INFLUX_HOST'],
-        #             port=current_app.config['INFLUX_PORT'],
-        #             username=current_app.config['INFLUX_USERNAME'],
-        #             password=current_app.config['INFLUX_PASSWORD'],
-        #             database=current_app.config['INFLUX_AIRU_DATABASE'],
-        #             ssl=current_app.config['SSL'],
-        #             verify_ssl=current_app.config['SSL'])
-        #
-        # for airU in liveAirUs:
-        #     queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
-        #                           "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + " "\
-        #                           "WHERE ID = '" + airU['macAddress'] + "' and time >= '" + yesterdayStr + "'" \
-        #
-        #     dataAirU_lat = influxClientAirU.query(queryInfluxAirU_lat, epoch='ms')
-        #     dataAirU_lat = dataAirU_lat.raw
-        #
-        #     avgLat = dataAirU_lat['series'][0]['values'][0][1]
-        #
-        #     queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
-        #                           "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
-        #                           "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + yesterdayStr + "' " \
-        #
-        #     dataAirU_lng = influxClientAirU.query(queryInfluxAirU_lng, epoch='ms')
-        #     dataAirU_lng = dataAirU_lng.raw
-        #
-        #     avgLng = dataAirU_lng['series'][0]['values'][0][1]
-        #
-        #     queryInfluxAirU_lastPM25 = "SELECT LAST("+lookupParameterToAirUInflux.get('pm25') + ") AS pm25, ID " \
-        #                                "FROM " + current_app.config['INFLUX_AIRU_PM25_MEASUREMENT'] + " "\
-        #                                "WHERE ID = '" + airU["macAddress"] + "' and time >= '" + yesterdayStr + "' " \
-        #
-        #     logger.info(queryInfluxAirU_lastPM25)
-        #
-        #     dataAirU_lastPM25 = influxClientAirU.query(queryInfluxAirU_lastPM25, epoch='ms')
-        #     dataAirU_lastPM25 = dataAirU_lastPM25.raw
-        #
-        #     logger.info(dataAirU_lastPM25)
-        #
-        #     lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
-        #     pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]
-        #
-        #     anAirU = {'ID': airU['macAddress'], 'Latitude': avgLat, 'Longitude': avgLng, 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
-        #
-        #     dataSeries.append(anAirU)
         dataSeries = getInfluxAirUSensors(yesterdayStr)
 
     elif type == 'all':
@@ -556,6 +455,9 @@ def getLastValuesForLiveSensor():
 
     dataSeriesAirU = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataAirU['series']))
 
+    # macToCustomID = getMacToCustomSensorID()
+
+    # lastValueObjectAirU = {macToCustomID[anAirU["ID"]]: anAirU for anAirU in dataSeriesAirU}
     lastValueObjectAirU = {anAirU["ID"]: anAirU for anAirU in dataSeriesAirU}
 
     for key, val in lastValueObjectAirU.items():
@@ -628,6 +530,26 @@ def getAllCurrentlyLiveAirUs():
     return liveAirUs
 
 
+def getMacToCustomSensorID():
+
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+    macToCustomID = {}
+
+    # for aSensor in db.sensors.find():
+    for aSensor in db.macToCustomSensorID.find():
+        macToCustomID[aSensor['macAddress']] = aSensor['customSensorID']
+
+    return macToCustomID
+
+
 # https://stackoverflow.com/questions/38987/how-to-merge-two-dictionaries-in-a-single-expression
 def mergeTwoDicts(x, y):
     z = x.copy()   # start with x's keys and values
@@ -696,6 +618,8 @@ def getInfluxAirUSensors(aDateString):
                 ssl=current_app.config['SSL'],
                 verify_ssl=current_app.config['SSL'])
 
+    macToCustomID = getMacToCustomSensorID()
+
     for airU in liveAirUs:
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + " "\
@@ -729,9 +653,12 @@ def getInfluxAirUSensors(aDateString):
         lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
         pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]
 
-        anAirU = {'ID': airU['macAddress'], 'Latitude': avgLat, 'Longitude': avgLng, 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
+        # anAirU = {'ID': macToCustomID[airU['macAddress']], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
+        anAirU = {'ID': airU['macAddress'], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
+        logger.info(anAirU)
 
         dataSeries.append(anAirU)
+        logger.info('airU appended')
 
     logger.info(dataSeries)
     logger.info('influx airU done')

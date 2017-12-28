@@ -458,7 +458,7 @@ def getLastValuesForLiveSensor():
                 ssl=current_app.config['SSL'],
                 verify_ssl=current_app.config['SSL'])
 
-    queryAirU = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['fieldKey']) + "), ID FROM " + queryParameters['fieldKey'] + " GROUP BY ID"
+    queryAirU = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['fieldKey']) + "), ID, \"Sensor Model\" FROM " + queryParameters['fieldKey'] + " GROUP BY ID"
 
     dataAirU = influxClientAirU.query(queryAirU, epoch=None)
     dataAirU = dataAirU.raw
@@ -511,7 +511,7 @@ def createSelection(typeOfQuery, querystring):
         if 'all' in show:
             selectString = "*"
         else:
-            selectString = 'ID, \"Sensor Model\"'
+            selectString = 'ID, \"Sensor Model\", \"Sensor Source\"'
             for aShow in show:
                 showExists = lookupQueryParameterToInflux.get(aShow)
 

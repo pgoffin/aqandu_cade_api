@@ -511,7 +511,7 @@ def createSelection(typeOfQuery, querystring):
         if 'all' in show:
             selectString = "*"
         else:
-            selectString = 'ID'
+            selectString = 'ID, \"Sensor Model\"'
             for aShow in show:
                 showExists = lookupQueryParameterToInflux.get(aShow)
 

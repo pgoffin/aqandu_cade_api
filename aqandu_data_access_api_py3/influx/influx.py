@@ -65,11 +65,14 @@ def getLiveSensors(type):
 
     now = datetime.now()
     yesterday = now - timedelta(days=1)
+    nowMinus5 = now - timedelta(minutes=5)
 
     # yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
     # yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
     yesterdayStr = yesterday.strftime('%Y-%m-%dT%H:%M:%SZ')
     logger.info(yesterdayStr)
+    nowMinus5Str = nowMinus5.strftime('%Y-%m-%dT%H:%M:%SZ')
+    logger.info(nowMinus5Str)
 
     dataSeries = []
     start = time.time()
@@ -80,7 +83,8 @@ def getLiveSensors(type):
 
     elif type == 'airU':
 
-        dataSeries = getInfluxAirUSensors(yesterdayStr)
+        # dataSeries = getInfluxAirUSensors(yesterdayStr, nowMinus5Str)
+        dataSeries = getInfluxAirUSensors(nowMinus5Str)
 
     elif type == 'all':
 
@@ -89,7 +93,8 @@ def getLiveSensors(type):
         pollingDataSeries = getInfluxPollingSensors(yesterdayStr)
         logger.info(pollingDataSeries)
 
-        airUDataSeries = getInfluxAirUSensors(yesterdayStr)
+        # airUDataSeries = getInfluxAirUSensors(yesterdayStr, nowMinus5Str)
+        airUDataSeries = getInfluxAirUSensors(nowMinus5Str)
         logger.info(airUDataSeries)
 
         dataSeries = pollingDataSeries + airUDataSeries
@@ -249,10 +254,7 @@ def getRawDataFrom():
 
     queryParameters = request.args
     logger.info(queryParameters)
-    # jsonParameters = request.get_json(force=True)
-    # print('jsonParameters', jsonParameters)
 
-# TODO get the data for airUs
     dataSeries = []
     if queryParameters['sensorSource'] == 'airu':
         logger.info('airu')
@@ -266,15 +268,15 @@ def getRawDataFrom():
 
         # http://0.0.0.0:5000/api/rawDataFrom?id=D0B5C2F31E1F&sensorSource=AirU&start=2017-12-02T22:17:00Z&end=2017-12-03T22:17:00Z&show=all
 
-        influxClientAirU = InfluxDBClient(
-                    host=current_app.config['INFLUX_HOST'],
-                    port=current_app.config['INFLUX_PORT'],
-                    username=current_app.config['INFLUX_USERNAME'],
-                    password=current_app.config['INFLUX_PASSWORD'],
-                    database=current_app.config['INFLUX_AIRU_DATABASE'],
-                    ssl=current_app.config['SSL'],
-                    verify_ssl=current_app.config['SSL'])
+        influxClientAirU = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                          port=current_app.config['INFLUX_PORT'],
+                                          username=current_app.config['INFLUX_USERNAME'],
+                                          password=current_app.config['INFLUX_PASSWORD'],
+                                          database=current_app.config['INFLUX_AIRU_DATABASE'],
+                                          ssl=current_app.config['SSL'],
+                                          verify_ssl=current_app.config['SSL'])
 
+        # getting the mac address from the customID send as a query parameter
         customIDToMAC = getCustomSensorIDToMAC()
 
         theID = queryParameters['id']
@@ -655,7 +657,7 @@ def getInfluxPollingSensors(aDateStr):
     return dataSeries
 
 
-def getInfluxAirUSensors(aDateString):
+def getInfluxAirUSensors(minus5min):
 
     logger.info('influx airU started')
 
@@ -684,7 +686,7 @@ def getInfluxAirUSensors(aDateString):
 
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + macAddress + "' and time >= '" + aDateString + "'"
+                              "WHERE ID = '" + macAddress + "' and time >= '" + minus5min + "'"
 
         logger.info(queryInfluxAirU_lat)
 
@@ -700,7 +702,7 @@ def getInfluxAirUSensors(aDateString):
 
         queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + macAddress + "' and time >= '" + aDateString + "' "
+                              "WHERE ID = '" + macAddress + "' and time >= '" + minus5min + "' "
 
         logger.info(queryInfluxAirU_lng)
 
@@ -714,9 +716,9 @@ def getInfluxAirUSensors(aDateString):
 
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
 
-        queryInfluxAirU_lastPM25 = "SELECT LAST("+lookupParameterToAirUInflux.get('pm25') + ") AS pm25, ID " \
+        queryInfluxAirU_lastPM25 = "SELECT LAST(" + lookupParameterToAirUInflux.get('pm25') + ") AS pm25, ID " \
                                    "FROM " + current_app.config['INFLUX_AIRU_PM25_MEASUREMENT'] + " "\
-                                   "WHERE ID = '" + macAddress + "' and time >= '" + aDateString + "' "
+                                   "WHERE ID = '" + macAddress + "' "
 
         logger.info(queryInfluxAirU_lastPM25)
 

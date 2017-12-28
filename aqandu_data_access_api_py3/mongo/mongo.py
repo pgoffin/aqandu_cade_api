@@ -1,5 +1,5 @@
 import time
-import distutils
+# import distutils
 from threading import Thread
 
 from datetime import datetime

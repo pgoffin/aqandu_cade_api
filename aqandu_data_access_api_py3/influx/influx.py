@@ -415,7 +415,7 @@ def getProcessedDataFrom():
     queryParameters = request.args
     logger.info(queryParameters)
 
-    minutesOffset = queryParameters['start'].split(':')[1]
+    minutesOffset = queryParameters['start'].split(':')[1] + 'm'
     logger.info(minutesOffset)
 
     if queryParameters['sensorSource'] == 'airu':

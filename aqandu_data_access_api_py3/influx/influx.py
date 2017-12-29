@@ -412,7 +412,10 @@ def getProcessedDataFrom():
 
     # parse the data
     theValues = data['series'][0]['values']
-    pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
+    theColumns = data['series'][0]['columns']
+
+    dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+    # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
 
     # print(pmTimeSeries)
 
@@ -420,7 +423,7 @@ def getProcessedDataFrom():
 
     logger.info('*********** Time to download: %s ***********', end - start)
 
-    return jsonify(pmTimeSeries)
+    return jsonify(dataSeries)
 
 
 # http://0.0.0.0:5000/api/lastValue?fieldKey=pm25

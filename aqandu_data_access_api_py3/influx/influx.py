@@ -334,7 +334,7 @@ def getRawDataFrom():
                 # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
 
         queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get("pm25") + "), ID, \"Sensor Model\" FROM pm25 " \
-                       "WHERE ID = '" + queryParameters['id'] + "' "
+                       "WHERE ID = '" + theID + "' "
         logger.info(queryForTags)
 
         dataTags = influxClientAirU.query(queryForTags, epoch=None)

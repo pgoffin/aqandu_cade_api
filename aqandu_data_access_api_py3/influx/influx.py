@@ -298,7 +298,7 @@ def getRawDataFrom():
             else:
                 fieldString = lookupParameterToAirUInflux.get(aDB)
 
-            queryAirU = "SELECT ID, SensorModel, " + fieldString + " FROM " + aDB + " " \
+            queryAirU = "SELECT " + fieldString + " FROM " + aDB + " " \
                         "WHERE ID = '" + theID + "' " \
                         "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
 
@@ -311,7 +311,7 @@ def getRawDataFrom():
             columnsAirU = dataAirU['series'][0]['columns']
 
             if not dataSeries:
-                newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
             else:
                 newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
 
@@ -329,9 +329,24 @@ def getRawDataFrom():
 
                         tmpList.append(mergedObject)
 
-                newDataSeries = tmpList
+                dataSeries = tmpList
 
                 # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
+
+        queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get("pm25") + "), ID, \"Sensor Model\" FROM pm25 " \
+                       "WHERE ID = '" + queryParameters['id'] + "' "
+
+        dataTags = influxClientAirU.query(queryForTags, epoch=None)
+        dataTags = dataTags.raw
+        logger.info(dataTags)
+
+        dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+        dataSeries_Tags[0]['Sensor Source'] = 'airu'
+        logger.info(dataSeries_Tags)
+
+        newDataSeries = {}
+        newDataSeries["data"] = dataSeries
+        newDataSeries["tags"] = dataSeries_Tags
 
         end = time.time()
 
@@ -369,7 +384,8 @@ def getRawDataFrom():
         # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
         dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
 
-        queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality WHERE ID = '" + queryParameters['id'] + "' "
+        queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality " \
+                       "WHERE ID = '" + queryParameters['id'] + "' "
 
         dataTags = influxClientPolling.query(queryForTags, epoch=None)
         dataTags = dataTags.raw

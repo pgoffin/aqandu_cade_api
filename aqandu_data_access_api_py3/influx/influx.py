@@ -335,6 +335,7 @@ def getRawDataFrom():
 
         queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get("pm25") + "), ID, \"Sensor Model\" FROM pm25 " \
                        "WHERE ID = '" + queryParameters['id'] + "' "
+        logger.info(queryForTags)
 
         dataTags = influxClientAirU.query(queryForTags, epoch=None)
         dataTags = dataTags.raw

@@ -412,57 +412,119 @@ def getProcessedDataFrom():
 
     logger.info('*********** processedDataFrom request started ***********')
 
-    influxClientPolling = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
-                                         port=current_app.config['INFLUX_PORT'],
-                                         username=current_app.config['INFLUX_USERNAME'],
-                                         password=current_app.config['INFLUX_PASSWORD'],
-                                         database=current_app.config['INFLUX_POLLING_DATABASE'],
-                                         ssl=current_app.config['SSL'],
-                                         verify_ssl=current_app.config['SSL'])
-
     queryParameters = request.args
     logger.info(queryParameters)
 
-    # TODO do some parameter checking
-    # TODO check if queryParameters exist if not write excpetion
+    if queryParameters['sensorSource'] == 'airu':
+        logger.info('airu')
+        logger.info(queryParameters['sensorSource'])
 
-    selectString = createSelection('processed', queryParameters)
-    logger.info(selectString)
+        influxClientAirU = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                          port=current_app.config['INFLUX_PORT'],
+                                          username=current_app.config['INFLUX_USERNAME'],
+                                          password=current_app.config['INFLUX_PASSWORD'],
+                                          database=current_app.config['INFLUX_AIRU_DATABASE'],
+                                          ssl=current_app.config['SSL'],
+                                          verify_ssl=current_app.config['SSL'])
 
-    query = "SELECT " + selectString + " FROM airQuality " \
-            "WHERE ID = '" + queryParameters['id'] + "' " \
-            "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ")"
-    logger.info(query)
+        # getting the mac address from the customID send as a query parameter
+        customIDToMAC = getCustomSensorIDToMAC()
 
-    start = time.time()
+        theID = queryParameters['id']
+        if theID in customIDToMAC:
+            theID = customIDToMAC[theID]
 
-    data = influxClientPolling.query(query, epoch=None)
-    data = data.raw
-    logger.info(data)
+        selectString = createSelection('processed', queryParameters)
+        logger.info(selectString)
 
-    # parse the data
-    theValues = data['series'][0]['values']
-    theColumns = data['series'][0]['columns']
+        query = "SELECT " + selectString + " FROM pm25 " \
+                "WHERE ID = '" + queryParameters['id'] + "' " \
+                "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ")"
+        logger.info(query)
 
-    dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
-    # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
+        start = time.time()
 
-    # print(pmTimeSeries)
+        data = influxClientAirU.query(query, epoch=None)
+        data = data.raw
+        logger.info(data)
 
-    queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality WHERE ID = '" + queryParameters['id'] + "' "
+        # parse the data
+        theValues = data['series'][0]['values']
+        theColumns = data['series'][0]['columns']
 
-    dataTags = influxClientPolling.query(queryForTags, epoch=None)
-    dataTags = dataTags.raw
-    logger.info(dataTags)
+        dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+        # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
 
-    dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
-    logger.info(dataSeries_Tags)
+        # print(pmTimeSeries)
 
-    newDataSeries = {}
-    newDataSeries["data"] = dataSeries
-    newDataSeries["tags"] = dataSeries_Tags
+        queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\" FROM pm25 " \
+                       " WHERE ID = '" + queryParameters['id'] + "' "
 
-    end = time.time()
+        dataTags = influxClientAirU.query(queryForTags, epoch=None)
+        dataTags = dataTags.raw
+        logger.info(dataTags)
+
+        dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+        dataSeries_Tags[0]['Sensor Source'] = 'airu'
+        logger.info(dataSeries_Tags)
+
+        newDataSeries = {}
+        newDataSeries["data"] = dataSeries
+        newDataSeries["tags"] = dataSeries_Tags
+
+        end = time.time()
+    else:
+        influxClientPolling = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                             port=current_app.config['INFLUX_PORT'],
+                                             username=current_app.config['INFLUX_USERNAME'],
+                                             password=current_app.config['INFLUX_PASSWORD'],
+                                             database=current_app.config['INFLUX_POLLING_DATABASE'],
+                                             ssl=current_app.config['SSL'],
+                                             verify_ssl=current_app.config['SSL'])
+
+        # queryParameters = request.args
+        # logger.info(queryParameters)
+
+        # TODO do some parameter checking
+        # TODO check if queryParameters exist if not write excpetion
+
+        selectString = createSelection('processed', queryParameters)
+        logger.info(selectString)
+
+        query = "SELECT " + selectString + " FROM airQuality " \
+                "WHERE ID = '" + queryParameters['id'] + "' " \
+                "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ")"
+        logger.info(query)
+
+        start = time.time()
+
+        data = influxClientPolling.query(query, epoch=None)
+        data = data.raw
+        logger.info(data)
+
+        # parse the data
+        theValues = data['series'][0]['values']
+        theColumns = data['series'][0]['columns']
+
+        dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+        # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
+
+        # print(pmTimeSeries)
+
+        queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality WHERE ID = '" + queryParameters['id'] + "' "
+
+        dataTags = influxClientPolling.query(queryForTags, epoch=None)
+        dataTags = dataTags.raw
+        logger.info(dataTags)
+
+        dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+        logger.info(dataSeries_Tags)
+
+        newDataSeries = {}
+        newDataSeries["data"] = dataSeries
+        newDataSeries["tags"] = dataSeries_Tags
+
+        end = time.time()
 
     logger.info('*********** Time to download: %s ***********', end - start)
 
@@ -543,7 +605,7 @@ def getLastValuesForLiveSensor():
 
 # HELPER FUNCTIONS
 
-def createSelection(typeOfQuery, querystring):
+def createSelection(typeOfQuery, querystring, sensorSource):
     """Creates the selection string for the SELECT statement."""
 
     if typeOfQuery == 'raw':
@@ -571,7 +633,11 @@ def createSelection(typeOfQuery, querystring):
 
     elif typeOfQuery == 'processed':
         argument = querystring['functionArg']
-        argumentExists = lookupQueryParameterToInflux.get(argument)
+
+        if sensorSource != 'airu':
+            argumentExists = lookupQueryParameterToInflux.get(argument)
+        else:
+            argumentExists = lookupParameterToAirUInflux.get(argument)
 
         if argumentExists is not None:
             alias = ''

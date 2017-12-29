@@ -294,7 +294,7 @@ def getRawDataFrom():
 
             if aDB == 'pm25':
                 # normalizing to pm25
-                fieldString = lookupParameterToAirUInflux.get(aDB) + 'AS pm25'
+                fieldString = lookupParameterToAirUInflux.get(aDB) + ' AS pm25'
             else:
                 fieldString = lookupParameterToAirUInflux.get(aDB)
 
@@ -649,7 +649,7 @@ def getCustomSensorIDToMAC():
         logger.info(theMAC)
         logger.info(customIDToMAC)
 
-    logger.info('getMacToCustomSensorID started')
+    logger.info('getMacToCustomSensorID done')
     return customIDToMAC
 
 

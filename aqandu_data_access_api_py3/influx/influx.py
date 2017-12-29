@@ -415,6 +415,9 @@ def getProcessedDataFrom():
     queryParameters = request.args
     logger.info(queryParameters)
 
+    minutesOffset = queryParameters['start'].split(':')[1]
+    logger.info(minutesOffset)
+
     if queryParameters['sensorSource'] == 'airu':
         logger.info('airu')
         logger.info(queryParameters['sensorSource'])
@@ -437,9 +440,12 @@ def getProcessedDataFrom():
         selectString = createSelection('processed', queryParameters)
         logger.info(selectString)
 
+        # minutesOffset = queryParameters['start'].split(':')[1]
+        # logger.info(minutesOffset)
+
         query = "SELECT " + selectString + " FROM pm25 " \
                 "WHERE ID = '" + theID + "' " \
-                "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ")"
+                "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ", " + minutesOffset + ")"
         logger.info(query)
 
         start = time.time()

@@ -530,7 +530,7 @@ def createSelection(typeOfQuery, querystring):
             if argument == 'pm25':
                 alias = alias + ' AS pm25 '
 
-            selectString = querystring['function'] + "(" + argumentExists + ")" + alias + ", \"Sensor Model\", \"Sensor Source\""
+            selectString = querystring['function'] + "(" + argumentExists + ")" + alias
 
     return selectString
 

@@ -419,6 +419,14 @@ def getProcessedDataFrom():
 
     # print(pmTimeSeries)
 
+    queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality GROUP BY ID"
+    dataTags = influxClientPolling.query(queryForTags, epoch=None)
+    dataTags = dataTags.raw
+    logger.info(dataTags)
+
+    dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+    logger.info(dataSeries_Tags)
+
     end = time.time()
 
     logger.info('*********** Time to download: %s ***********', end - start)

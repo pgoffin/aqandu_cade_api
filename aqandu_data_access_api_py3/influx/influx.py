@@ -382,14 +382,13 @@ def getProcessedDataFrom():
 
     logger.info('*********** processedDataFrom request started ***********')
 
-    influxClientPolling = InfluxDBClient(
-                host=current_app.config['INFLUX_HOST'],
-                port=current_app.config['INFLUX_PORT'],
-                username=current_app.config['INFLUX_USERNAME'],
-                password=current_app.config['INFLUX_PASSWORD'],
-                database=current_app.config['INFLUX_POLLING_DATABASE'],
-                ssl=current_app.config['SSL'],
-                verify_ssl=current_app.config['SSL'])
+    influxClientPolling = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                         port=current_app.config['INFLUX_PORT'],
+                                         username=current_app.config['INFLUX_USERNAME'],
+                                         password=current_app.config['INFLUX_PASSWORD'],
+                                         database=current_app.config['INFLUX_POLLING_DATABASE'],
+                                         ssl=current_app.config['SSL'],
+                                         verify_ssl=current_app.config['SSL'])
 
     queryParameters = request.args
     logger.info(queryParameters)
@@ -449,14 +448,13 @@ def getLastValuesForLiveSensor():
     lastValueObject = {aSensor["ID"]: aSensor for aSensor in dataSeries}
 
     # getting the airu data
-    influxClientAirU = InfluxDBClient(
-                host=current_app.config['INFLUX_HOST'],
-                port=current_app.config['INFLUX_PORT'],
-                username=current_app.config['INFLUX_USERNAME'],
-                password=current_app.config['INFLUX_PASSWORD'],
-                database=current_app.config['INFLUX_AIRU_DATABASE'],
-                ssl=current_app.config['SSL'],
-                verify_ssl=current_app.config['SSL'])
+    influxClientAirU = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                      port=current_app.config['INFLUX_PORT'],
+                                      username=current_app.config['INFLUX_USERNAME'],
+                                      password=current_app.config['INFLUX_PASSWORD'],
+                                      database=current_app.config['INFLUX_AIRU_DATABASE'],
+                                      ssl=current_app.config['SSL'],
+                                      verify_ssl=current_app.config['SSL'])
 
     queryAirU = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['fieldKey']) + "), ID, \"Sensor Model\" FROM " + queryParameters['fieldKey'] + " GROUP BY ID"
 
@@ -520,9 +518,7 @@ def createSelection(typeOfQuery, querystring):
                         showExists = showExists + ' AS pm25'
 
                     selectString = selectString + ", " + showExists
-        # else:
-        #     # AirU
-            # if 'all' in show:
+
     elif typeOfQuery == 'processed':
         argument = querystring['functionArg']
         argumentExists = lookupQueryParameterToInflux.get(argument)
@@ -531,7 +527,8 @@ def createSelection(typeOfQuery, querystring):
             alias = ''
             if argument == 'pm25':
                 alias = alias + ' AS pm25 '
-            selectString = querystring['function'] + "(" + argumentExists + ")" + alias
+
+            selectString = querystring['function'] + "(" + argumentExists + ")" + alias + ", \"Sensor Model\", \"Sensor Source\""
 
     return selectString
 

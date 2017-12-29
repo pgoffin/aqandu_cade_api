@@ -311,7 +311,7 @@ def getRawDataFrom():
             columnsAirU = dataAirU['series'][0]['columns']
 
             if not dataSeries:
-                dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
             else:
                 newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
 
@@ -329,7 +329,7 @@ def getRawDataFrom():
 
                         tmpList.append(mergedObject)
 
-                dataSeries = tmpList
+                newDataSeries = tmpList
 
                 # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
 
@@ -349,6 +349,7 @@ def getRawDataFrom():
         # TODO check if queryParameters exist if not write excpetion
 
         selectString = createSelection('raw', queryParameters)
+        logger.info(selectString)
 
         query = "SELECT " + selectString + " FROM airQuality " \
                 "WHERE ID = '" + queryParameters['id'] + "' " \
@@ -368,11 +369,24 @@ def getRawDataFrom():
         # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
         dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
 
+        queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality WHERE ID = '" + queryParameters['id'] + "' "
+
+        dataTags = influxClientPolling.query(queryForTags, epoch=None)
+        dataTags = dataTags.raw
+        logger.info(dataTags)
+
+        dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+        logger.info(dataSeries_Tags)
+
+        newDataSeries = {}
+        newDataSeries["data"] = dataSeries
+        newDataSeries["tags"] = dataSeries_Tags
+
         end = time.time()
 
     logger.info('*********** Time to download: %s ***********', end - start)
 
-    return jsonify(dataSeries)
+    return jsonify(newDataSeries)
 
 
 # http://0.0.0.0:5000/api/processedDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&function=mean&functionArg=pm25&timeInterval=30m
@@ -526,7 +540,8 @@ def createSelection(typeOfQuery, querystring):
         if 'all' in show:
             selectString = "*"
         else:
-            selectString = 'ID, \"Sensor Model\", \"Sensor Source\"'
+            # selectString = 'ID, \"Sensor Model\", \"Sensor Source\"'
+            selectString = ''
             for aShow in show:
                 showExists = lookupQueryParameterToInflux.get(aShow)
 

@@ -634,7 +634,7 @@ def createSelection(typeOfQuery, querystring, sensorSource):
     elif typeOfQuery == 'processed':
         argument = querystring['functionArg']
 
-        if sensorSource != 'airu':
+        if querystring['sensorSource'] != 'airu':
             argumentExists = lookupQueryParameterToInflux.get(argument)
         else:
             argumentExists = lookupParameterToAirUInflux.get(argument)

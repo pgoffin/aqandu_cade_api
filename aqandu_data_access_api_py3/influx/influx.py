@@ -605,9 +605,9 @@ def getLastValuesForLiveSensor():
 
 # HELPER FUNCTIONS
 
-def createSelection(typeOfQuery, querystring, sensorSource):
+def createSelection(typeOfQuery, querystring):
     """Creates the selection string for the SELECT statement."""
-
+    logger.info(querystring)
     if typeOfQuery == 'raw':
 
         # db = querystring['sensorSource']
@@ -638,6 +638,8 @@ def createSelection(typeOfQuery, querystring, sensorSource):
             argumentExists = lookupQueryParameterToInflux.get(argument)
         else:
             argumentExists = lookupParameterToAirUInflux.get(argument)
+
+        logger.info(argumentExists)
 
         if argumentExists is not None:
             alias = ''

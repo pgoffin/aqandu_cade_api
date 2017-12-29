@@ -438,7 +438,7 @@ def getProcessedDataFrom():
         logger.info(selectString)
 
         query = "SELECT " + selectString + " FROM pm25 " \
-                "WHERE ID = '" + queryParameters['id'] + "' " \
+                "WHERE ID = '" + theID + "' " \
                 "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ")"
         logger.info(query)
 
@@ -458,7 +458,7 @@ def getProcessedDataFrom():
         # print(pmTimeSeries)
 
         queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\" FROM pm25 " \
-                       " WHERE ID = '" + queryParameters['id'] + "' "
+                       " WHERE ID = '" + theID + "' "
 
         dataTags = influxClientAirU.query(queryForTags, epoch=None)
         dataTags = dataTags.raw

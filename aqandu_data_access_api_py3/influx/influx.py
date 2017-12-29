@@ -397,15 +397,18 @@ def getProcessedDataFrom():
     # TODO check if queryParameters exist if not write excpetion
 
     selectString = createSelection('processed', queryParameters)
+    logger.info(selectString)
 
     query = "SELECT " + selectString + " FROM airQuality " \
             "WHERE ID = '" + queryParameters['id'] + "' " \
             "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ")"
+    logger.info(query)
 
     start = time.time()
 
     data = influxClientPolling.query(query, epoch=None)
     data = data.raw
+    logger.info(data)
 
     # parse the data
     theValues = data['series'][0]['values']
@@ -426,14 +429,13 @@ def getLastValuesForLiveSensor():
 
     logger.info('*********** lastPM request started ***********')
 
-    influxClientPolling = InfluxDBClient(
-                host=current_app.config['INFLUX_HOST'],
-                port=current_app.config['INFLUX_PORT'],
-                username=current_app.config['INFLUX_USERNAME'],
-                password=current_app.config['INFLUX_PASSWORD'],
-                database=current_app.config['INFLUX_POLLING_DATABASE'],
-                ssl=current_app.config['SSL'],
-                verify_ssl=current_app.config['SSL'])
+    influxClientPolling = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                         port=current_app.config['INFLUX_PORT'],
+                                         username=current_app.config['INFLUX_USERNAME'],
+                                         password=current_app.config['INFLUX_PASSWORD'],
+                                         database=current_app.config['INFLUX_POLLING_DATABASE'],
+                                         ssl=current_app.config['SSL'],
+                                         verify_ssl=current_app.config['SSL'])
 
     queryParameters = request.args
     logger.info(queryParameters['fieldKey'])

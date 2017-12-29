@@ -419,7 +419,8 @@ def getProcessedDataFrom():
 
     # print(pmTimeSeries)
 
-    queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality GROUP BY ID"
+    queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality WHERE ID = '" + queryParameters['id'] + "' "
+
     dataTags = influxClientPolling.query(queryForTags, epoch=None)
     dataTags = dataTags.raw
     logger.info(dataTags)

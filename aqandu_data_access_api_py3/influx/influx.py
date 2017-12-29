@@ -549,7 +549,8 @@ def createSelection(typeOfQuery, querystring):
                     if aShow == 'pm25':
                         showExists = showExists + ' AS pm25'
 
-                    selectString = selectString + ", " + showExists
+                    # selectString = selectString + ", " + showExists + ", "
+                    selectString = selectString + (', ' if selectString != '' else '') + showExists
 
     elif typeOfQuery == 'processed':
         argument = querystring['functionArg']

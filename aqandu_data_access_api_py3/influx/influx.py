@@ -1,5 +1,6 @@
 # import requests
 # import sys
+import pytz
 import time
 
 from datetime import datetime, timedelta
@@ -64,8 +65,13 @@ def getLiveSensors(type):
     logger.info('*********** liveSensors request started ***********')
 
     now = datetime.now()
-    yesterday = now - timedelta(days=1)
-    nowMinus5 = now - timedelta(minutes=5)
+
+    localTimezone = pytz.timezone('MST')
+    local_dt = localTimezone.localize(now, is_dst=None)  # now local time on server is MST, add that information to the time
+    utc_dt = local_dt.astimezone(pytz.utc)  # trasnform local now time to UTC
+
+    yesterday = utc_dt - timedelta(days=1)
+    nowMinus5 = utc_dt - timedelta(minutes=5)
 
     # yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
     # yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')

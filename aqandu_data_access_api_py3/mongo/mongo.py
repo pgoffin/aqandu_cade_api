@@ -3,6 +3,7 @@ import time
 from threading import Thread
 
 from datetime import datetime
+from distutils.util import strtobool
 from flask import jsonify, request, Blueprint
 from flask import current_app
 from flask_mail import Message
@@ -54,6 +55,8 @@ def registerSensor():
     email = queryParameters['sensor_holder']
     # phone = queryParameters['phone']
     mapVisibility = queryParameters['mapVisibility']
+    # casting to bool
+    mapVisibility_bool = bool(strtobool(mapVisibility))
 
     # TODO Do parameter checking
     # TODO check if the MAC address is in our list of MAC addresses
@@ -68,14 +71,14 @@ def registerSensor():
         aSensor = {"macAddress": macAddress,
                    "email": email,
                    "phone": phoneNumber,             # set for consistency with further deployments
-                   "mapVisibility": mapVisibility,   # set for consistency with further deployments
+                   "mapVisibility": mapVisibility_bool,   # set for consistency with further deployments
                    "createdAt": now}
 
         sensorConnectionMeasurement = {
             'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
             'fields': {
                 'email': email,
-                'mapVisibility': bool(mapVisibility),   # set for consistency with further deployments
+                'mapVisibility': mapVisibility_bool,   # set for consistency with further deployments
                 'phone': phoneNumber  # set for consistency with further deployments
             },
             'tags': {

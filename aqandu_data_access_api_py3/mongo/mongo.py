@@ -36,23 +36,24 @@ def registerSensor():
     mongoClient = MongoClient(mongodb_url)
     db = mongoClient.airudb
 
-    influxClientLoggingSensorConnections = InfluxDBClient(
-                host=current_app.config['INFLUX_HOST'],
-                port=current_app.config['INFLUX_PORT'],
-                username=current_app.config['INFLUX_USERNAME'],
-                password=current_app.config['INFLUX_PASSWORD'],
-                database=current_app.config['INFLUX_AIRU_LOGGING_SENSOR_CONNECTION_DATABASE'],
-                ssl=current_app.config['SSL'],
-                verify_ssl=current_app.config['SSL'])
+    influxClientLoggingSensorConnections = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                                          port=current_app.config['INFLUX_PORT'],
+                                                          username=current_app.config['INFLUX_USERNAME'],
+                                                          password=current_app.config['INFLUX_PASSWORD'],
+                                                          database=current_app.config['INFLUX_AIRU_LOGGING_SENSOR_CONNECTION_DATABASE'],
+                                                          ssl=current_app.config['SSL'],
+                                                          verify_ssl=current_app.config['SSL'])
 
     # # TWILIO client
-    # client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
+    client = Client(current_app.config['TWILIO_ACCOUNT_SID'], current_app.config['TWILIO_AUTH_TOKEN'])
 
     queryParameters = request.get_json()
     LOGGER.info(queryParameters)
 
     macAddress = queryParameters['sensor_mac']
     email = queryParameters['sensor_holder']
+    # phone = queryParameters['phone']
+    mapVisibility = queryParameters['mapVisibility']
 
     # TODO Do parameter checking
     # TODO check if the MAC address is in our list of MAC addresses
@@ -60,22 +61,22 @@ def registerSensor():
     try:
         now = datetime.utcnow()
 
-        # phoneNumber = queryParameters['phone']
-        # if queryParameters['phone'] != '':
-        #     phoneNumber = '+1' + queryParameters['phone']
+        phoneNumber = queryParameters['phone']
+        if queryParameters['phone'] != '':
+            phoneNumber = '+1' + queryParameters['phone']
 
         aSensor = {"macAddress": macAddress,
                    "email": email,
-                   "phone": "",             # set for consistency with further deployments
-                   "mapVisibility": True,   # set for consistency with further deployments
+                   "phone": phoneNumber,             # set for consistency with further deployments
+                   "mapVisibility": mapVisibility,   # set for consistency with further deployments
                    "createdAt": now}
 
         sensorConnectionMeasurement = {
             'measurement': current_app.config['INFLUX_AIRU_LOGGING_SENSOR_MEASUREMENT'],
             'fields': {
                 'email': email,
-                'mapVisibility': bool(True),   # set for consistency with further deployments
-                'phone': ""  # set for consistency with further deployments
+                'mapVisibility': bool(mapVisibility),   # set for consistency with further deployments
+                'phone': phoneNumber  # set for consistency with further deployments
             },
             'tags': {
                 'macAddress': macAddress
@@ -116,20 +117,20 @@ def registerSensor():
         # theMessage = 'Hello from AQandU! Your sensor with MAC address ' + macAddress + ' is now connected to the internet and is gathering data. Thank you for participating!'
         theMessage = 'Hello from AQandU! Your sensor is now connected to the internet and is gathering data. Thank you for participating! AQandU Team'
 
-        # if phoneNumber != '':
-        #     LOGGER.info('sending a text to ' + phone)
-        #     startSendText = time.time()
-        #
-        #     sender = current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE']
-        #     recipient = phoneNumber
-        #
-        #     sendText(client, sender, recipient, theMessage)
-        #
-        #     endSendText = time.time()
-        #     timeToSendText = endSendText - startSendText
-        #     LOGGER.info('*********** Time to send text: %s', timeToSendText)
-        # else:
-        #     LOGGER.info('no phone number provided')
+        if phoneNumber != '':
+            LOGGER.info('sending a text to ' + phoneNumber)
+            startSendText = time.time()
+
+            sender = current_app.config['PHONE_NUMBER_TO_SEND_MESSAGE']
+            recipient = phoneNumber
+
+            sendText(client, sender, recipient, theMessage)
+
+            endSendText = time.time()
+            timeToSendText = endSendText - startSendText
+            LOGGER.info('*********** Time to send text: %s', timeToSendText)
+        else:
+            LOGGER.info('no phone number provided')
 
         if email != '':
 

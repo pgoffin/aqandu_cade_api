@@ -456,8 +456,10 @@ def getProcessedDataFrom():
         if theID in customIDToMAC:
             theID = customIDToMAC[theID]
         else:
+            logger.info('in else statement')
             raise UnknownIDError("unknown ID")
 
+        logger.info('does it go on')
         selectString = createSelection('processed', queryParameters)
         logger.info(selectString)
 

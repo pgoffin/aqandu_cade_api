@@ -299,8 +299,8 @@ def getRawDataFrom():
         theID = queryParameters['id']
         if theID in customIDToMAC:
             theID = customIDToMAC[theID]
-        # else:
-        #     raise UnknownIDError("unknown ID")
+        else:
+            raise UnknownIDError("unknown ID")
 
         # query each db
         toShow = []
@@ -455,8 +455,8 @@ def getProcessedDataFrom():
         theID = queryParameters['id']
         if theID in customIDToMAC:
             theID = customIDToMAC[theID]
-        # else:
-        #     raise UnknownIDError("unknown ID")
+        else:
+            raise UnknownIDError("unknown ID")
 
         selectString = createSelection('processed', queryParameters)
         logger.info(selectString)

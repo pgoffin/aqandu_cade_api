@@ -4,7 +4,6 @@ import pytz
 import time
 
 from datetime import datetime, timedelta
-# from exceptions import UnknownIDError
 from flask import jsonify, request, Blueprint
 from influxdb import InfluxDBClient
 from pymongo import MongoClient
@@ -12,6 +11,17 @@ from werkzeug.local import LocalProxy
 
 # from .. import app
 from flask import current_app
+
+
+# define Python user-defined exceptions
+class Error(Exception):
+    """Base class for other exceptions"""
+    pass
+
+
+class UnknownIDError(Error):
+    """Raised when ID is not in db"""
+    pass
 
 
 influx = Blueprint('influx', __name__)

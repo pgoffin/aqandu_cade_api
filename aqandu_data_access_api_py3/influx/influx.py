@@ -4,6 +4,7 @@ import pytz
 import time
 
 from datetime import datetime, timedelta
+from exceptions import UnknownIDError
 from flask import jsonify, request, Blueprint
 from influxdb import InfluxDBClient
 from pymongo import MongoClient
@@ -288,6 +289,8 @@ def getRawDataFrom():
         theID = queryParameters['id']
         if theID in customIDToMAC:
             theID = customIDToMAC[theID]
+        else:
+            raise UnknownIDError("unknown ID")
 
         # query each db
         toShow = []
@@ -442,6 +445,8 @@ def getProcessedDataFrom():
         theID = queryParameters['id']
         if theID in customIDToMAC:
             theID = customIDToMAC[theID]
+        else:
+            raise UnknownIDError("unknown ID")
 
         selectString = createSelection('processed', queryParameters)
         logger.info(selectString)

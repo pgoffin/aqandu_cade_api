@@ -39,8 +39,6 @@ Compress(app)
 # sentry = Sentry(app, dsn=app.config['SENTRY'])
 
 
-
-
 @app.route("/")
 def hello():
     return "<h1 style='color:blue'>Hello There! Just checking that it works.</h1>"

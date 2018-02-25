@@ -300,7 +300,15 @@ def getRawDataFrom():
         if theID in customIDToMAC:
             theID = customIDToMAC[theID]
         else:
-            raise UnknownIDError("unknown ID")
+            logger.info('this is an unknow ID, not in db')
+            message = {'status': 404,
+                       'message': 'unknown ID, so sensor with that ID'
+                       }
+            errorResp = jsonify(message)
+            errorResp.status_code = 404
+
+            return errorResp
+            # raise UnknownIDError("unknown ID")
 
         # query each db
         toShow = []
@@ -422,7 +430,10 @@ def getRawDataFrom():
 
     logger.info('*********** Time to download: %s ***********', end - start)
 
-    return jsonify(newDataSeries)
+    resp = jsonify(newDataSeries)
+    resp.status_code = 200
+
+    return resp
 
 
 # http://0.0.0.0:5000/api/processedDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&function=mean&functionArg=pm25&timeInterval=30m
@@ -456,7 +467,7 @@ def getProcessedDataFrom():
         if theID in customIDToMAC:
             theID = customIDToMAC[theID]
         else:
-            logger.info('in else statement')
+            logger.info('this is an unknow ID, not in db')
             raise UnknownIDError("unknown ID")
 
         logger.info('does it go on')

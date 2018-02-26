@@ -432,7 +432,6 @@ def getRawDataFrom():
     logger.info('*********** Time to download: %s ***********', end - start)
 
     resp = jsonify(newDataSeries)
-    resp.headers.add('Access-Control-Allow-Origin', '*')
     resp.status_code = 200
 
     return resp
@@ -470,7 +469,14 @@ def getProcessedDataFrom():
             theID = customIDToMAC[theID]
         else:
             logger.info('this is an unknow ID, not in db')
-            raise UnknownIDError("unknown ID")
+            message = {'status': 404,
+                       'message': 'unknown ID, so sensor with that ID'
+                       }
+            errorResp = jsonify(message)
+            errorResp.headers.add('Access-Control-Allow-Origin', '*')
+            errorResp.status_code = 404
+
+            return errorResp
 
         logger.info('does it go on')
         selectString = createSelection('processed', queryParameters)
@@ -567,7 +573,10 @@ def getProcessedDataFrom():
 
     logger.info('*********** Time to download: %s ***********', end - start)
 
-    return jsonify(newDataSeries)
+    resp = jsonify(newDataSeries)
+    resp.status_code = 200
+
+    return resp
 
 
 # http://0.0.0.0:5000/api/lastValue?fieldKey=pm25

@@ -305,6 +305,7 @@ def getRawDataFrom():
                        'message': 'unknown ID, so sensor with that ID'
                        }
             errorResp = jsonify(message)
+            errorResp.headers.add('Access-Control-Allow-Origin', '*')
             errorResp.status_code = 404
 
             return errorResp
@@ -431,6 +432,7 @@ def getRawDataFrom():
     logger.info('*********** Time to download: %s ***********', end - start)
 
     resp = jsonify(newDataSeries)
+    resp.headers.add('Access-Control-Allow-Origin', '*')
     resp.status_code = 200
 
     return resp

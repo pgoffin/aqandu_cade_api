@@ -674,6 +674,8 @@ def getContours():
 
     logger.info(contours)
 
+    logger.info(jsonify(contours))
+
     resp = jsonify(contours)
     resp.status_code = 200
 

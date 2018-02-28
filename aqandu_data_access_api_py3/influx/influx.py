@@ -654,6 +654,8 @@ def getLastValuesForLiveSensor():
 @influx.route('/api/contours', methods=['GET'])
 def getContours():
 
+    logger.info('*********** getting contours request started ***********')
+
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
         password=current_app.config['MONGO_PASSWORD'],
@@ -669,6 +671,8 @@ def getContours():
         if anEstimate['svgBinary']:
             time = anEstimate["estimationFor"].split('.')[0]
             contours[time] = {'svgBinary': anEstimate['svgBinary']}
+
+    logger.info(contours)
 
     resp = jsonify(contours)
     resp.status_code = 200

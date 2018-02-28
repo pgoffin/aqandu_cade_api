@@ -651,6 +651,31 @@ def getLastValuesForLiveSensor():
     return jsonify(allLastValues)
 
 
+@influx.route('/api/contours', methods=['GET'])
+def getContours():
+
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+    contours = {}
+
+    for anEstimate in db.timeSlicedEstimates.find():
+        if anEstimate['svgBinary']:
+            time = anEstimate["estimationFor"].split('.')[0]
+            contours[time] = {'svgBinary': anEstimate['svgBinary']}
+
+    resp = jsonify(contours)
+    resp.status_code = 200
+
+    return resp
+
+
 # HELPER FUNCTIONS
 
 def createSelection(typeOfQuery, querystring):

@@ -669,6 +669,7 @@ def getContours():
 
     for anEstimate in db.timeSlicedEstimates.find():
         if anEstimate['svgBinary']:
+            logger.info(type(anEstimate['svgBinary']))
             time = anEstimate["estimationFor"].split('.')[0]
             contours[time] = {'svgBinary': anEstimate['svgBinary']}
 

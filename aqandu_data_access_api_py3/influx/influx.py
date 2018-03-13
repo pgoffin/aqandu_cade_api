@@ -44,7 +44,7 @@ lookupQueryParameterToInflux = {
     'sensor_error': '\"Sensor error code\"',
     'solar_radiation': '\"Solar radiation (W/m**2)\"',
     'start': 'Start',
-    'temp': '\"Temp (*C)\"',
+    'temperature': '\"Temp (*C)\"',
     'wind_direction': '\"Wind direction (compass degree)\"',
     'wind_gust': '\"Wind gust (m/s)\"',
     'wind_speed': '\"Wind speed (m/s)\"',

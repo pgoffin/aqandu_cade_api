@@ -715,8 +715,9 @@ def getLatestContour():
 
     for doc in cursor:
         logger.info(type(doc))
+        logger.info(doc['estimate'])
         logger.info(jsonify(doc))
-        logger.info(doc)
+
         lastContour = doc
 
     # logger.info(contours)

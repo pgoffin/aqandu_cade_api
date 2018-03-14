@@ -678,9 +678,9 @@ def getContours():
             time = anEstimate['estimationFor']
             logger.info(type(time))
             logger.info(time)
-            time_str = datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ')
+            time_str = time.strftime('%Y-%m-%dT%H:%M:%SZ')
             logger.info(time_str)
-            contours[time] = {'contours': anEstimate['contours']}
+            contours[time_str] = {'contours': anEstimate['contours']}
 
     logger.info(contours)
 

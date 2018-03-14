@@ -650,6 +650,8 @@ def getLastValuesForLiveSensor():
 
     allLastValues = mergeTwoDicts(lastValueObject, lastValueObjectAirU)
 
+    logger.info('*********** lastPM request done ***********')
+
     return jsonify(allLastValues)
 
 
@@ -683,13 +685,15 @@ def getContours():
     resp = jsonify(contours)
     resp.status_code = 200
 
+    logger.info('*********** getting contours request done ***********')
+
     return resp
 
 
 @influx.route('/api/getLatestContour', methods=['GET'])
 def getLatestContour():
 
-    logger.info('*********** getting contours request started ***********')
+    logger.info('*********** getting latest contours request started ***********')
 
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
@@ -713,6 +717,8 @@ def getLatestContour():
 
     resp = jsonify(lastContour)
     resp.status_code = 200
+
+    logger.info('*********** getting latest contours request done ***********')'
 
     return resp
 
@@ -788,7 +794,7 @@ def getAllCurrentlyLiveAirUs():
 
 def getMacToCustomSensorID():
 
-    logger.info('getMacToCustomSensorID started')
+    logger.info('******** getMacToCustomSensorID started ********')
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
         password=current_app.config['MONGO_PASSWORD'],
@@ -807,13 +813,13 @@ def getMacToCustomSensorID():
         logger.info(theMAC)
         logger.info(macToCustomID)
 
-    logger.info('getMacToCustomSensorID started')
+    logger.info('******** getMacToCustomSensorID done ********')
     return macToCustomID
 
 
 def getCustomSensorIDToMAC():
 
-    logger.info('getMacToCustomSensorID started')
+    logger.info('******** getMacToCustomSensorIDToMac started ********')
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
         password=current_app.config['MONGO_PASSWORD'],
@@ -832,7 +838,7 @@ def getCustomSensorIDToMAC():
         logger.info(theMAC)
         logger.info(customIDToMAC)
 
-    logger.info('getMacToCustomSensorID done')
+    logger.info('******** getMacToCustomSensorIDToMac done ********')
     return customIDToMAC
 
 
@@ -845,7 +851,7 @@ def mergeTwoDicts(x, y):
 
 def getInfluxPollingSensors(aDateStr):
 
-    logger.info('influx polling started')
+    logger.info('******** influx polling started ********')
 
     influxClientPolling = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
                                          port=current_app.config['INFLUX_PORT'],
@@ -880,14 +886,14 @@ def getInfluxPollingSensors(aDateStr):
 
     logger.info(dataSeries)
 
-    logger.info('influx polling done')
+    logger.info('******** influx polling done ********')
 
     return dataSeries
 
 
 def getInfluxAirUSensors(minus5min):
 
-    logger.info('influx airU started')
+    logger.info('******** influx airU started ********')
 
     dataSeries = []
 
@@ -977,6 +983,6 @@ def getInfluxAirUSensors(minus5min):
         logger.info('airU appended')
 
     logger.info(dataSeries)
-    logger.info('influx airU done')
+    logger.info('******** influx airU done ********')
 
     return dataSeries

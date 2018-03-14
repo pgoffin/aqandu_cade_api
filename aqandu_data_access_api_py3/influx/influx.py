@@ -653,6 +653,7 @@ def getLastValuesForLiveSensor():
     return jsonify(allLastValues)
 
 
+# contour API calls
 @influx.route('/api/contours', methods=['GET'])
 def getContours():
 
@@ -680,6 +681,34 @@ def getContours():
     logger.info(jsonify(contours))
 
     resp = jsonify(contours)
+    resp.status_code = 200
+
+    return resp
+
+
+@influx.route('/api/getLatestContour', methods=['GET'])
+def getLatestContour():
+
+    logger.info('*********** getting contours request started ***********')
+
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+    # contours = {}
+
+    lastContour = db.timeSlicedEstimates.find().sort({"estimationFor": -1}).limit(1)
+
+    # logger.info(contours)
+
+    # logger.info(jsonify(contours))
+
+    resp = jsonify(lastContour)
     resp.status_code = 200
 
     return resp

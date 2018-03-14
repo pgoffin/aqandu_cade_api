@@ -712,13 +712,14 @@ def getLatestContour():
 
     cursor = db.timeSlicedEstimates.find().sort('estimationFor', -1).limit(2)
     logger.info(cursor)
-
+    
     for doc in cursor:
         logger.info(type(doc))
         logger.info(doc['estimate'])
-        logger.info(jsonify(doc))
+        logger.info(doc['contours'])
+        # logger.info(jsonify(doc))
 
-        lastContour = doc
+        lastContour = doc['contours']
 
     # logger.info(contours)
 

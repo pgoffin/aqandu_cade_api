@@ -718,7 +718,7 @@ def getLatestContour():
     resp = jsonify(lastContour)
     resp.status_code = 200
 
-    logger.info('*********** getting latest contours request done ***********')'
+    logger.info('*********** getting latest contours request done ***********')
 
     return resp
 

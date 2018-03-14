@@ -675,7 +675,9 @@ def getContours():
     for anEstimate in db.timeSlicedEstimates.find():
         if anEstimate['contours']:
             logger.info(type(anEstimate['contours']))
-            time = anEstimate["estimationFor"].split('.')[0]
+            time = anEstimate['estimationFor']
+            time_str = datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ')
+            logger.info(time_str)
             contours[time] = {'contours': anEstimate['contours']}
 
     logger.info(contours)

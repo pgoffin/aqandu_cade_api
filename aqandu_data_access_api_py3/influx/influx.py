@@ -710,10 +710,11 @@ def getLatestContour():
     db = mongoClient.airudb
     # contours = {}
 
-    cursor = db.timeSlicedEstimates.find().sort('estimationFor', -1).limit(1)
+    cursor = db.timeSlicedEstimates.find().sort('estimationFor', -1).limit(2)
     logger.info(cursor)
 
     for doc in cursor:
+        logger.info(type(doc))
         logger.info(jsonify(doc))
         logger.info(doc)
         lastContour = doc

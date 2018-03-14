@@ -676,6 +676,8 @@ def getContours():
         if anEstimate['contours']:
             logger.info(type(anEstimate['contours']))
             time = anEstimate['estimationFor']
+            logger.info(type(time))
+            logger.info(time)
             time_str = datetime.strptime(time, '%Y-%m-%dT%H:%M:%SZ')
             logger.info(time_str)
             contours[time] = {'contours': anEstimate['contours']}

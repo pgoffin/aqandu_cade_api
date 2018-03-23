@@ -775,17 +775,17 @@ def getEstimatesForLocation():
         topRightCornerIndex = str((int(numberGridCells_LAT) * int(numberGridCells_LONG)) - 1)
         bottomLeftCornerIndex = str(0)
 
-        logger.info(theGrid[topRightCornerIndex]['lat'][0])
-        logger.info(theGrid[topRightCornerIndex]['lngs'][0])
-
         stepSizeLat = abs(theGrid[topRightCornerIndex]['lat'][0] - theGrid[bottomLeftCornerIndex]['lat'][0]) / numberGridCells_LAT
         stepSizeLong = abs(theGrid[topRightCornerIndex]['lngs'][0] - theGrid[bottomLeftCornerIndex]['lngs'][0]) / numberGridCells_LONG
 
         logger.info(stepSizeLat)
         logger.info(stepSizeLong)
 
-        fourCorners_left_index_x = math.floor((long(location_lng) - theGrid[bottomLeftCornerIndex]['lngs'][0]) / stepSizeLong)
-        fourCorners_bottom_index_y = math.floor((long(location_lat) - theGrid[bottomLeftCornerIndex]['lat'][0]) / stepSizeLat)
+        logger.info(float(location_lng))
+        logger.info(float(theGrid[bottomLeftCornerIndex]['lngs'][0]))
+
+        fourCorners_left_index_x = math.floor((float(location_lng) - theGrid[bottomLeftCornerIndex]['lngs'][0]) / stepSizeLong)
+        fourCorners_bottom_index_y = math.floor((float(location_lat) - theGrid[bottomLeftCornerIndex]['lat'][0]) / stepSizeLat)
 
         logger.info(fourCorners_left_index_x)
         logger.info(fourCorners_bottom_index_y)
@@ -813,7 +813,6 @@ def getEstimatesForLocation():
         return [leftBottomCorner_location, rightBottomCorner_location, leftTopCorner_location, rightTopCorner_location]
     else:
         logger.info('grid info is none!')
-
 
     # get the 4 corners for each timestamp between the timespan
 

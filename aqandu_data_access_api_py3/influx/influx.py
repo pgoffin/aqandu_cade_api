@@ -2,6 +2,7 @@
 # import sys
 # import bson
 # import pytz
+import math
 import time
 
 from datetime import datetime, timedelta
@@ -710,16 +711,16 @@ def getLatestContour():
     db = mongoClient.airudb
     # contours = {}
 
-    cursor = db.timeSlicedEstimates.find().sort('estimationFor', -1).limit(2)
+    cursor = db.timeSlicedEstimates_high.find().sort('estimationFor', -1).limit(1)
     logger.info(cursor)
-    
+
     for doc in cursor:
         logger.info(type(doc))
         logger.info(doc['estimate'])
         logger.info(doc['contours'])
         # logger.info(jsonify(doc))
 
-        lastContour = doc['contours']
+        lastContour = {'contour': doc['contours'], 'date_utc': doc['estimationFor']}
 
     # logger.info(contours)
 
@@ -731,6 +732,70 @@ def getLatestContour():
     logger.info('*********** getting latest contours request done ***********')
 
     return resp
+
+
+@influx.route('/api/getEstimatesForLocation', methods=['GET'])
+def getEstimatesForLocation():
+    # need a location and the needed timespan
+
+    queryParameters = request.args
+    logger.info(queryParameters)
+
+    location_lat = queryParameters['location_lat']
+    location_lng = queryParameters['location_lng']
+    # endDate = queryParameters['endDate']
+    # timeSpan = queryParameters['timespan']
+
+    # use location to get the 4 estimation data corners
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+
+    gridInfo = db.estimationMetadata.find_one({"metadataType": "timeSlicedEstimates_high"})
+
+    if gridInfo is not None:
+        theGrid = gridInfo['transformedGrid']
+        numberGridCells_LAT = gridInfo['numberOfGridCells']['lat']
+        numberGridCells_LONG = gridInfo['numberOfGridCells']['long']
+
+        topRightCornerIndex = (int(numberGridCells_LAT) * int(numberGridCells_LONG)) - 1
+        bottomLeftCornerIndex = 0
+
+        stepSizeLat = abs(theGrid[topRightCornerIndex]['lat'] - theGrid[bottomLeftCornerIndex]['lat']) / numberGridCells_LAT
+        stepSizeLong = abs(theGrid[topRightCornerIndex]['long'] - theGrid[bottomLeftCornerIndex]['long']) / numberGridCells_LONG
+
+        fourCorners_left_index_x = math.floor((location_lng - theGrid[bottomLeftCornerIndex]['long']) / stepSizeLong)
+        fourCorners_bottom_index_y = math.floor((location_lat - theGrid[bottomLeftCornerIndex]['lat']) / stepSizeLat)
+
+        # leftCorner_long = theGrid[bottomLeftCornerIndex]['long'] + (fourCorners_left_index_x * stepSizeLong)
+        # rightCorner_long = theGrid[bottomLeftCornerIndex]['long'] + (fourCorners_right_index_x * stepSizeLong)
+        # bottomCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_bottom_index_y * stepSizeLat)
+        # topCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_top_index_y * stepSizeLat)
+
+        leftBottomCorner_index = (fourCorners_bottom_index_y * numberGridCells_LONG) + fourCorners_left_index_x
+        rightBottomCorner_index = (fourCorners_bottom_index_y * numberGridCells_LONG) + (fourCorners_left_index_x + 1)
+        leftTopCorner_index = ((fourCorners_bottom_index_y + 1) * numberGridCells_LONG) + fourCorners_left_index_x
+        rightTopCorner_index = ((fourCorners_bottom_index_y + 1) * numberGridCells_LONG) + (fourCorners_left_index_x + 1)
+
+        leftBottomCorner_location = theGrid[leftBottomCorner_index]
+        rightBottomCorner_location = theGrid[rightBottomCorner_index]
+        leftTopCorner_location = theGrid[leftTopCorner_index]
+        rightTopCorner_location = theGrid[rightTopCorner_index]
+
+        return [leftBottomCorner_location, rightBottomCorner_location, leftTopCorner_location, rightTopCorner_location]
+    else:
+        logger.info('grid info is none!')
+
+
+    # get the 4 corners for each timestamp between the timespan
+
+    # do bilinear interpolation usin these 4 corners
 
 
 # HELPER FUNCTIONS

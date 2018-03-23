@@ -782,21 +782,21 @@ def getEstimatesForLocation():
         logger.info(stepSizeLat)
         logger.info(stepSizeLong)
 
-        fourCorners_left_index_x = math.floor((float(location_lng) - theGrid[bottomLeftCornerIndex]['lngs'][0]) / stepSizeLong)
-        fourCorners_bottom_index_y = math.floor((float(location_lat) - theGrid[bottomLeftCornerIndex]['lat'][0]) / stepSizeLat)
+        fourCorners_left_index_lng = math.floor((float(location_lng) - theGrid[bottomLeftCornerIndex]['lngs'][0]) / stepSizeLong)
+        fourCorners_bottom_index_lat = math.floor((float(location_lat) - theGrid[bottomLeftCornerIndex]['lat'][0]) / stepSizeLat)
 
-        logger.info(fourCorners_left_index_x)
-        logger.info(fourCorners_bottom_index_y)
+        logger.info(fourCorners_left_index_lng)
+        logger.info(fourCorners_bottom_index_lat)
 
         # leftCorner_long = theGrid[bottomLeftCornerIndex]['long'] + (fourCorners_left_index_x * stepSizeLong)
         # rightCorner_long = theGrid[bottomLeftCornerIndex]['long'] + (fourCorners_right_index_x * stepSizeLong)
         # bottomCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_bottom_index_y * stepSizeLat)
         # topCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_top_index_y * stepSizeLat)
 
-        leftBottomCorner_index = (fourCorners_left_index_x * numberGridCells_LAT) + fourCorners_bottom_index_y
-        rightBottomCorner_index = (fourCorners_left_index_x * (numberGridCells_LAT + 1)) + fourCorners_bottom_index_y
-        leftTopCorner_index = (fourCorners_left_index_x * numberGridCells_LAT) + (fourCorners_bottom_index_y + 1)
-        rightTopCorner_index = (fourCorners_left_index_x * (numberGridCells_LAT + 1)) + (fourCorners_bottom_index_y + 1)
+        leftBottomCorner_index = (fourCorners_left_index_lng * numberGridCells_LONG) + fourCorners_bottom_index_lat
+        rightBottomCorner_index = (fourCorners_left_index_lng * numberGridCells_LONG) + (fourCorners_bottom_index_lat + 1)
+        leftTopCorner_index = ((fourCorners_left_index_lng + 1) * numberGridCells_LONG) + fourCorners_bottom_index_lat
+        rightTopCorner_index = ((fourCorners_left_index_lng + 1) * numberGridCells_LONG) + (fourCorners_bottom_index_lat + 1)
 
         logger.info(leftBottomCorner_index)
         logger.info(rightBottomCorner_index)

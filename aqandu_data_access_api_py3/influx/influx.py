@@ -775,14 +775,14 @@ def getEstimatesForLocation():
         topRightCornerIndex = (int(numberGridCells_LAT) * int(numberGridCells_LONG)) - 1
         bottomLeftCornerIndex = 0
 
-        stepSizeLat = abs(theGrid[topRightCornerIndex]['lat'] - theGrid[bottomLeftCornerIndex]['lat']) / numberGridCells_LAT
-        stepSizeLong = abs(theGrid[topRightCornerIndex]['long'] - theGrid[bottomLeftCornerIndex]['long']) / numberGridCells_LONG
+        stepSizeLat = abs(theGrid[topRightCornerIndex]['lat'][0] - theGrid[bottomLeftCornerIndex]['lat'][0]) / numberGridCells_LAT
+        stepSizeLong = abs(theGrid[topRightCornerIndex]['lngs'][0] - theGrid[bottomLeftCornerIndex]['lngs'][0]) / numberGridCells_LONG
 
         logger.info(stepSizeLat)
         logger.info(stepSizeLong)
 
-        fourCorners_left_index_x = math.floor((location_lng - theGrid[bottomLeftCornerIndex]['long']) / stepSizeLong)
-        fourCorners_bottom_index_y = math.floor((location_lat - theGrid[bottomLeftCornerIndex]['lat']) / stepSizeLat)
+        fourCorners_left_index_x = math.floor((location_lng - theGrid[bottomLeftCornerIndex]['lngs'][0]) / stepSizeLong)
+        fourCorners_bottom_index_y = math.floor((location_lat - theGrid[bottomLeftCornerIndex]['lat'][0]) / stepSizeLat)
 
         logger.info(fourCorners_left_index_x)
         logger.info(fourCorners_bottom_index_y)

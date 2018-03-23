@@ -812,13 +812,25 @@ def getEstimatesForLocation():
         logger.info(leftTopCorner_location)
         logger.info(rightTopCorner_location)
 
-        return [leftBottomCorner_location, rightBottomCorner_location, leftTopCorner_location, rightTopCorner_location]
+        leftBottomCorner_location = {'lat': leftBottomCorner_location['lat'][0], 'lng': leftBottomCorner_location['lng'][0]}
+        rightBottomCorner_location = {'lat': rightBottomCorner_location['lat'][0], 'lng': rightBottomCorner_location['lng'][0]}
+        leftTopCorner_location = {'lat': leftTopCorner_location['lat'][0], 'lng': leftTopCorner_location['lng'][0]}
+        rightTopCorner_location = {'lat': rightTopCorner_location['lat'][0], 'lng': rightTopCorner_location['lng'][0]}
+
+        theCorners = {leftBottomCorner_location, rightBottomCorner_location, leftTopCorner_location, rightTopCorner_location}
     else:
         logger.info('grid info is none!')
 
     # get the 4 corners for each timestamp between the timespan
 
     # do bilinear interpolation usin these 4 corners
+
+    resp = jsonify(theCorners)
+    resp.status_code = 200
+
+    logger.info('*********** getting latest contours request done ***********')
+
+    return resp
 
 
 # HELPER FUNCTIONS

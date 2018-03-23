@@ -763,6 +763,7 @@ def getEstimatesForLocation():
 
     logger.info(gridInfo)
 
+    theCorners = {}
     if gridInfo is not None:
         theGrid = gridInfo['transformedGrid']
         numberGridCells_LAT = gridInfo['numberOfGridCells']['lat']
@@ -812,17 +813,11 @@ def getEstimatesForLocation():
         logger.info(leftTopCorner_location)
         logger.info(rightTopCorner_location)
 
-        leftBottomCorner_location = {'lat': leftBottomCorner_location['lat'][0], 'lng': leftBottomCorner_location['lngs'][0]}
-        rightBottomCorner_location = {'lat': rightBottomCorner_location['lat'][0], 'lng': rightBottomCorner_location['lngs'][0]}
-        leftTopCorner_location = {'lat': leftTopCorner_location['lat'][0], 'lng': leftTopCorner_location['lngs'][0]}
-        rightTopCorner_location = {'lat': rightTopCorner_location['lat'][0], 'lng': rightTopCorner_location['lngs'][0]}
+        theCorners['leftBottomCorner'] = {'lat': leftBottomCorner_location['lat'][0], 'lng': leftBottomCorner_location['lngs'][0]}
+        theCorners['rightBottomCorner'] = {'lat': rightBottomCorner_location['lat'][0], 'lng': rightBottomCorner_location['lngs'][0]}
+        theCorners['leftTopCorner'] = {'lat': leftTopCorner_location['lat'][0], 'lng': leftTopCorner_location['lngs'][0]}
+        theCorners['rightTopCorner'] = {'lat': rightTopCorner_location['lat'][0], 'lng': rightTopCorner_location['lngs'][0]}
 
-        logger.info(leftBottomCorner_location)
-        logger.info(rightBottomCorner_location)
-        logger.info(leftTopCorner_location)
-        logger.info(rightTopCorner_location)
-
-        theCorners = {leftBottomCorner_location, rightBottomCorner_location, leftTopCorner_location, rightTopCorner_location}
     else:
         logger.info('grid info is none!')
 

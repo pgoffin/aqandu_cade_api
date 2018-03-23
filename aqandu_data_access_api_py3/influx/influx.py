@@ -793,10 +793,10 @@ def getEstimatesForLocation():
         # bottomCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_bottom_index_y * stepSizeLat)
         # topCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_top_index_y * stepSizeLat)
 
-        leftBottomCorner_index = (fourCorners_left_index_lng * numberGridCells_LAT) + fourCorners_bottom_index_lat
-        rightBottomCorner_index = (fourCorners_left_index_lng * numberGridCells_LAT) + (fourCorners_bottom_index_lat + 1)
-        leftTopCorner_index = ((fourCorners_left_index_lng + 1) * numberGridCells_LAT) + fourCorners_bottom_index_lat
-        rightTopCorner_index = ((fourCorners_left_index_lng + 1) * numberGridCells_LAT) + (fourCorners_bottom_index_lat + 1)
+        leftBottomCorner_index = (fourCorners_left_index_lng * (numberGridCells_LAT + 1)) + fourCorners_bottom_index_lat
+        rightBottomCorner_index = (fourCorners_left_index_lng * (numberGridCells_LAT + 1)) + (fourCorners_bottom_index_lat + 1)
+        leftTopCorner_index = ((fourCorners_left_index_lng + 1) * (numberGridCells_LAT + 1)) + fourCorners_bottom_index_lat
+        rightTopCorner_index = ((fourCorners_left_index_lng + 1) * (numberGridCells_LAT + 1)) + (fourCorners_bottom_index_lat + 1)
 
         logger.info(leftBottomCorner_index)
         logger.info(rightBottomCorner_index)

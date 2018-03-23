@@ -761,10 +761,16 @@ def getEstimatesForLocation():
 
     gridInfo = db.estimationMetadata.find_one({"metadataType": "timeSlicedEstimates_high"})
 
+    logger.info(gridInfo)
+
     if gridInfo is not None:
         theGrid = gridInfo['transformedGrid']
         numberGridCells_LAT = gridInfo['numberOfGridCells']['lat']
         numberGridCells_LONG = gridInfo['numberOfGridCells']['long']
+
+        logger.info(theGrid)
+        logger.info(numberGridCells_LAT)
+        logger.info(numberGridCells_LONG)
 
         topRightCornerIndex = (int(numberGridCells_LAT) * int(numberGridCells_LONG)) - 1
         bottomLeftCornerIndex = 0
@@ -772,8 +778,14 @@ def getEstimatesForLocation():
         stepSizeLat = abs(theGrid[topRightCornerIndex]['lat'] - theGrid[bottomLeftCornerIndex]['lat']) / numberGridCells_LAT
         stepSizeLong = abs(theGrid[topRightCornerIndex]['long'] - theGrid[bottomLeftCornerIndex]['long']) / numberGridCells_LONG
 
+        logger.info(stepSizeLat)
+        logger.info(stepSizeLong)
+
         fourCorners_left_index_x = math.floor((location_lng - theGrid[bottomLeftCornerIndex]['long']) / stepSizeLong)
         fourCorners_bottom_index_y = math.floor((location_lat - theGrid[bottomLeftCornerIndex]['lat']) / stepSizeLat)
+
+        logger.info(fourCorners_left_index_x)
+        logger.info(fourCorners_bottom_index_y)
 
         # leftCorner_long = theGrid[bottomLeftCornerIndex]['long'] + (fourCorners_left_index_x * stepSizeLong)
         # rightCorner_long = theGrid[bottomLeftCornerIndex]['long'] + (fourCorners_right_index_x * stepSizeLong)
@@ -785,10 +797,15 @@ def getEstimatesForLocation():
         leftTopCorner_index = ((fourCorners_bottom_index_y + 1) * numberGridCells_LONG) + fourCorners_left_index_x
         rightTopCorner_index = ((fourCorners_bottom_index_y + 1) * numberGridCells_LONG) + (fourCorners_left_index_x + 1)
 
-        leftBottomCorner_location = theGrid[leftBottomCorner_index]
-        rightBottomCorner_location = theGrid[rightBottomCorner_index]
-        leftTopCorner_location = theGrid[leftTopCorner_index]
-        rightTopCorner_location = theGrid[rightTopCorner_index]
+        logger.info(leftBottomCorner_index)
+        logger.info(rightBottomCorner_index)
+        logger.info(leftTopCorner_index)
+        logger.info(rightTopCorner_index)
+
+        leftBottomCorner_location = theGrid[str(leftBottomCorner_index)]
+        rightBottomCorner_location = theGrid[str(rightBottomCorner_index)]
+        leftTopCorner_location = theGrid[str(leftTopCorner_index)]
+        rightTopCorner_location = theGrid[str(rightTopCorner_index)]
 
         return [leftBottomCorner_location, rightBottomCorner_location, leftTopCorner_location, rightTopCorner_location]
     else:

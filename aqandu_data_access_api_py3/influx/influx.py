@@ -784,8 +784,8 @@ def getEstimatesForLocation():
         logger.info(stepSizeLat)
         logger.info(stepSizeLong)
 
-        fourCorners_left_index_x = math.floor((location_lng - theGrid[bottomLeftCornerIndex]['lngs'][0]) / stepSizeLong)
-        fourCorners_bottom_index_y = math.floor((location_lat - theGrid[bottomLeftCornerIndex]['lat'][0]) / stepSizeLat)
+        fourCorners_left_index_x = math.floor((long(location_lng) - theGrid[bottomLeftCornerIndex]['lngs'][0]) / stepSizeLong)
+        fourCorners_bottom_index_y = math.floor((long(location_lat) - theGrid[bottomLeftCornerIndex]['lat'][0]) / stepSizeLat)
 
         logger.info(fourCorners_left_index_x)
         logger.info(fourCorners_bottom_index_y)

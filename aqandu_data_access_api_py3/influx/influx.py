@@ -817,6 +817,11 @@ def getEstimatesForLocation():
         leftTopCorner_location = {'lat': leftTopCorner_location['lat'][0], 'lng': leftTopCorner_location['lngs'][0]}
         rightTopCorner_location = {'lat': rightTopCorner_location['lat'][0], 'lng': rightTopCorner_location['lngs'][0]}
 
+        logger.info(leftBottomCorner_location)
+        logger.info(rightBottomCorner_location)
+        logger.info(leftTopCorner_location)
+        logger.info(rightTopCorner_location)
+
         theCorners = {leftBottomCorner_location, rightBottomCorner_location, leftTopCorner_location, rightTopCorner_location}
     else:
         logger.info('grid info is none!')
@@ -824,6 +829,7 @@ def getEstimatesForLocation():
     # get the 4 corners for each timestamp between the timespan
 
     # do bilinear interpolation usin these 4 corners
+    logger.info(theCorners)
 
     resp = jsonify(theCorners)
     resp.status_code = 200

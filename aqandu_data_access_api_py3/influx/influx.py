@@ -781,9 +781,6 @@ def getEstimatesForLocation():
         logger.info(stepSizeLat)
         logger.info(stepSizeLong)
 
-        logger.info(float(location_lng))
-        logger.info(float(theGrid[bottomLeftCornerIndex]['lngs'][0]))
-
         fourCorners_left_index_x = math.floor((float(location_lng) - theGrid[bottomLeftCornerIndex]['lngs'][0]) / stepSizeLong)
         fourCorners_bottom_index_y = math.floor((float(location_lat) - theGrid[bottomLeftCornerIndex]['lat'][0]) / stepSizeLat)
 
@@ -809,6 +806,11 @@ def getEstimatesForLocation():
         rightBottomCorner_location = theGrid[str(rightBottomCorner_index)]
         leftTopCorner_location = theGrid[str(leftTopCorner_index)]
         rightTopCorner_location = theGrid[str(rightTopCorner_index)]
+
+        logger.info(leftBottomCorner_location)
+        logger.info(rightBottomCorner_location)
+        logger.info(leftTopCorner_location)
+        logger.info(rightTopCorner_location)
 
         return [leftBottomCorner_location, rightBottomCorner_location, leftTopCorner_location, rightTopCorner_location]
     else:

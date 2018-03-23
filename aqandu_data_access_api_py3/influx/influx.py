@@ -772,8 +772,11 @@ def getEstimatesForLocation():
         logger.info(numberGridCells_LAT)
         logger.info(numberGridCells_LONG)
 
-        topRightCornerIndex = (int(numberGridCells_LAT) * int(numberGridCells_LONG)) - 1
-        bottomLeftCornerIndex = 0
+        topRightCornerIndex = str((int(numberGridCells_LAT) * int(numberGridCells_LONG)) - 1)
+        bottomLeftCornerIndex = str(0)
+
+        logger.info(theGrid[topRightCornerIndex]['lat'][0])
+        logger.info(theGrid[topRightCornerIndex]['lngs'][0])
 
         stepSizeLat = abs(theGrid[topRightCornerIndex]['lat'][0] - theGrid[bottomLeftCornerIndex]['lat'][0]) / numberGridCells_LAT
         stepSizeLong = abs(theGrid[topRightCornerIndex]['lngs'][0] - theGrid[bottomLeftCornerIndex]['lngs'][0]) / numberGridCells_LONG

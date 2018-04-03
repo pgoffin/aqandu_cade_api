@@ -745,8 +745,8 @@ def getEstimatesForLocation():
 
     location_lat = queryParameters['location_lat']
     location_lng = queryParameters['location_lng']
-    # endDate = queryParameters['endDate']
-    # timeSpan = queryParameters['timespan']
+    startDate = queryParameters['start']
+    endDate = queryParameters['end']
 
     # use location to get the 4 estimation data corners
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
@@ -773,7 +773,7 @@ def getEstimatesForLocation():
         logger.info(numberGridCells_LAT)
         logger.info(numberGridCells_LONG)
 
-        topRightCornerIndex = str((int(numberGridCells_LAT) * int(numberGridCells_LONG)) - 1)
+        topRightCornerIndex = str((int(numberGridCells_LAT + 1) * int(numberGridCells_LONG + 1)) - 1)
         bottomLeftCornerIndex = str(0)
 
         stepSizeLat = abs(theGrid[topRightCornerIndex]['lat'][0] - theGrid[bottomLeftCornerIndex]['lat'][0]) / numberGridCells_LAT
@@ -822,6 +822,7 @@ def getEstimatesForLocation():
         logger.info('grid info is none!')
 
     # get the 4 corners for each timestamp between the timespan
+    # take all estimates in timeSpan
 
     # do bilinear interpolation usin these 4 corners
     logger.info(theCorners)

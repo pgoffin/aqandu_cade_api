@@ -746,6 +746,7 @@ def getEstimatesForLocation():
     location_lat = queryParameters['location_lat']
     location_lng = queryParameters['location_lng']
     startDate = queryParameters['start']
+    logger.info(startDate)
     startDate = startDate.strftime('%Y-%m-%dT%H:%M:%SZ')
     endDate = queryParameters['end']
     endDate = endDate.strftime('%Y-%m-%dT%H:%M:%SZ')

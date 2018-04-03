@@ -746,7 +746,14 @@ def getEstimatesForLocation():
     location_lat = queryParameters['location_lat']
     location_lng = queryParameters['location_lng']
     startDate = queryParameters['start']
+    startDate = startDate.strftime('%Y-%m-%dT%H:%M:%SZ')
     endDate = queryParameters['end']
+    endDate = endDate.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    logger.info('the start date')
+    logger.info(startDate)
+    logger.info('the end date')
+    logger.info(endDate)
 
     # use location to get the 4 estimation data corners
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
@@ -824,10 +831,28 @@ def getEstimatesForLocation():
     # get the 4 corners for each timestamp between the timespan
     # take all estimates in timeSpan
 
-    # do bilinear interpolation usin these 4 corners
+    # first take estimates from high collection
+    # then estimates from low collection
+    allHighEstimates = db.timeSlicedEstimates_high.find().sort('estimationFor', -1)
+    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+
+    theDates = []
+    logger.info('the allHighEstimates')
+    for estimateSlice in allHighEstimates:
+        estimationDateSliceDate = estimateSlice['estimationFor']
+        theDates.append({'date': estimationDateSliceDate, 'origin': 'high'})
+        logger.info(estimationDateSliceDate)
+
+    logger.info('the lowEstimates')
+    for estimateSlice in lowEstimates:
+        estimationDateSliceDate = estimateSlice['estimationFor']
+        theDates.append({'date': estimationDateSliceDate, 'origin': 'low'})
+        logger.info(estimationDateSliceDate)
+
+    # do bilinear interpolation using these 4 corners
     logger.info(theCorners)
 
-    resp = jsonify(theCorners)
+    resp = jsonify(theDates)
     resp.status_code = 200
 
     logger.info('*********** getting latest contours request done ***********')

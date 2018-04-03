@@ -738,7 +738,7 @@ def getLatestContour():
 def getEstimatesForLocation():
     # need a location and the needed timespan
 
-    logger.info('*********** getEstimatesForLocation started ***********')
+    logger.info('*********** testing getEstimatesForLocation started ***********')
 
     queryParameters = request.args
     logger.info(queryParameters)

@@ -892,7 +892,7 @@ def getEstimatesForLocation():
 
         interpolatedEstimateLow = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
 
-        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'date': estimationDateSliceDateHigh, 'origin': 'low'})
+        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'date': estimationDateSliceDateLow, 'origin': 'low'})
 
     logger.info(theCorners)
 

@@ -896,7 +896,7 @@ def getEstimatesForLocation():
 
     logger.info(theCorners)
 
-    resp = jsonify(theCorners)
+    resp = jsonify(theInterpolatedValues)
     resp.status_code = 200
 
     logger.info('*********** getting latest contours request done ***********')

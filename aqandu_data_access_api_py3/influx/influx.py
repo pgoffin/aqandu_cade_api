@@ -872,7 +872,7 @@ def getEstimatesForLocation():
         interpolatedEstimateHigh = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
         logger.info(interpolatedEstimateHigh)
 
-        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'date': estimationDateSliceDateHigh, 'origin': 'high'})
+        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'origin': 'high'})
 
     logger.info('the lowEstimates')
     for estimateSliceLow in lowEstimates:
@@ -892,7 +892,7 @@ def getEstimatesForLocation():
 
         interpolatedEstimateLow = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
 
-        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'date': estimationDateSliceDateLow, 'origin': 'low'})
+        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'origin': 'low'})
 
     logger.info(theCorners)
 
@@ -1000,7 +1000,7 @@ def getMacToCustomSensorID():
 
 def getCustomSensorIDToMAC():
 
-    logger.info('******** getMacToCustomSensorIDToMac started ********')
+    logger.info('******** getMacToCustomSensorIDToMac STARTED ********')
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
         password=current_app.config['MONGO_PASSWORD'],
@@ -1016,10 +1016,10 @@ def getCustomSensorIDToMAC():
     for aSensor in db.macToCustomSensorID.find():
         theMAC = ''.join(aSensor['macAddress'].split(':'))
         customIDToMAC[aSensor['customSensorID']] = theMAC
-        logger.info(theMAC)
-        logger.info(customIDToMAC)
+        # logger.info(theMAC)
+        # logger.info(customIDToMAC)
 
-    logger.info('******** getMacToCustomSensorIDToMac done ********')
+    logger.info('******** getMacToCustomSensorIDToMac DONE ********')
     return customIDToMAC
 
 

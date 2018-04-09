@@ -802,20 +802,20 @@ def getEstimatesForLocation():
         # bottomCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_bottom_index_y * stepSizeLat)
         # topCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_top_index_y * stepSizeLat)
 
-        leftBottomCorner_index = (fourCorners_left_index_lng * (numberGridCells_LAT + 1)) + fourCorners_bottom_index_lat
-        rightBottomCorner_index = (fourCorners_left_index_lng * (numberGridCells_LAT + 1)) + (fourCorners_bottom_index_lat + 1)
-        leftTopCorner_index = ((fourCorners_left_index_lng + 1) * (numberGridCells_LAT + 1)) + fourCorners_bottom_index_lat
-        rightTopCorner_index = ((fourCorners_left_index_lng + 1) * (numberGridCells_LAT + 1)) + (fourCorners_bottom_index_lat + 1)
+        leftBottomCorner_index = str((fourCorners_left_index_lng * (numberGridCells_LAT + 1)) + fourCorners_bottom_index_lat)
+        rightBottomCorner_index = str((fourCorners_left_index_lng * (numberGridCells_LAT + 1)) + (fourCorners_bottom_index_lat + 1))
+        leftTopCorner_index = str(((fourCorners_left_index_lng + 1) * (numberGridCells_LAT + 1)) + fourCorners_bottom_index_lat)
+        rightTopCorner_index = str(((fourCorners_left_index_lng + 1) * (numberGridCells_LAT + 1)) + (fourCorners_bottom_index_lat + 1))
 
         logger.info(leftBottomCorner_index)
         logger.info(rightBottomCorner_index)
         logger.info(leftTopCorner_index)
         logger.info(rightTopCorner_index)
 
-        leftBottomCorner_location = theGrid[str(leftBottomCorner_index)]
-        rightBottomCorner_location = theGrid[str(rightBottomCorner_index)]
-        leftTopCorner_location = theGrid[str(leftTopCorner_index)]
-        rightTopCorner_location = theGrid[str(rightTopCorner_index)]
+        leftBottomCorner_location = theGrid[leftBottomCorner_index]
+        rightBottomCorner_location = theGrid[rightBottomCorner_index]
+        leftTopCorner_location = theGrid[leftTopCorner_index]
+        rightTopCorner_location = theGrid[rightTopCorner_index]
 
         logger.info(leftBottomCorner_location)
         logger.info(rightBottomCorner_location)

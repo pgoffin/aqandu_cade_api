@@ -1185,6 +1185,17 @@ def bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2):
     logger.info('x1 is %s', x1)
     logger.info('x2 is %s', x2)
 
+    logger.info(type(Q11))
+    logger.info(type(Q12))
+    logger.info(type(Q21))
+    logger.info(type(Q22))
+    logger.info(type(x))
+    logger.info(type(y))
+    logger.info(type(y1))
+    logger.info(type(y2))
+    logger.info(type(x1))
+    logger.info(type(x2))
+
     interpolatedValue = 1.0 / ((x2 - x1) * (y2 - y1)) * ((Q11 * (x2 - x) * (y2 - y)) + (Q21 * (x - x1) * (y2 - y)) + (Q12 * (x2 - x) * (y - y1)) + (Q22 * (x - x1) * (y - y1)))
 
     logger.info('interpolatedValue is %s', interpolatedValue)

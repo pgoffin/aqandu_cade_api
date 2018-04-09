@@ -848,55 +848,55 @@ def getEstimatesForLocation():
     theDates = []
     theInterpolatedValues = []
     logger.info('the allHighEstimates')
-    for estimateSliceHigh in allHighEstimates:
-        estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
-        theDates.append({'date': estimationDateSliceDateHigh, 'origin': 'high'})
-        logger.info(estimationDateSliceDateHigh)
-
-        # get the corner values
-        leftBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftBottomCorner_index]['pm25']
-        logger.info(leftBottomCorner_pm25valueHigh)
-        rightBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightBottomCorner_index]['pm25']
-        logger.info(rightBottomCorner_pm25valueHigh)
-        leftTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftTopCorner_index]['pm25']
-        logger.info(leftTopCorner_pm25valueHigh)
-        rightTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightTopCorner_index]['pm25']
-        logger.info(rightTopCorner_pm25valueHigh)
-
-        Q11 = leftBottomCorner_pm25valueHigh
-        Q21 = rightBottomCorner_pm25valueHigh
-        Q12 = leftTopCorner_pm25valueHigh
-        Q22 = rightTopCorner_pm25valueHigh
-
-        # do bilinear interpolation using these 4 corners
-        interpolatedEstimateHigh = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
-        logger.info(interpolatedEstimateHigh)
-
-        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'date': estimationDateSliceDateHigh, 'origin': 'high'})
-
-    logger.info('the lowEstimates')
-    for estimateSliceLow in lowEstimates:
-        estimationDateSliceDateLow = estimateSliceLow['estimationFor']
-        theDates.append({'date': estimationDateSliceDateLow, 'origin': 'low'})
-        logger.info(estimationDateSliceDateLow)
-
-        leftBottomCorner_pm25valueLow = estimateSliceLow['estimate'][leftBottomCorner_index]['pm25']
-        rightBottomCorner_pm25valueLow = estimateSliceLow['estimate'][rightBottomCorner_index]['pm25']
-        leftTopCorner_pm25valueLow = estimateSliceLow['estimate'][leftTopCorner_index]['pm25']
-        rightTopCorner_pm25valueLow = estimateSliceLow['estimate'][rightTopCorner_index]['pm25']
-
-        Q11 = leftBottomCorner_pm25valueLow
-        Q21 = rightBottomCorner_pm25valueLow
-        Q12 = leftTopCorner_pm25valueLow
-        Q22 = rightTopCorner_pm25valueLow
-
-        interpolatedEstimateLow = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
-
-        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'date': estimationDateSliceDateHigh, 'origin': 'low'})
+    # for estimateSliceHigh in allHighEstimates:
+    #     estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
+    #     theDates.append({'date': estimationDateSliceDateHigh, 'origin': 'high'})
+    #     logger.info(estimationDateSliceDateHigh)
+    #
+    #     # get the corner values
+    #     leftBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftBottomCorner_index]['pm25']
+    #     logger.info(leftBottomCorner_pm25valueHigh)
+    #     rightBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightBottomCorner_index]['pm25']
+    #     logger.info(rightBottomCorner_pm25valueHigh)
+    #     leftTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftTopCorner_index]['pm25']
+    #     logger.info(leftTopCorner_pm25valueHigh)
+    #     rightTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightTopCorner_index]['pm25']
+    #     logger.info(rightTopCorner_pm25valueHigh)
+    #
+    #     Q11 = leftBottomCorner_pm25valueHigh
+    #     Q21 = rightBottomCorner_pm25valueHigh
+    #     Q12 = leftTopCorner_pm25valueHigh
+    #     Q22 = rightTopCorner_pm25valueHigh
+    #
+    #     # do bilinear interpolation using these 4 corners
+    #     interpolatedEstimateHigh = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
+    #     logger.info(interpolatedEstimateHigh)
+    #
+    #     theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'date': estimationDateSliceDateHigh, 'origin': 'high'})
+    #
+    # logger.info('the lowEstimates')
+    # for estimateSliceLow in lowEstimates:
+    #     estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+    #     theDates.append({'date': estimationDateSliceDateLow, 'origin': 'low'})
+    #     logger.info(estimationDateSliceDateLow)
+    #
+    #     leftBottomCorner_pm25valueLow = estimateSliceLow['estimate'][leftBottomCorner_index]['pm25']
+    #     rightBottomCorner_pm25valueLow = estimateSliceLow['estimate'][rightBottomCorner_index]['pm25']
+    #     leftTopCorner_pm25valueLow = estimateSliceLow['estimate'][leftTopCorner_index]['pm25']
+    #     rightTopCorner_pm25valueLow = estimateSliceLow['estimate'][rightTopCorner_index]['pm25']
+    #
+    #     Q11 = leftBottomCorner_pm25valueLow
+    #     Q21 = rightBottomCorner_pm25valueLow
+    #     Q12 = leftTopCorner_pm25valueLow
+    #     Q22 = rightTopCorner_pm25valueLow
+    #
+    #     interpolatedEstimateLow = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
+    #
+    #     theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'date': estimationDateSliceDateHigh, 'origin': 'low'})
 
     logger.info(theCorners)
 
-    resp = jsonify(theInterpolatedValues)
+    resp = jsonify(theCorners)
     resp.status_code = 200
 
     logger.info('*********** getting latest contours request done ***********')

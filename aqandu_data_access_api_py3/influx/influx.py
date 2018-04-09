@@ -855,9 +855,13 @@ def getEstimatesForLocation():
 
         # get the corner values
         leftBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftBottomCorner_index]['pm25']
+        logger.info(leftBottomCorner_pm25valueHigh)
         rightBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightBottomCorner_index]['pm25']
+        logger.info(rightBottomCorner_pm25valueHigh)
         leftTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftTopCorner_index]['pm25']
+        logger.info(leftTopCorner_pm25valueHigh)
         rightTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightTopCorner_index]['pm25']
+        logger.info(rightTopCorner_pm25valueHigh)
 
         Q11 = leftBottomCorner_pm25valueHigh
         Q21 = rightBottomCorner_pm25valueHigh
@@ -866,6 +870,7 @@ def getEstimatesForLocation():
 
         # do bilinear interpolation using these 4 corners
         interpolatedEstimateHigh = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
+        logger.info(interpolatedEstimateHigh)
 
         theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'date': estimationDateSliceDateHigh, 'origin': 'high'})
 

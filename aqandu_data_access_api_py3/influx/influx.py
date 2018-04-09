@@ -838,23 +838,60 @@ def getEstimatesForLocation():
     allHighEstimates = db.timeSlicedEstimates_high.find().sort('estimationFor', -1)
     lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
 
+    x = float(location_lng)
+    y = float(location_lat)
+    x1 = leftBottomCorner_location['lngs'][0]
+    x2 = rightBottomCorner_location['lngs'][0]
+    y1 = leftBottomCorner_location['lat'][0]
+    y2 = leftTopCorner_location['lat'][0]
+
     theDates = []
+    theInterpolatedValues = []
     logger.info('the allHighEstimates')
-    for estimateSlice in allHighEstimates:
-        estimationDateSliceDate = estimateSlice['estimationFor']
-        theDates.append({'date': estimationDateSliceDate, 'origin': 'high'})
-        logger.info(estimationDateSliceDate)
+    for estimateSliceHigh in allHighEstimates:
+        estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
+        theDates.append({'date': estimationDateSliceDateHigh, 'origin': 'high'})
+        logger.info(estimationDateSliceDateHigh)
+
+        # get the corner values
+        leftBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftBottomCorner_index]['pm25']
+        rightBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightBottomCorner_index]['pm25']
+        leftTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftTopCorner_index]['pm25']
+        rightTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightTopCorner_index]['pm25']
+
+        Q11 = leftBottomCorner_pm25valueHigh
+        Q21 = rightBottomCorner_pm25valueHigh
+        Q12 = leftTopCorner_pm25valueHigh
+        Q22 = rightTopCorner_pm25valueHigh
+
+        # do bilinear interpolation using these 4 corners
+        interpolatedEstimateHigh = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
+
+        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'date': estimationDateSliceDateHigh, 'origin': 'high'})
 
     logger.info('the lowEstimates')
-    for estimateSlice in lowEstimates:
-        estimationDateSliceDate = estimateSlice['estimationFor']
-        theDates.append({'date': estimationDateSliceDate, 'origin': 'low'})
-        logger.info(estimationDateSliceDate)
+    for estimateSliceLow in lowEstimates:
+        estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+        theDates.append({'date': estimationDateSliceDateLow, 'origin': 'low'})
+        logger.info(estimationDateSliceDateLow)
 
-    # do bilinear interpolation using these 4 corners
+        leftBottomCorner_pm25valueLow = estimateSliceLow['estimate'][leftBottomCorner_index]['pm25']
+        rightBottomCorner_pm25valueLow = estimateSliceLow['estimate'][rightBottomCorner_index]['pm25']
+        leftTopCorner_pm25valueLow = estimateSliceLow['estimate'][leftTopCorner_index]['pm25']
+        rightTopCorner_pm25valueLow = estimateSliceLow['estimate'][rightTopCorner_index]['pm25']
+
+        Q11 = leftBottomCorner_pm25valueLow
+        Q21 = rightBottomCorner_pm25valueLow
+        Q12 = leftTopCorner_pm25valueLow
+        Q22 = rightTopCorner_pm25valueLow
+
+        interpolatedEstimateLow = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
+
+        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'date': estimationDateSliceDateHigh, 'origin': 'low'})
+
     logger.info(theCorners)
 
-    resp = jsonify(theDates)
+    resp = jsonify(theInterpolatedValues)
     resp.status_code = 200
 
     logger.info('*********** getting latest contours request done ***********')
@@ -1125,3 +1162,12 @@ def getInfluxAirUSensors(minus5min):
     logger.info('******** influx airU done ********')
 
     return dataSeries
+
+
+# interpolation function
+def bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2):
+
+    # f(x,y) = 1/((x2 - x1)(y2 - y1)) * (f(Q11) * (x2 - x)(y2 - y) + f(Q21) * (x - x1)(y2 - y) + f(Q12) * (x2 - x)(y - y1) + f(Q22) * (x - x1)(y - y1)
+    interpolatedValue = 1.0 / ((x2 - x1) * (y2 - y1)) * ((Q11 * (x2 - x) * (y2 - y)) + (Q21 * (x - x1) * (y2 - y)) + (Q12 * (x2 - x) * (y - y1)) + (Q22 * (x - x1) * (y - y1)))
+
+    return interpolatedValue

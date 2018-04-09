@@ -1172,7 +1172,21 @@ def getInfluxAirUSensors(minus5min):
 # interpolation function
 def bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2):
 
+    logger.info('bilinearInterpolation')
     # f(x,y) = 1/((x2 - x1)(y2 - y1)) * (f(Q11) * (x2 - x)(y2 - y) + f(Q21) * (x - x1)(y2 - y) + f(Q12) * (x2 - x)(y - y1) + f(Q22) * (x - x1)(y - y1)
+    logger.info('Q11 is %s', Q11)
+    logger.info('Q12 is %s', Q12)
+    logger.info('Q21 is %s', Q21)
+    logger.info('Q22 is %s', Q22)
+    logger.info('x is %s', x)
+    logger.info('y is %s', y)
+    logger.info('y1 is %s', y1)
+    logger.info('y2 is %s', y2)
+    logger.info('x1 is %s', x1)
+    logger.info('x2 is %s', x2)
+
     interpolatedValue = 1.0 / ((x2 - x1) * (y2 - y1)) * ((Q11 * (x2 - x) * (y2 - y)) + (Q21 * (x - x1) * (y2 - y)) + (Q12 * (x2 - x) * (y - y1)) + (Q22 * (x - x1) * (y - y1)))
+
+    logger.info('interpolatedValue is %s', interpolatedValue)
 
     return interpolatedValue

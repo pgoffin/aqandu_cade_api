@@ -662,6 +662,21 @@ def getContours():
 
     logger.info('*********** getting contours request started ***********')
 
+    queryParameters = request.args
+    logger.info(queryParameters)
+
+    startDate = queryParameters['start']
+    logger.info(startDate)
+    startDate = datetime.strptime(startDate, '%Y-%m-%dT%H:%M:%SZ')
+    logger.info(startDate)
+    endDate = queryParameters['end']
+    endDate = datetime.strptime(endDate, '%Y-%m-%dT%H:%M:%SZ')
+
+    logger.info('the start date')
+    logger.info(startDate)
+    logger.info('the end date')
+    logger.info(endDate)
+
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
         user=current_app.config['MONGO_USER'],
         password=current_app.config['MONGO_PASSWORD'],
@@ -671,21 +686,27 @@ def getContours():
 
     mongoClient = MongoClient(mongodb_url)
     db = mongoClient.airudb
-    contours = {}
 
-    for anEstimate in db.timeSlicedEstimates.find():
-        if anEstimate['contours']:
-            logger.info(type(anEstimate['contours']))
-            time = anEstimate['estimationFor']
-            logger.info(type(time))
-            logger.info(time)
-            time_str = time.strftime('%Y-%m-%dT%H:%M:%SZ')
-            logger.info(time_str)
-            contours[time_str] = {'contours': anEstimate['contours']}
+    # first take estimates from high collection
+    # then estimates from low collection
+    allHighEstimates = db.timeSlicedEstimates_high.find().sort('estimationFor', -1)
+    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
 
-    logger.info(contours)
+    contours = []
 
-    logger.info(jsonify(contours))
+    logger.info('the allHighEstimates')
+    for estimateSliceHigh in allHighEstimates:
+        estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
+        contours.append({'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceHigh['contours'], 'origin': 'high'})
+
+    logger.info('the lowEstimates')
+    for estimateSliceLow in lowEstimates:
+        estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+        contours.append({'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceLow['contours'], 'origin': 'low'})
+
+    # logger.info(contours)
+    #
+    # logger.info(jsonify(contours))
 
     resp = jsonify(contours)
     resp.status_code = 200

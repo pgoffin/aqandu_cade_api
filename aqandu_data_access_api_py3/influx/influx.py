@@ -270,7 +270,7 @@ def getLiveSensors(type):
 @influx.route('/api/rawDataFrom', methods=['GET'])
 def getRawDataFrom():
 
-    airUdbs = ['altitude', 'humidity', 'latitude', 'longitude', 'pm1', 'pm25', 'pm10', 'posix', 'secActive', 'temperature', 'CO']
+    airUdbs = ['altitude', 'humidity', 'latitude', 'longitude', 'pm1', 'pm25', 'pm10', 'posix', 'secActive', 'temperature', 'co']
 
     logger.info('*********** rawDataFrom request started ***********')
 

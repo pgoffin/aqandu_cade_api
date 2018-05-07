@@ -52,7 +52,8 @@ lookupQueryParameterToInflux = {
     'pm1': '\"pm1.0 (ug/m^3)\"',
     'pm10': '\"pm10.0 (ug/m^3)\"',
     'posix': 'POSIX',
-    'secActive': 'SecActive'
+    'secActive': 'SecActive',
+    'co': 'CO'
 }
 
 # keys are also measurement names, values are the respective field key
@@ -68,6 +69,7 @@ lookupParameterToAirUInflux = {
     'posix': 'POSIX',
     'secActive': 'SecActive',
     'errors': 'Errors',
+    'co': 'CO'
 }
 
 
@@ -268,7 +270,7 @@ def getLiveSensors(type):
 @influx.route('/api/rawDataFrom', methods=['GET'])
 def getRawDataFrom():
 
-    airUdbs = ['altitude', 'humidity', 'latitude', 'longitude', 'pm1', 'pm25', 'pm10', 'posix', 'secActive', 'temperature']
+    airUdbs = ['altitude', 'humidity', 'latitude', 'longitude', 'pm1', 'pm25', 'pm10', 'posix', 'secActive', 'temperature', 'CO']
 
     logger.info('*********** rawDataFrom request started ***********')
 

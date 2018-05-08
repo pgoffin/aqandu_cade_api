@@ -791,14 +791,7 @@ def getEstimatesForLocation():
     mongoClient = MongoClient(mongodb_url)
     db = mongoClient.airudb
 
-    logger.info('testing')
-    logger.info(current_app.config['CURRENT_MODEL_VERSION'])
-    logger.info(current_app.config['CURRENT_GRID_VERSION'])
-    logger.info(current_app.config['NUMBER_GRID_CELLS_LAT'])
-    logger.info(current_app.config['characteristicTimeLength'])
-    logger.info(current_app.config['METADATA_TYPE_HIGH_UNCERTAINTY'])
-
-    gridInfo = db.estimationMetadata.find_one({"metadataType": current_app.config['metadataType_highUncertainty'], "gridID": current_app.config['currentGridVersion']})
+    gridInfo = db.estimationMetadata.find_one({"metadataType": current_app.config['METADATA_TYPE_HIGH_UNCERTAINTY'], "gridID": current_app.config['CURRENT_GRID_VERSION']})
 
     logger.info(gridInfo)
 

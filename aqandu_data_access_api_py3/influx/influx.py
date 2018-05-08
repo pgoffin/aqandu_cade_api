@@ -900,6 +900,7 @@ def getEstimatesForLocation():
     logger.info('the lowEstimates')
     logger.info(lowEstimates.count())
     for estimateSliceLow in lowEstimates:
+        logger.info(estimateSliceLow)
         estimationDateSliceDateLow = estimateSliceLow['estimationFor']
         # theDates.append({'date': estimationDateSliceDateLow, 'origin': 'low'})
         logger.info(estimationDateSliceDateLow)

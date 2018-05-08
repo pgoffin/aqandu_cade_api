@@ -859,7 +859,7 @@ def getEstimatesForLocation():
     # first take estimates from high collection
     # then estimates from low collection
     allHighEstimates = db.timeSlicedEstimates_high.find().sort('estimationFor', -1)
-    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1).limit(100)
 
     x = float(location_lng)
     y = float(location_lat)
@@ -868,12 +868,12 @@ def getEstimatesForLocation():
     y1 = leftBottomCorner_location['lat'][0]
     y2 = leftTopCorner_location['lat'][0]
 
-    theDates = []
+    # theDates = []
     theInterpolatedValues = []
     logger.info('the allHighEstimates')
     for estimateSliceHigh in allHighEstimates:
         estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
-        theDates.append({'date': estimationDateSliceDateHigh, 'origin': 'high'})
+        # theDates.append({'date': estimationDateSliceDateHigh, 'origin': 'high'})
         logger.info(estimationDateSliceDateHigh)
 
         # get the corner values

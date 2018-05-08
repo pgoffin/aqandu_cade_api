@@ -878,13 +878,13 @@ def getEstimatesForLocation():
 
         # get the corner values
         leftBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftBottomCorner_index]['pm25']
-        logger.info(leftBottomCorner_pm25valueHigh)
+        logger.debug(leftBottomCorner_pm25valueHigh)
         rightBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightBottomCorner_index]['pm25']
-        logger.info(rightBottomCorner_pm25valueHigh)
+        logger.debug(rightBottomCorner_pm25valueHigh)
         leftTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftTopCorner_index]['pm25']
-        logger.info(leftTopCorner_pm25valueHigh)
+        logger.debug(leftTopCorner_pm25valueHigh)
         rightTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightTopCorner_index]['pm25']
-        logger.info(rightTopCorner_pm25valueHigh)
+        logger.debug(rightTopCorner_pm25valueHigh)
 
         Q11 = leftBottomCorner_pm25valueHigh
         Q21 = rightBottomCorner_pm25valueHigh

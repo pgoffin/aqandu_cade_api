@@ -761,7 +761,7 @@ def getLatestContour():
 def getEstimatesForLocation():
     # need a location and the needed timespan
 
-    logger.info('*********** testing getEstimatesForLocation started ***********')
+    logger.info('*********** getEstimatesForLocation started ***********')
 
     queryParameters = request.args
     logger.info(queryParameters)
@@ -769,9 +769,9 @@ def getEstimatesForLocation():
     location_lat = queryParameters['location_lat']
     location_lng = queryParameters['location_lng']
     startDate = queryParameters['start']
-    logger.info(startDate)
+    # logger.info(startDate)
     startDate = datetime.strptime(startDate, '%Y-%m-%dT%H:%M:%SZ')
-    logger.info(startDate)
+    # logger.info(startDate)
     endDate = queryParameters['end']
     endDate = datetime.strptime(endDate, '%Y-%m-%dT%H:%M:%SZ')
 
@@ -791,7 +791,7 @@ def getEstimatesForLocation():
     mongoClient = MongoClient(mongodb_url)
     db = mongoClient.airudb
 
-    gridInfo = db.estimationMetadata.find_one({"metadataType": "timeSlicedEstimates_high"})
+    gridInfo = db.estimationMetadata.find_one({"metadataType": current_app.config['metadataType_highUncertainty'], "gridID": current_app.config['currentGridVersion']})
 
     logger.info(gridInfo)
 

@@ -22,7 +22,7 @@ app.register_blueprint(mongo)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d] - %(levelname)s - %(message)s')
 
 # theFile = logging.FileHandler('aqanduAPI.log')
 # theFile.setLevel(logging.INFO)

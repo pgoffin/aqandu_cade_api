@@ -898,7 +898,7 @@ def getEstimatesForLocation():
         theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceHigh['contours'], 'origin': 'high'})
 
     logger.info('the lowEstimates')
-    logger.info(lowEstimates)
+    logger.info(lowEstimates.count())
     for estimateSliceLow in lowEstimates:
         estimationDateSliceDateLow = estimateSliceLow['estimationFor']
         theDates.append({'date': estimationDateSliceDateLow, 'origin': 'low'})

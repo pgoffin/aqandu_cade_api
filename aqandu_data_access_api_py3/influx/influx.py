@@ -341,41 +341,33 @@ def getRawDataFrom():
             dataAirU = influxClientAirU.query(queryAirU, epoch=None)
             dataAirU = dataAirU.raw
 
-            logger.info('********* testing CO emptiness 1 *********')
-            logger.info(aDB)
-            logger.info(dataAirU)
-            logger.info(dataAirU['series'])
-            # logger.info(dataAirU['series'][0]['columns'])
+            # check if query gave data back
+            if 'series' in dataAirU:
+                valuesAirU = dataAirU['series'][0]['values']
+                columnsAirU = dataAirU['series'][0]['columns']
 
-            valuesAirU = dataAirU['series'][0]['values']
-            columnsAirU = dataAirU['series'][0]['columns']
+                if not dataSeries:
+                    dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                else:
+                    newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
 
-            if not dataSeries:
-                dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
-            else:
-                newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                    # print(list(zip(dataSeries, newDataSeries)))
+                    # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)
+                    # dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
 
-                # print(list(zip(dataSeries, newDataSeries)))
-                # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)
-                # dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
+                    tmpList = []
+                    for dict1, dict2 in list(zip(dataSeries, newDataSeries)):
+                        # print(elem1, elem2)
+                        if dict1['time'].split('.')[0] == dict2['time'].split('.')[0]:
+                            # replace the time attribute with a new key so it does not copy over the dict1's time when being merged
+                            dict2['time_' + aDB] = dict2.pop('time')
+                            mergedObject = mergeTwoDicts(dict1, dict2)
 
-                tmpList = []
-                for dict1, dict2 in list(zip(dataSeries, newDataSeries)):
-                    # print(elem1, elem2)
-                    if dict1['time'].split('.')[0] == dict2['time'].split('.')[0]:
-                        # replace the time attribute with a new key so it does not copy over the dict1's time when being merged
-                        dict2['time_' + aDB] = dict2.pop('time')
-                        mergedObject = mergeTwoDicts(dict1, dict2)
+                            tmpList.append(mergedObject)
 
-                        tmpList.append(mergedObject)
-
-                dataSeries = tmpList
+                    dataSeries = tmpList
 
                 # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
-
-        logger.info('********* testing CO emptiness 2 *********')
-        logger.log(dataSeries)
-
 
         queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get("pm25") + "), ID, \"Sensor Model\" FROM pm25 " \
                        "WHERE ID = '" + theID + "' "

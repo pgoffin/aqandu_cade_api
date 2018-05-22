@@ -323,6 +323,7 @@ def getRawDataFrom():
         else:
             toShow = whatToShow
 
+        # loop over the measurements
         for aDB in toShow:
 
             if aDB == 'pm25':
@@ -339,6 +340,11 @@ def getRawDataFrom():
 
             dataAirU = influxClientAirU.query(queryAirU, epoch=None)
             dataAirU = dataAirU.raw
+
+            logger.info('********* testing CO emptiness 1 *********')
+            logger.info(aDB)
+            logger.info(dataAirU['series'][0]['values'])
+            logger.info(dataAirU['series'][0]['columns'])
 
             valuesAirU = dataAirU['series'][0]['values']
             columnsAirU = dataAirU['series'][0]['columns']
@@ -365,6 +371,10 @@ def getRawDataFrom():
                 dataSeries = tmpList
 
                 # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
+
+        logger.info('********* testing CO emptiness 2 *********')
+        logger.log(dataSeries)
+
 
         queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get("pm25") + "), ID, \"Sensor Model\" FROM pm25 " \
                        "WHERE ID = '" + theID + "' "

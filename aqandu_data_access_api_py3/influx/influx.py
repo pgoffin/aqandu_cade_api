@@ -343,8 +343,9 @@ def getRawDataFrom():
 
             logger.info('********* testing CO emptiness 1 *********')
             logger.info(aDB)
-            logger.info(dataAirU['series'][0]['values'])
-            logger.info(dataAirU['series'][0]['columns'])
+            logger.info(dataAirU)
+            logger.info(dataAirU['series'])
+            # logger.info(dataAirU['series'][0]['columns'])
 
             valuesAirU = dataAirU['series'][0]['values']
             columnsAirU = dataAirU['series'][0]['columns']

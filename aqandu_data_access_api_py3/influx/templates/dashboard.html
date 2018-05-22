@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+{% block body %}
+<body class="body">
+    <form action="/get_data" method="POST" id="form">
+
+        <h5>NOTE: Only AirU sensors support measurements other than PM 2.5. You'll get an error if you try to query something other than PM 2.5 for something other than an AirU sensor</h5>
+        <br>
+        <select name="measType">
+            <option value="pm1">PM 1</option>
+            <option value="pm25">PM 2.5</option>
+            <option value="pm10">PM 10</option>
+            <option value="co">Carbon Monoxide</option>
+            <option value="Not Supported">Nitrogen Oxide</option>
+        </select><br><br>
+
+        <ul>
+            DAQ Sensors:
+            <li>Hawthorne, Rose Park, Bountiful, Herriman</li>
+            <br>
+            MesoWest Sensors:
+            <li>WBB, MTMET, MSI01, NAA</li>
+        </ul>
+        <h5>Sensor ID List (Comma-separated. ie.: S-A-001,6263,Hawthorne)</h5><br>
+        <textarea rows="5" cols="50" name="sensorIDs"></textarea><br>
+
+        <br><br>
+        <h5>Start Date - End Date</h5>
+        <br>
+        <input id="startDate" type="date" name="startDate">
+        <input id="endDate" type="date" name="endDate"><br>
+
+        <br>
+        <button type="submit" name="data_form" value="your_value" class="btn-link">Download CSV</button>
+
+    </form>
+
+</body>
+{% endblock %}

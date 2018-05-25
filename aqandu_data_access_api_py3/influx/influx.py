@@ -73,18 +73,18 @@ lookupParameterToAirUInflux = {
     'co': 'CO'
 }
 
-# @influx.route("/api/dashboard")
-# def dashboard():
-#
-#     logger.info('********** Dashboard **********')
-#
-#     # Server won't break if there's a render issue
-#     try:
-#         return render_template('dashboard.html')
-#     except Exception as e:
-#         logger.info('dashboard.html could not be rendered')
-#         return str(e)
-#
+@influx.route("/api/dashboard")
+def dashboard():
+
+    logger.info('********** Dashboard **********')
+
+    # Server won't break if there's a render issue
+    try:
+        return render_template('dashboard.html')
+    except Exception as e:
+        logger.info('dashboard.html could not be rendered')
+        return str(e)
+
 #
 # @influx.route("/errorHandler/<error>")
 # def errorHandler(error):

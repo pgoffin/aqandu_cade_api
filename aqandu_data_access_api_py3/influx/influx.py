@@ -10,7 +10,7 @@ from flask import jsonify, request, Blueprint, redirect, render_template, url_fo
 from influxdb import InfluxDBClient, DataFrameClient
 from pymongo import MongoClient
 from werkzeug.local import LocalProxy
-# import pandas as pd
+import pandas as pd
 
 # from .. import app
 from flask import current_app

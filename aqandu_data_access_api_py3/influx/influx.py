@@ -6,10 +6,11 @@ import math
 import time
 
 from datetime import datetime, timedelta
-from flask import jsonify, request, Blueprint
-from influxdb import InfluxDBClient
+from flask import jsonify, request, Blueprint, redirect, render_template, url_for, make_response
+from influxdb import InfluxDBClient, DataFrameClient
 from pymongo import MongoClient
 from werkzeug.local import LocalProxy
+import pandas as pd
 
 # from .. import app
 from flask import current_app
@@ -72,6 +73,166 @@ lookupParameterToAirUInflux = {
     'co': 'CO'
 }
 
+@influx.route("/api/dashboard")
+def dashboard():
+
+    logger.info('********** Dashboard **********')
+
+    # Server won't break if there's a render issue
+    try:
+        return render_template('dashboard.html')
+    except Exception as e:
+        logger.info('dashboard.html could not be rendered')
+        return str(e)
+
+
+@influx.route("/errorHandler/<error>")
+def errorHandler(error):
+
+    logger.info('********** errorHandler **********')
+    logger.info('errorHandler with error={}'.format(str(error)))
+
+    try:
+        return render_template('error_template.html', error=error)
+    except Exception as e:
+        logger.info('error_template.html could not be rendered')
+        return str(e)
+
+
+@influx.route('/get_data', methods=['POST'])
+def download_file():
+
+    logger.info('********** download_file **********')
+
+    dataType = request.form['measType']
+    sensorList = request.form['sensorIDs']
+    startDate = request.form['startDate']
+    endDate = request.form['endDate']
+
+    logger.info('dataType={}, sensorList={}, startDate={}, endDate={}'.format(dataType, sensorList, startDate, endDate))
+    if dataType == 'Not Supported':
+        msg = "Option is not supported"
+        return redirect(url_for("errorHandler", error=msg))
+
+    # Format the dates to the correct Influx string
+    try:
+        start_dt = datetime.strptime(startDate, '%Y-%m-%d')
+        end_dt = datetime.strptime(endDate, '%Y-%m-%d')
+    except ValueError as e:
+        logger.info('date conversion error: {}'.format(str(e)))
+        return redirect(url_for("errorHandler", error='ERROR: '+str(e)))
+
+    start_influx_query = datetime.strftime(start_dt, '%Y-%m-%dT%H:%M:%SZ')
+    end_influx_query = datetime.strftime(end_dt, '%Y-%m-%dT%H:%M:%SZ')
+
+    # This dataframe will hold data for all queried sensors
+    dff = pd.DataFrame()
+
+    # Sanitize the sensor list input
+    sensorList = sensorList.replace(' ', '')
+    sensorList = sensorList.replace('RosePark', 'Rose Park')
+    sensorList = sensorList.split(',')
+    sensorList = [s.strip() for s in sensorList]
+    sensorList = sort_alphanum(sensorList)
+
+    logger.info('Sanitized sensorList: {}'.format(sensorList))
+
+    airU_in_list = [getSensorSource(s) == 'AirU' for s in sensorList]
+
+    if dataType != 'pm25' and not all(airU_in_list):
+        logger.info('unexpected data type for sensor list - redirect to errorHandler')
+        return redirect(url_for("errorHandler", error='You cannot access that data type for sensors that are not AirU sensors'))
+
+    customIDToMAC = None
+    if any(airU_in_list):
+        logger.info('{} AirU sensors in the list. Getting sensor ID to mac dict now.'.format(airU_in_list.count(True)))
+
+        # getting the mac address from the customID send as a query parameter
+        customIDToMAC = getCustomSensorIDToMAC()
+
+    DFclient = None
+    for sensor in sensorList:
+
+        sensorSource = getSensorSource(sensor)
+
+        logger.info('sensor={}, source={}'.format(sensor, sensorSource))
+
+        if not sensorSource:
+            logger.info('Could not find the sensor source for {}, going to the next sensor'.format(sensor))
+            continue
+
+        elif sensorSource == 'AirU':
+
+            try:
+                ID = customIDToMAC[sensor]
+            except ValueError as e:
+                logger.info('{} is an unknown ID, not in DB. Error: {}'.format(sensor, str(e)))
+
+            database = 'INFLUX_AIRU_DATABASE'
+            measName = dataType
+            try:
+                influx_fieldKey = lookupParameterToAirUInflux[dataType]
+            except KeyError as e:
+                return str(e)
+
+        else:
+            ID = sensor     # Sensors and ID's have the same name
+            database = 'INFLUX_POLLING_DATABASE'
+            measName = 'airQuality'  # All fields are in the airQuality measurement table
+            try:
+                influx_fieldKey = lookupQueryParameterToInflux[dataType]
+            except KeyError as e:
+                return str(e)
+
+
+        # strip the double quote (which was needed for query)
+        dataframe_key = influx_fieldKey.replace('"', '')
+
+        # Initial setup (only done once)
+        if DFclient is None:
+            DFclient = DataFrameClient(host=current_app.config['INFLUX_HOST'],
+                                       port=current_app.config['INFLUX_PORT'],
+                                       username=current_app.config['INFLUX_USERNAME'],
+                                       password=current_app.config['INFLUX_PASSWORD'],
+                                       database=current_app.config[database],
+                                       ssl=current_app.config['SSL'],
+                                       verify_ssl=current_app.config['SSL'])
+
+        # Switch databases if necessary (IDs are sorted, so this will be minimal)
+        elif DFclient._database != current_app.config[database]:
+            DFclient.switch_database(database=current_app.config[database])
+
+        query = "SELECT * FROM {} WHERE ID='{}' AND time >= '{}' AND time <= '{}'".format(measName, ID,
+                                                                                          start_influx_query,
+                                                                                          end_influx_query)
+
+        df_dict = DFclient.query(query, chunked=True)
+
+        if not df_dict:
+            print('\n{} has no data for the given timeframe\n'.format(sensor))
+            dff[sensor] = ''    # Fill column with NaN
+
+        else:
+            df = df_dict[measName]
+            dff = AddSeries2DataFrame(dff, df, sensor, dataframe_key)
+
+    dff.index.name = 'time'
+
+    # Return the csv file if it isn't empty
+    if not dff.empty:
+        name_or_multiple = '_' + sensorList[0] if len(sensorList) == 1 else '_multiple'
+        filename = 'AirU{}_{}_{}_{}.csv'.format(name_or_multiple, dataframe_key, startDate, endDate)
+        response = make_response(dff.to_csv())      # doesn't save a copy locally
+        cd = 'attachment; filename={}'.format(filename)
+        response.headers['Content-Disposition'] = cd
+        response.mimetype = 'text/csv'
+        # flash('Data was successfully downloaded.')
+        return response     # page is automatically reloaded after response is sent
+
+    # Otherwise notify the user that the data doesn't exist
+    else:
+        # flash('Data does not exist.')
+        return redirect(url_for("dashboard"))
 
 @influx.route('/api/liveSensors/<type>', methods=['GET'])
 def getLiveSensors(type):
@@ -696,7 +857,7 @@ def getContours():
     # then estimates from low collection
     allHighEstimates = db.timeSlicedEstimates_high.find().sort('estimationFor', -1)
     lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
-
+    
     contours = []
 
     logger.info('the allHighEstimates')
@@ -1231,3 +1392,114 @@ def bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2):
     logger.info('interpolatedValue is %s', interpolatedValue)
 
     return interpolatedValue
+
+
+def FloorTimestamp2Minute(df):
+    """
+    Floor dataframe Influx Timestamps to the minute
+    and turn them into a string. Then replace the
+    timestamps in <df> index with these
+
+    :param df: The Pandas DataFrame with Pandas Timestamp as index
+    :return: <df> with updated index (index is string representation of timestamp with minute precision)
+    """
+
+    logger.info('********** FloorTimestamp2Minute **********')
+    try:
+        df.index = [t.round('T') for t in df.index.tolist()]
+    except AttributeError as e:
+        logger.error('FloorTimestamp2Minute: {}'.format(str(e)))
+        return str(e)
+
+    return df
+
+
+def AddSeries2DataFrame(df_combined, df_single_series, sensor_name, measurement_fieldKey):
+    """
+    Appends a column to the existing dataframe, squishing equal timestamps to same row
+
+    :param df_combined: the existing dataframe
+        - pass an empty dataframe initially when iteratively adding columns
+        - column names are <sensor_name>
+        - column values are values from <measurement_fieldKey> ie. PM1, PM10, etc.
+    :param df_single_series: single-column dataframe to combine with <df_combined>
+        - index is Pandas Timestamp() -- will be converted to string with minute precision
+        - Column name is <measurement_fieldKey> ie. PM1, PM10, etc.
+    :param sensor_name: sensor ID cooresponding to <df_single_series>. ie. S-A-001, 6261, Hawthorne, etc.
+    :param measurement_fieldKey: The measurement held by <df_single_series>. ie. PM1, PM10, etc.
+    :return: Update reference to <df_combined>
+    """
+    logger.info('********** AddSeries2Dataframe **********')
+
+    # truncate the timestamps to minute precision
+    logger.info('calling FloorTimestamp2Minute on dataframe')
+    df = FloorTimestamp2Minute(df_single_series)
+
+    # Create a new dataframe with the sensor name as the column title
+    #   and the measurement as the data. Index is time (minute precision)
+    logger.info('Creating new dataframe with sensor={} and Field Key={}'.format(sensor_name, measurement_fieldKey))
+    df = pd.DataFrame({sensor_name: df[measurement_fieldKey]}, index=df.index)
+
+    # First time adding a sensor this function should be passed an empty
+    #   DataFrame. Just return it. Otherwise join the two into one
+    if df_combined.empty:
+        logger.info('new dataframe passed')
+        return df
+    else:
+
+        logger.info('Joining dataframes')
+        df_combined = df_combined.join(df, how='outer')
+
+        # Sometimes there are multiple measurements with the same timestamp after
+        #   truncating to the minute. Just delete the second one. To hell with it
+        logger.info('Removing duplicate indices from combined dataframe')
+        df_combined = df_combined[~df_combined.index.duplicated(keep='first')]
+
+    return df_combined
+
+
+def sort_alphanum(l):
+    """
+    Sort numerically, then alphabetically. This is done to keep sensors with numerical names (Purple Air)
+    from being sorted accoring to their string value, like [1, 1100, 1200, 2, 2300] and instead sort
+    numerically. Then append the alphabetically-sorted strings
+    :param l: the list to sort (alphanumeric strings)
+    :return: the sorted list (still alphanumeric strings)
+    """
+    l = list(set(l))
+    num_l = [i for i in l if i.isdigit()]
+    alp_l = sorted([i for i in l if not i.isdigit()])
+    num_l = sorted(map(int, num_l))
+    return num_l + alp_l
+
+
+def getSensorSource(sensorID):
+    """
+    Return the source given the ID name. Helpful in determining the database
+    :param sensorID: sensor name. ie. S-A-001, 6264, Hawthorne, NAA, etc.
+    :return: Source (string)
+    """
+
+    logger.info('********** getSensorSource({}) **********'.format(sensorID))
+
+    DAQ_Sensors = ['Hawthorne', 'Rose Park', 'Bountiful', 'Herriman']
+    MesoWest_Sensors = ['WBB', 'MTMET', 'MSI01', 'NAA']
+
+    sensorID = str(sensorID)    # Just in case
+
+    if 'S-A-' in sensorID:
+        return 'AirU'
+
+    elif sensorID in DAQ_Sensors:
+        return 'DAQ'
+
+    elif sensorID in MesoWest_Sensors:
+        return 'MesoWest'
+
+    else:
+        try:
+            int(sensorID)
+            return 'Purple Air'
+        except ValueError as e:
+            logger.error('getSensorSource: {}'.format(str(e)))
+            return False

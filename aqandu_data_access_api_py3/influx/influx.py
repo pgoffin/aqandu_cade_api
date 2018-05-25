@@ -1459,7 +1459,7 @@ def AddSeries2DataFrame(df_combined, df_single_series, sensor_name, measurement_
     return df_combined
 
 
-def sort_alphanum(l):
+def sort_alphanum(al):
     """
     Sort numerically, then alphabetically. This is done to keep sensors with numerical names (Purple Air)
     from being sorted accoring to their string value, like [1, 1100, 1200, 2, 2300] and instead sort
@@ -1467,9 +1467,9 @@ def sort_alphanum(l):
     :param l: the list to sort (alphanumeric strings)
     :return: the sorted list (still alphanumeric strings)
     """
-    l = list(set(l))
-    num_l = [i for i in l if i.isdigit()]
-    alp_l = sorted([i for i in l if not i.isdigit()])
+    theList = list(set(al))
+    num_l = [i for i in theList if i.isdigit()]
+    alp_l = sorted([i for i in theList if not i.isdigit()])
     num_l = sorted(map(int, num_l))
     return num_l + alp_l
 

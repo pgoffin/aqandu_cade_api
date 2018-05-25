@@ -10,7 +10,7 @@ from flask import jsonify, request, Blueprint, redirect, render_template, url_fo
 from influxdb import InfluxDBClient, DataFrameClient
 from pymongo import MongoClient
 from werkzeug.local import LocalProxy
-import pandas as pd
+# import pandas as pd
 
 # from .. import app
 from flask import current_app
@@ -1395,112 +1395,112 @@ def bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2):
     return interpolatedValue
 
 
-def FloorTimestamp2Minute(df):
-    """
-    Floor dataframe Influx Timestamps to the minute
-    and turn them into a string. Then replace the
-    timestamps in <df> index with these
-
-    :param df: The Pandas DataFrame with Pandas Timestamp as index
-    :return: <df> with updated index (index is string representation of timestamp with minute precision)
-    """
-
-    logger.info('********** FloorTimestamp2Minute **********')
-    try:
-        df.index = [t.round('T') for t in df.index.tolist()]
-    except AttributeError as e:
-        logger.error('FloorTimestamp2Minute: {}'.format(str(e)))
-        return str(e)
-
-    return df
-
-
-def AddSeries2DataFrame(df_combined, df_single_series, sensor_name, measurement_fieldKey):
-    """
-    Appends a column to the existing dataframe, squishing equal timestamps to same row
-
-    :param df_combined: the existing dataframe
-        - pass an empty dataframe initially when iteratively adding columns
-        - column names are <sensor_name>
-        - column values are values from <measurement_fieldKey> ie. PM1, PM10, etc.
-    :param df_single_series: single-column dataframe to combine with <df_combined>
-        - index is Pandas Timestamp() -- will be converted to string with minute precision
-        - Column name is <measurement_fieldKey> ie. PM1, PM10, etc.
-    :param sensor_name: sensor ID cooresponding to <df_single_series>. ie. S-A-001, 6261, Hawthorne, etc.
-    :param measurement_fieldKey: The measurement held by <df_single_series>. ie. PM1, PM10, etc.
-    :return: Update reference to <df_combined>
-    """
-    logger.info('********** AddSeries2Dataframe **********')
-
-    # truncate the timestamps to minute precision
-    logger.info('calling FloorTimestamp2Minute on dataframe')
-    df = FloorTimestamp2Minute(df_single_series)
-
-    # Create a new dataframe with the sensor name as the column title
-    #   and the measurement as the data. Index is time (minute precision)
-    logger.info('Creating new dataframe with sensor={} and Field Key={}'.format(sensor_name, measurement_fieldKey))
-    df = pd.DataFrame({sensor_name: df[measurement_fieldKey]}, index=df.index)
-
-    # First time adding a sensor this function should be passed an empty
-    #   DataFrame. Just return it. Otherwise join the two into one
-    if df_combined.empty:
-        logger.info('new dataframe passed')
-        return df
-    else:
-
-        logger.info('Joining dataframes')
-        df_combined = df_combined.join(df, how='outer')
-
-        # Sometimes there are multiple measurements with the same timestamp after
-        #   truncating to the minute. Just delete the second one. To hell with it
-        logger.info('Removing duplicate indices from combined dataframe')
-        df_combined = df_combined[~df_combined.index.duplicated(keep='first')]
-
-    return df_combined
-
-
-def sort_alphanum(al):
-    """
-    Sort numerically, then alphabetically. This is done to keep sensors with numerical names (Purple Air)
-    from being sorted accoring to their string value, like [1, 1100, 1200, 2, 2300] and instead sort
-    numerically. Then append the alphabetically-sorted strings
-    :param l: the list to sort (alphanumeric strings)
-    :return: the sorted list (still alphanumeric strings)
-    """
-    theList = list(set(al))
-    num_l = [i for i in theList if i.isdigit()]
-    alp_l = sorted([i for i in theList if not i.isdigit()])
-    num_l = sorted(map(int, num_l))
-    return num_l + alp_l
-
-
-def getSensorSource(sensorID):
-    """
-    Return the source given the ID name. Helpful in determining the database
-    :param sensorID: sensor name. ie. S-A-001, 6264, Hawthorne, NAA, etc.
-    :return: Source (string)
-    """
-
-    logger.info('********** getSensorSource({}) **********'.format(sensorID))
-
-    DAQ_Sensors = ['Hawthorne', 'Rose Park', 'Bountiful', 'Herriman']
-    MesoWest_Sensors = ['WBB', 'MTMET', 'MSI01', 'NAA']
-
-    sensorID = str(sensorID)    # Just in case
-
-    if 'S-A-' in sensorID:
-        return 'AirU'
-
-    elif sensorID in DAQ_Sensors:
-        return 'DAQ'
-
-    elif sensorID in MesoWest_Sensors:
-        return 'MesoWest'
-
-    else:
-        try:
-            int(sensorID)
-            return 'Purple Air'
-        except ValueError as e:
-            logger.error('getSensorSource: {}'.format(str(e)))
-            return False
+# def FloorTimestamp2Minute(df):
+#     """
+#     Floor dataframe Influx Timestamps to the minute
+#     and turn them into a string. Then replace the
+#     timestamps in <df> index with these
+#
+#     :param df: The Pandas DataFrame with Pandas Timestamp as index
+#     :return: <df> with updated index (index is string representation of timestamp with minute precision)
+#     """
+#
+#     logger.info('********** FloorTimestamp2Minute **********')
+#     try:
+#         df.index = [t.round('T') for t in df.index.tolist()]
+#     except AttributeError as e:
+#         logger.error('FloorTimestamp2Minute: {}'.format(str(e)))
+#         return str(e)
+#
+#     return df
+#
+#
+# def AddSeries2DataFrame(df_combined, df_single_series, sensor_name, measurement_fieldKey):
+#     """
+#     Appends a column to the existing dataframe, squishing equal timestamps to same row
+#
+#     :param df_combined: the existing dataframe
+#         - pass an empty dataframe initially when iteratively adding columns
+#         - column names are <sensor_name>
+#         - column values are values from <measurement_fieldKey> ie. PM1, PM10, etc.
+#     :param df_single_series: single-column dataframe to combine with <df_combined>
+#         - index is Pandas Timestamp() -- will be converted to string with minute precision
+#         - Column name is <measurement_fieldKey> ie. PM1, PM10, etc.
+#     :param sensor_name: sensor ID cooresponding to <df_single_series>. ie. S-A-001, 6261, Hawthorne, etc.
+#     :param measurement_fieldKey: The measurement held by <df_single_series>. ie. PM1, PM10, etc.
+#     :return: Update reference to <df_combined>
+#     """
+#     logger.info('********** AddSeries2Dataframe **********')
+#
+#     # truncate the timestamps to minute precision
+#     logger.info('calling FloorTimestamp2Minute on dataframe')
+#     df = FloorTimestamp2Minute(df_single_series)
+#
+#     # Create a new dataframe with the sensor name as the column title
+#     #   and the measurement as the data. Index is time (minute precision)
+#     logger.info('Creating new dataframe with sensor={} and Field Key={}'.format(sensor_name, measurement_fieldKey))
+#     df = pd.DataFrame({sensor_name: df[measurement_fieldKey]}, index=df.index)
+#
+#     # First time adding a sensor this function should be passed an empty
+#     #   DataFrame. Just return it. Otherwise join the two into one
+#     if df_combined.empty:
+#         logger.info('new dataframe passed')
+#         return df
+#     else:
+#
+#         logger.info('Joining dataframes')
+#         df_combined = df_combined.join(df, how='outer')
+#
+#         # Sometimes there are multiple measurements with the same timestamp after
+#         #   truncating to the minute. Just delete the second one. To hell with it
+#         logger.info('Removing duplicate indices from combined dataframe')
+#         df_combined = df_combined[~df_combined.index.duplicated(keep='first')]
+#
+#     return df_combined
+#
+#
+# def sort_alphanum(al):
+#     """
+#     Sort numerically, then alphabetically. This is done to keep sensors with numerical names (Purple Air)
+#     from being sorted accoring to their string value, like [1, 1100, 1200, 2, 2300] and instead sort
+#     numerically. Then append the alphabetically-sorted strings
+#     :param l: the list to sort (alphanumeric strings)
+#     :return: the sorted list (still alphanumeric strings)
+#     """
+#     theList = list(set(al))
+#     num_l = [i for i in theList if i.isdigit()]
+#     alp_l = sorted([i for i in theList if not i.isdigit()])
+#     num_l = sorted(map(int, num_l))
+#     return num_l + alp_l
+#
+#
+# def getSensorSource(sensorID):
+#     """
+#     Return the source given the ID name. Helpful in determining the database
+#     :param sensorID: sensor name. ie. S-A-001, 6264, Hawthorne, NAA, etc.
+#     :return: Source (string)
+#     """
+#
+#     logger.info('********** getSensorSource({}) **********'.format(sensorID))
+#
+#     DAQ_Sensors = ['Hawthorne', 'Rose Park', 'Bountiful', 'Herriman']
+#     MesoWest_Sensors = ['WBB', 'MTMET', 'MSI01', 'NAA']
+#
+#     sensorID = str(sensorID)    # Just in case
+#
+#     if 'S-A-' in sensorID:
+#         return 'AirU'
+#
+#     elif sensorID in DAQ_Sensors:
+#         return 'DAQ'
+#
+#     elif sensorID in MesoWest_Sensors:
+#         return 'MesoWest'
+#
+#     else:
+#         try:
+#             int(sensorID)
+#             return 'Purple Air'
+#         except ValueError as e:
+#             logger.error('getSensorSource: {}'.format(str(e)))
+#             return False

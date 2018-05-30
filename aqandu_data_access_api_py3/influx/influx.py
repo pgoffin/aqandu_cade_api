@@ -109,6 +109,11 @@ def download_file():
     startDate = request.form['startDate']
     endDate = request.form['endDate']
 
+    logger.info(dataType)
+    logger.info(sensorList)
+    logger.info(startDate)
+    logger.info(endDate)
+
     logger.info('dataType={}, sensorList={}, startDate={}, endDate={}'.format(dataType, sensorList, startDate, endDate))
     if dataType == 'Not Supported':
         msg = "Option is not supported"

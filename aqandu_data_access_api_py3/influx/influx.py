@@ -237,7 +237,7 @@ def get_data():
     # Otherwise notify the user that the data doesn't exist
     else:
         # flash('Data does not exist.')
-        return redirect(url_for("dashboard"))
+        return redirect(url_for("influx.dashboard"))
 
 
 @influx.route('/api/liveSensors/<type>', methods=['GET'])

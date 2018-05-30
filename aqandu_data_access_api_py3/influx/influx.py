@@ -87,7 +87,7 @@ def dashboard():
         return str(e)
 
 
-@influx.route("/errorHandler/<error>")
+@influx.route("/api/errorHandler/<error>")
 def errorHandler(error):
 
     logger.info('********** errorHandler **********')
@@ -100,7 +100,7 @@ def errorHandler(error):
         return str(e)
 
 
-@influx.route('/get_data', methods=['POST'])
+@influx.route('/api/get_data', methods=['POST'])
 def get_data():
 
     logger.info('********** download_file **********')

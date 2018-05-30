@@ -27,7 +27,7 @@ class UnknownIDError(Error):
     pass
 
 
-influx = Blueprint('influx', __name__)
+influx = Blueprint('influx', __name__, template_folder='templates')
 logger = LocalProxy(lambda: current_app.logger)
 
 # lookup table to transform querString to influx column name

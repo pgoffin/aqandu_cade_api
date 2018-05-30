@@ -73,6 +73,7 @@ lookupParameterToAirUInflux = {
     'co': 'CO'
 }
 
+
 @influx.route("/api/dashboard")
 def dashboard():
 
@@ -125,7 +126,7 @@ def download_file():
         end_dt = datetime.strptime(endDate, '%Y-%m-%d')
     except ValueError as e:
         logger.info('date conversion error: {}'.format(str(e)))
-        return redirect(url_for("errorHandler", error='ERROR: '+str(e)))
+        return redirect(url_for("errorHandler", error='ERROR: ' + str(e)))
 
     start_influx_query = datetime.strftime(start_dt, '%Y-%m-%dT%H:%M:%SZ')
     end_influx_query = datetime.strftime(end_dt, '%Y-%m-%dT%H:%M:%SZ')
@@ -188,7 +189,6 @@ def download_file():
                 influx_fieldKey = lookupQueryParameterToInflux[dataType]
             except KeyError as e:
                 return str(e)
-
 
         # strip the double quote (which was needed for query)
         dataframe_key = influx_fieldKey.replace('"', '')

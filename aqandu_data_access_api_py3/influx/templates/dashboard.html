@@ -2,7 +2,7 @@
 
 {% block body %}
 <body class="body">
-    <form action="/dbapi/api/get_data" method="POST" id="form">
+    <form action="{{ url_for('get_data') }}" method="POST" id="form">
 
         <h5>NOTE: Only AirU sensors support measurements other than PM 2.5. You'll get an error if you try to query something other than PM 2.5 for something other than an AirU sensor</h5>
         <br>

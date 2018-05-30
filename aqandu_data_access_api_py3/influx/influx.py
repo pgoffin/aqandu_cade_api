@@ -101,7 +101,7 @@ def errorHandler(error):
 
 
 @influx.route('/get_data', methods=['POST'])
-def download_file():
+def get_data():
 
     logger.info('********** download_file **********')
 

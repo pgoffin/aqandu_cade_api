@@ -867,13 +867,17 @@ def getContours():
     contours = []
 
     logger.info('the allHighEstimates')
+    logger.info(allHighEstimates.count())
     for estimateSliceHigh in allHighEstimates:
         estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
+        logger.info(estimationDateSliceDateHigh)
         contours.append({'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceHigh['contours'], 'origin': 'high'})
 
     logger.info('the lowEstimates')
+    logger.info(lowEstimates.count())
     for estimateSliceLow in lowEstimates:
         estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+        logger.info(estimationDateSliceDateLow)
         contours.append({'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceLow['contours'], 'origin': 'low'})
 
     # logger.info(contours)

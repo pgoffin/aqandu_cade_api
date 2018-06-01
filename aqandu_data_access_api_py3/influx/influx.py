@@ -862,7 +862,7 @@ def getContours():
     # first take estimates from high collection
     # then estimates from low collection
     allHighEstimates = db.timeSlicedEstimates_high.find().sort('estimationFor', -1)
-    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+    # lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
 
     contours = []
 
@@ -874,18 +874,26 @@ def getContours():
         contours.append({'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceHigh['contours'], 'origin': 'high'})
 
     logger.info('the lowEstimates')
-    logger.info(lowEstimates.count())
+    # logger.info(lowEstimates.count())
 
     # lowEstimates.batch_size(10000)
 
     logger.info('date range')
-    for aDate in pd.date_range(startDate, endDate, freq='12h'):
+    for aDate in pd.date_range(startDate, endDate, freq='12h')[1:]:
         logger.info(aDate)
+        lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": aDate}}).sort('estimationFor', -1)
 
-    for estimateSliceLow in lowEstimates:
-        estimationDateSliceDateLow = estimateSliceLow['estimationFor']
-        logger.info(estimationDateSliceDateLow)
-        contours.append({'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceLow['contours'], 'origin': 'low'})
+        for estimateSliceLow in lowEstimates:
+            estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+            logger.info(estimationDateSliceDateLow)
+            contours.append({'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceLow['contours'], 'origin': 'low'})
+
+        startDate = aDate
+
+    # for estimateSliceLow in lowEstimates:
+    #     estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+    #     logger.info(estimationDateSliceDateLow)
+    #     contours.append({'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceLow['contours'], 'origin': 'low'})
 
     # logger.info(contours)
     #

@@ -875,6 +875,9 @@ def getContours():
 
     logger.info('the lowEstimates')
     logger.info(lowEstimates.count())
+
+    lowEstimates.bath_size(lowEstimates.count())
+
     for estimateSliceLow in lowEstimates:
         estimationDateSliceDateLow = estimateSliceLow['estimationFor']
         logger.info(estimationDateSliceDateLow)

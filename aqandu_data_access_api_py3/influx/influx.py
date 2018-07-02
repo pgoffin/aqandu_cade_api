@@ -1370,14 +1370,14 @@ def getInfluxAirUSensors(minus5min):
         if macAddress in macToCustomID:
             newID = macToCustomID[macAddress]
 
-        logger.info('newID is %s', newID)
+            logger.info('newID is %s', newID)
 
-        anAirU = {'ID': newID, 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
-        # anAirU = {'ID': airU['macAddress'], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
-        logger.info(anAirU)
+            anAirU = {'ID': newID, 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
+            # anAirU = {'ID': airU['macAddress'], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
+            logger.info(anAirU)
 
-        dataSeries.append(anAirU)
-        logger.info('airU appended')
+            dataSeries.append(anAirU)
+            logger.info('airU appended')
 
     logger.info(dataSeries)
     logger.info('******** influx airU done ********')

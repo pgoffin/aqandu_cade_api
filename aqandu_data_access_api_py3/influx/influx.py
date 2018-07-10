@@ -580,7 +580,7 @@ def getRawDataFrom():
         data = influxClientPolling.query(query, epoch=None)
         data = data.raw
 
-        print(data)
+        logger.info(data['series'][0]['values'][0])
 
         theValues = data['series'][0]['values']
         theColumns = data['series'][0]['columns']
@@ -590,6 +590,7 @@ def getRawDataFrom():
 
         queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality " \
                        "WHERE ID = '" + queryParameters['id'] + "' "
+        logger.info(queryForTags)
 
         dataTags = influxClientPolling.query(queryForTags, epoch=None)
         dataTags = dataTags.raw

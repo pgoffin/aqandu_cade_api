@@ -862,7 +862,7 @@ def getContours():
 
     # first take estimates from high collection
     # then estimates from low collection
-    allHighEstimates = db.timeSlicedEstimates_high.find().sort('estimationFor', -1)
+    allHighEstimates = db.timeSlicedEstimates_high.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
     # lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
 
     contours = []

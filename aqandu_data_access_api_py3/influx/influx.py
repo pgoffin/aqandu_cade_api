@@ -1064,7 +1064,7 @@ def getEstimatesForLocation():
     for estimateSliceHigh in allHighEstimates:
         estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
         # theDates.append({'date': estimationDateSliceDateHigh, 'origin': 'high'})
-        logger.info(estimationDateSliceDateHigh)
+        # logger.info(estimationDateSliceDateHigh)
 
         # get the corner values
         leftBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftBottomCorner_index]['pm25']
@@ -1086,12 +1086,12 @@ def getEstimatesForLocation():
         logger.info(interpolatedEstimateHigh)
 
         # theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceHigh['contours'], 'origin': 'high'})
-        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'origin': 'high'})
+        theInterpolatedValues.append({'pm25': interpolatedEstimateHigh, 'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'origin': 'high'})
 
     logger.info('the lowEstimates')
     logger.info(lowEstimates.count())
     for estimateSliceLow in lowEstimates:
-        logger.info(estimateSliceLow)
+        # logger.info(estimateSliceLow)
         estimationDateSliceDateLow = estimateSliceLow['estimationFor']
         # theDates.append({'date': estimationDateSliceDateLow, 'origin': 'low'})
         logger.info(estimationDateSliceDateLow)
@@ -1109,7 +1109,7 @@ def getEstimatesForLocation():
         interpolatedEstimateLow = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
 
         # theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceLow['contours'], 'origin': 'low'})
-        theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'origin': 'low'})
+        theInterpolatedValues.append({'pm25': interpolatedEstimateLow, 'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'origin': 'low'})
 
         logger.info('done with lowEstimates')
 

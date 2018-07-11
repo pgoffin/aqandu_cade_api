@@ -1048,8 +1048,8 @@ def getEstimatesForLocation():
 
     # first take estimates from high collection
     # then estimates from low collection
-    allHighEstimates = db.timeSlicedEstimates_high.find().sort('estimationFor', -1)
-    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1).limit(300)
+    allHighEstimates = db.timeSlicedEstimates_high.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
 
     x = float(location_lng)
     y = float(location_lat)

@@ -54,7 +54,8 @@ lookupQueryParameterToInflux = {
     'pm10': '\"pm10.0 (ug/m^3)\"',
     'posix': 'POSIX',
     'secActive': 'SecActive',
-    'co': 'CO'
+    'co': 'CO',
+    'no': 'NO'
 }
 
 # keys are also measurement names, values are the respective field key
@@ -70,7 +71,8 @@ lookupParameterToAirUInflux = {
     'posix': 'POSIX',
     'secActive': 'SecActive',
     'errors': 'Errors',
-    'co': 'CO'
+    'co': 'CO',
+    'no': 'NO'
 }
 
 

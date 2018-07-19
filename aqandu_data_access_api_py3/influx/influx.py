@@ -111,6 +111,7 @@ def get_data():
     sensorList = request.form['sensorIDs']
     startDate = request.form['startDate']
     endDate = request.form['endDate']
+    hourAvg = 'hourAvg' in request.form.keys()
 
     logger.info(dataType)
     logger.info(sensorList)
@@ -227,6 +228,14 @@ def get_data():
 
     # Return the csv file if it isn't empty
     if not dff.empty:
+
+        # hour Averaging
+        if hourAvg:
+            dff = dff.resample('H').mean()
+            avg_str = '_HR-AVG'
+        else:
+            avg_str = ''
+
         name_or_multiple = '_' + sensorList[0] if len(sensorList) == 1 else '_multiple'
         filename = 'AirU{}_{}_{}_{}.csv'.format(name_or_multiple, dataframe_key, startDate, endDate)
         response = make_response(dff.to_csv())      # doesn't save a copy locally

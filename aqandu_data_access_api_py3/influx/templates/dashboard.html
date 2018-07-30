@@ -5,7 +5,7 @@
     <!-- <form action="{{ url_for('influx.get_data') }}" method="POST" id="form"> -->
     <form action="http://air.eng.utah.edu/dbapi/api/get_data" method="POST" id="form">
 
-        <h5>NOTE: Only AirU sensors support measurements other than PM 2.5. You'll get an error if you try to query something other than PM 2.5 for something other than an AirU sensor</h5>
+        <h5>NOTE: Measurements other than PM2.5 are only supported by AirU sensors.</h5>
         <br>
         <select name="measType">
             <option value="pm1">PM 1</option>
@@ -22,19 +22,29 @@
             MesoWest Sensors:
             <li>WBB, MTMET, MSI01, NAA</li>
         </ul>
-        <h5>Sensor ID List (Comma-separated. ie.: S-A-001,6263,Hawthorne)</h5><br>
-        <textarea rows="5" cols="50" name="sensorIDs"></textarea><br>
+        <h5>Sensor ID List (Comma-separated. ie.: S-A-001,6263,Hawthorne)</h5>
+        <textarea rows="5" cols="50" name="sensorIDs"></textarea>
 
-        <br><br>
+        <br>
         <h5>Start Date - End Date</h5>
-        <br>
         <input id="startDate" type="date" name="startDate">
-        <input id="endDate" type="date" name="endDate"><br>
+        <input id="endDate" type="date" name="endDate"><br><br>
         <input id="hourAvg" type="checkbox" name="hourAvg"> Hour Averaging
-        <br>
+        <br><br>
         <button type="submit" name="data_form" value="your_value" class="btn-link">Download CSV</button>
 
     </form>
 
+<br><br>
+
+<footer>
+<p><strong>Disclaimer:</strong></p>
+
+<p>The air-quality data you are downloading is raw data.</p>
+
+<p>If you are downloading sensor data  with sensor IDs PA or SA (from PurpleAir or AirU sensors), these PM2.5 concentrations are based on light scattering and provide only relative measurements.  We are continually working to develop correction factors to enable you to more accurately estimate PM2.5 concentration from these sensors.  If you would like the most up-to-date correction factors, please contact Tofigh Sayahi [<a href="mailto:tofighsayahi@chemeng.utah.edu">tofighsayahi@chemeng.utah.edu</a>] who can provide these.</p>
+
+<p>If you are downloading data from the Utah Division of Air Quality (DAQ) (named: Hawthorne), this information is considered a gold standard and does not require correction, but it is considered preliminary until it has been quality assured.  Quality assured air-quality DAQ data can be downloaded from the <a href="https://www.epa.gov/outdoor-air-quality-data/download-daily-data"> EPA</a>.</p>
+</footer>
 </body>
 {% endblock %}

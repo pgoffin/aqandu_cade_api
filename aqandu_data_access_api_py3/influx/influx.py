@@ -1252,6 +1252,182 @@ def getEstimatesForLocation():
     return resp
 
 
+@influx.route('/api/getEstimatesForLocation_debugging', methods=['GET'])
+def getEstimatesForLocation_debugging():
+    # need a location and the needed timespan
+
+    logger.info('*********** getEstimatesForLocation started ***********')
+
+    queryParameters = request.args
+    logger.info(queryParameters)
+
+    location_lat = queryParameters['location_lat']
+    location_lng = queryParameters['location_lng']
+    startDate = queryParameters['start']
+    # logger.info(startDate)
+    startDate = datetime.strptime(startDate, '%Y-%m-%dT%H:%M:%SZ')
+    # logger.info(startDate)
+    endDate = queryParameters['end']
+    endDate = datetime.strptime(endDate, '%Y-%m-%dT%H:%M:%SZ')
+
+    logger.info('the start date')
+    logger.info(startDate)
+    logger.info('the end date')
+    logger.info(endDate)
+
+    # use location to get the 4 estimation data corners
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+
+    gridInfo = db.estimationMetadata.find_one({"metadataType": 'timeSlicedEstimates_debug_low', "gridID": current_app.config['CURRENT_GRID_VERSION']})
+
+    logger.info(gridInfo)
+
+    theCorners = {}
+    if gridInfo is not None:
+        theGrid = gridInfo['transformedGrid']
+        numberGridCells_LAT = gridInfo['numberOfGridCells']['lat']
+        numberGridCells_LONG = gridInfo['numberOfGridCells']['long']
+
+        logger.info(theGrid)
+        logger.info(numberGridCells_LAT)
+        logger.info(numberGridCells_LONG)
+
+        topRightCornerIndex = str((int(numberGridCells_LAT + 1) * int(numberGridCells_LONG + 1)) - 1)
+        bottomLeftCornerIndex = str(0)
+
+        stepSizeLat = abs(theGrid[topRightCornerIndex]['lat'][0] - theGrid[bottomLeftCornerIndex]['lat'][0]) / numberGridCells_LAT
+        stepSizeLong = abs(theGrid[topRightCornerIndex]['lngs'][0] - theGrid[bottomLeftCornerIndex]['lngs'][0]) / numberGridCells_LONG
+
+        logger.info(stepSizeLat)
+        logger.info(stepSizeLong)
+
+        fourCorners_left_index_lng = math.floor((float(location_lng) - theGrid[bottomLeftCornerIndex]['lngs'][0]) / stepSizeLong)
+        fourCorners_bottom_index_lat = math.floor((float(location_lat) - theGrid[bottomLeftCornerIndex]['lat'][0]) / stepSizeLat)
+
+        logger.info(fourCorners_left_index_lng)
+        logger.info(fourCorners_bottom_index_lat)
+
+        # leftCorner_long = theGrid[bottomLeftCornerIndex]['long'] + (fourCorners_left_index_x * stepSizeLong)
+        # rightCorner_long = theGrid[bottomLeftCornerIndex]['long'] + (fourCorners_right_index_x * stepSizeLong)
+        # bottomCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_bottom_index_y * stepSizeLat)
+        # topCorner_lat = theGrid[bottomLeftCornerIndex]['lat'] + (fourCorners_top_index_y * stepSizeLat)
+
+        leftBottomCorner_index = str((fourCorners_left_index_lng * (numberGridCells_LAT + 1)) + fourCorners_bottom_index_lat)
+        leftTopCorner_index = str((fourCorners_left_index_lng * (numberGridCells_LAT + 1)) + (fourCorners_bottom_index_lat + 1))
+        rightBottomCorner_index = str(((fourCorners_left_index_lng + 1) * (numberGridCells_LAT + 1)) + fourCorners_bottom_index_lat)
+        rightTopCorner_index = str(((fourCorners_left_index_lng + 1) * (numberGridCells_LAT + 1)) + (fourCorners_bottom_index_lat + 1))
+
+        logger.info(leftBottomCorner_index)
+        logger.info(rightBottomCorner_index)
+        logger.info(leftTopCorner_index)
+        logger.info(rightTopCorner_index)
+
+        leftBottomCorner_location = theGrid[leftBottomCorner_index]
+        rightBottomCorner_location = theGrid[rightBottomCorner_index]
+        leftTopCorner_location = theGrid[leftTopCorner_index]
+        rightTopCorner_location = theGrid[rightTopCorner_index]
+
+        logger.info(leftBottomCorner_location)
+        logger.info(rightBottomCorner_location)
+        logger.info(leftTopCorner_location)
+        logger.info(rightTopCorner_location)
+
+        theCorners['leftBottomCorner'] = {'lat': leftBottomCorner_location['lat'][0], 'lng': leftBottomCorner_location['lngs'][0]}
+        theCorners['rightBottomCorner'] = {'lat': rightBottomCorner_location['lat'][0], 'lng': rightBottomCorner_location['lngs'][0]}
+        theCorners['leftTopCorner'] = {'lat': leftTopCorner_location['lat'][0], 'lng': leftTopCorner_location['lngs'][0]}
+        theCorners['rightTopCorner'] = {'lat': rightTopCorner_location['lat'][0], 'lng': rightTopCorner_location['lngs'][0]}
+
+    else:
+        logger.info('grid info is none!')
+
+    # get the 4 corners for each timestamp between the timespan
+    # take all estimates in timeSpan
+
+    # first take estimates from high collection
+    # then estimates from low collection
+    allHighEstimates = db.timeSlicedEstimates_debug_high.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+    lowEstimates = db.timeSlicedEstimates_debug_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+
+    x = float(location_lng)
+    y = float(location_lat)
+    x1 = leftBottomCorner_location['lngs'][0]
+    x2 = rightBottomCorner_location['lngs'][0]
+    y1 = leftBottomCorner_location['lat'][0]
+    y2 = leftTopCorner_location['lat'][0]
+
+    # theDates = []
+    theInterpolatedValues = []
+    logger.info('the allHighEstimates')
+    for estimateSliceHigh in allHighEstimates:
+        estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
+        # theDates.append({'date': estimationDateSliceDateHigh, 'origin': 'high'})
+        # logger.info(estimationDateSliceDateHigh)
+
+        # get the corner values
+        leftBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftBottomCorner_index]['pm25']
+        logger.debug(leftBottomCorner_pm25valueHigh)
+        rightBottomCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightBottomCorner_index]['pm25']
+        logger.debug(rightBottomCorner_pm25valueHigh)
+        leftTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][leftTopCorner_index]['pm25']
+        logger.debug(leftTopCorner_pm25valueHigh)
+        rightTopCorner_pm25valueHigh = estimateSliceHigh['estimate'][rightTopCorner_index]['pm25']
+        logger.debug(rightTopCorner_pm25valueHigh)
+
+        Q11 = leftBottomCorner_pm25valueHigh
+        Q21 = rightBottomCorner_pm25valueHigh
+        Q12 = leftTopCorner_pm25valueHigh
+        Q22 = rightTopCorner_pm25valueHigh
+
+        # do bilinear interpolation using these 4 corners
+        interpolatedEstimateHigh = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
+        logger.info(interpolatedEstimateHigh)
+
+        # theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateHigh, 'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceHigh['contours'], 'origin': 'high'})
+        theInterpolatedValues.append({'pm25': interpolatedEstimateHigh, 'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'origin': 'high'})
+
+    logger.info('the lowEstimates')
+    logger.info(lowEstimates.count())
+    for estimateSliceLow in lowEstimates:
+        # logger.info(estimateSliceLow)
+        estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+        # theDates.append({'date': estimationDateSliceDateLow, 'origin': 'low'})
+        logger.info(estimationDateSliceDateLow)
+
+        leftBottomCorner_pm25valueLow = estimateSliceLow['estimate'][leftBottomCorner_index]['pm25']
+        rightBottomCorner_pm25valueLow = estimateSliceLow['estimate'][rightBottomCorner_index]['pm25']
+        leftTopCorner_pm25valueLow = estimateSliceLow['estimate'][leftTopCorner_index]['pm25']
+        rightTopCorner_pm25valueLow = estimateSliceLow['estimate'][rightTopCorner_index]['pm25']
+
+        Q11 = leftBottomCorner_pm25valueLow
+        Q21 = rightBottomCorner_pm25valueLow
+        Q12 = leftTopCorner_pm25valueLow
+        Q22 = rightTopCorner_pm25valueLow
+
+        interpolatedEstimateLow = bilinearInterpolation(Q11, Q12, Q21, Q22, x, y, x1, x2, y1, y2)
+
+        # theInterpolatedValues.append({'lat': y, 'lng': x, 'pm25': interpolatedEstimateLow, 'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceLow['contours'], 'origin': 'low'})
+        theInterpolatedValues.append({'pm25': interpolatedEstimateLow, 'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'origin': 'low'})
+
+        logger.info('done with lowEstimates')
+
+    logger.info(theCorners)
+
+    resp = jsonify(theInterpolatedValues)
+    resp.status_code = 200
+
+    logger.info('*********** getting getEstimatesForLocation request done ***********')
+
+    return resp
+
+
 # HELPER FUNCTIONS
 
 def createSelection(typeOfQuery, querystring):

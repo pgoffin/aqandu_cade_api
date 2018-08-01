@@ -919,6 +919,84 @@ def getContours():
     return resp
 
 
+@influx.route('/api/contours_debugging', methods=['GET'])
+def getContours_debugging():
+
+    logger.info('*********** getting contours request started ***********')
+
+    queryParameters = request.args
+    logger.info(queryParameters)
+
+    startDate = queryParameters['start']
+    logger.info(startDate)
+    startDate = datetime.strptime(startDate, '%Y-%m-%dT%H:%M:%SZ')
+    logger.info(startDate)
+    endDate = queryParameters['end']
+    endDate = datetime.strptime(endDate, '%Y-%m-%dT%H:%M:%SZ')
+
+    logger.info('the start date')
+    logger.info(startDate)
+    logger.info('the end date')
+    logger.info(endDate)
+
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+
+    # first take estimates from high collection
+    # then estimates from low collection
+    allHighEstimates = db.timeSlicedEstimates_debug_high.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+    # lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+
+    contours = []
+
+    logger.info('the allHighEstimates')
+    logger.info(allHighEstimates.count())
+    for estimateSliceHigh in allHighEstimates:
+        estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
+        logger.info(estimationDateSliceDateHigh)
+        contours.append({'time': estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceHigh['contours'], 'origin': 'high'})
+
+    logger.info('the lowEstimates')
+    # logger.info(lowEstimates.count())
+
+    # lowEstimates.batch_size(10000)
+
+    logger.info('date range')
+    for aDate in pd.date_range(startDate, endDate, freq='12h')[1:]:
+        logger.info(aDate)
+        lowEstimates = db.timeSlicedEstimates_debug_low.find({"estimationFor": {"$gte": startDate, "$lt": aDate}}).sort('estimationFor', -1)
+
+        for estimateSliceLow in lowEstimates:
+            estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+            logger.info(estimationDateSliceDateLow)
+            contours.append({'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceLow['contours'], 'origin': 'low'})
+
+        startDate = aDate
+
+    # for estimateSliceLow in lowEstimates:
+    #     estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+    #     logger.info(estimationDateSliceDateLow)
+    #     contours.append({'time': estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'), 'contour': estimateSliceLow['contours'], 'origin': 'low'})
+
+    # logger.info(contours)
+    #
+    # logger.info(jsonify(contours))
+
+    resp = jsonify(contours)
+    resp.status_code = 200
+
+    logger.info('*********** getting contours request done ***********')
+
+    return resp
+
+
 @influx.route('/api/getLatestContour', methods=['GET'])
 def getLatestContour():
 
@@ -936,6 +1014,46 @@ def getLatestContour():
     # contours = {}
 
     cursor = db.timeSlicedEstimates_high.find().sort('estimationFor', -1).limit(1)
+    logger.info(cursor)
+
+    for doc in cursor:
+        logger.info(type(doc))
+        logger.info(doc['estimate'])
+        logger.info(doc['contours'])
+        # logger.info(jsonify(doc))
+
+        lastContour = {'contour': doc['contours'], 'date_utc': doc['estimationFor']}
+
+    # logger.info(contours)
+
+    # logger.info(jsonify(contours))
+
+    resp = jsonify(lastContour)
+    resp.status_code = 200
+
+    logger.info('*********** getting latest contours request done ***********')
+
+    return resp
+
+
+@influx.route('/api/getLatestContour_debugging', methods=['GET'])
+def getLatestContour_debugging():
+
+    logger.info('*********** getting latest contours request started ***********')
+
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+    # contours = {}
+
+    # TODO collection_name in db.collection_names() to check if collection exists
+    cursor = db.timeSlicedEstimates_debug_high.find().sort('estimationFor', -1).limit(1)
     logger.info(cursor)
 
     for doc in cursor:

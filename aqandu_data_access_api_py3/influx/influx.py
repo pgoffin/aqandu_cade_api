@@ -1286,7 +1286,7 @@ def getEstimatesForLocation_debugging():
     mongoClient = MongoClient(mongodb_url)
     db = mongoClient.airudb
 
-    gridInfo = db.estimationMetadata.find_one({"metadataType": 'timeSlicedEstimates_debug_low', "gridID": current_app.config['CURRENT_GRID_VERSION']})
+    gridInfo = db.estimationMetadata.find_one({"metadataType": 'timeSlicedEstimates_debug_low', "gridID": 4})
 
     logger.info(gridInfo)
 

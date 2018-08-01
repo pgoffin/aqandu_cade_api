@@ -1256,7 +1256,7 @@ def getEstimatesForLocation():
 def getEstimatesForLocation_debugging():
     # need a location and the needed timespan
 
-    logger.info('*********** getEstimatesForLocation started ***********')
+    logger.info('*********** DEBUGGING getEstimatesForLocation started ***********')
 
     queryParameters = request.args
     logger.info(queryParameters)

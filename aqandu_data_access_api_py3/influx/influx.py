@@ -589,6 +589,8 @@ def getRawDataFrom():
         start = time.time()
 
         data = influxClientPolling.query(query, epoch=None)
+        logger.info(data)
+        logger.info(data.error)
         data = data.raw
 
         logger.info(data['series'][0]['values'][0])

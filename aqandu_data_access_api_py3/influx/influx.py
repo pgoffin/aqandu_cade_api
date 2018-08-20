@@ -393,15 +393,15 @@ def getRawDataFrom():
                 valuesAirU = dataAirU['series'][0]['values']
                 columnsAirU = dataAirU['series'][0]['columns']
 
-                LOGGER.info(valuesAirU)
-                LOGGER.info(columnsAirU)
+                LOGGER.info(len(valuesAirU))
+                LOGGER.info(len(columnsAirU))
 
                 if not dataSeries:
                     dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
-                    LOGGER.info(dataSeries)
+                    LOGGER.info(len(dataSeries))
                 else:
                     newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
-                    LOGGER.info(newDataSeries)
+                    LOGGER.info(len(newDataSeries))
 
                     # print(list(zip(dataSeries, newDataSeries)))
                     # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)

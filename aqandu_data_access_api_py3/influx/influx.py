@@ -386,7 +386,7 @@ def getRawDataFrom():
             dataAirU = influxClientAirU.query(queryAirU, epoch=None)
             dataAirU = dataAirU.raw
 
-            LOGGER.info(dataAirU)
+            # LOGGER.info(dataAirU)
 
             # check if query gave data back
             if 'series' in dataAirU:
@@ -410,13 +410,18 @@ def getRawDataFrom():
                     tmpList = []
                     for dict1, dict2 in list(zip(dataSeries, newDataSeries)):
                         # print(elem1, elem2)
+                        LOGGER.info(dict1)
+                        LOGGER.info(dict2)
+
                         if dict1['time'].split('.')[0] == dict2['time'].split('.')[0]:
+                            LOGGER.info('equal')
                             # replace the time attribute with a new key so it does not copy over the dict1's time when being merged
                             dict2['time_' + aDB] = dict2.pop('time')
                             mergedObject = mergeTwoDicts(dict1, dict2)
 
                             tmpList.append(mergedObject)
 
+                    LOGGER.info(len(tmpList))
                     dataSeries = tmpList
 
                 # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]

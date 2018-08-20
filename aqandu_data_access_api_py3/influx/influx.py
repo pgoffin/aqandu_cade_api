@@ -407,6 +407,9 @@ def getRawDataFrom():
                     # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)
                     # dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
 
+                    LOGGER.info(len(dataSeries))
+                    LOGGER.info(len(newDataSeries))
+
                     tmpList = []
                     for dict1, dict2 in list(zip(dataSeries, newDataSeries)):
                         # print(elem1, elem2)

@@ -514,6 +514,9 @@ def getRawDataFrom():
 
     LOGGER.info('*********** Time to download: %s ***********', end - start)
 
+    LOGGER.info(newDataSeries["data"])
+    LOGGER.info(len(newDataSeries["data"]))
+
     resp = jsonify(newDataSeries)
     resp.status_code = 200
 

@@ -416,7 +416,7 @@ def getRawDataFrom():
                         LOGGER.info(dict1)
                         LOGGER.info(dict2)
 
-                        if dict1['time'].split('.')[0] == dict2['time'].split('.')[0]:
+                        if dict1['time'].split('.')[0][:-3] == dict2['time'].split('.')[0][:-3]:
                             LOGGER.info('equal')
                             # replace the time attribute with a new key so it does not copy over the dict1's time when being merged
                             dict2['time_' + aDB] = dict2.pop('time')

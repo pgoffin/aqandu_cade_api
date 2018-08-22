@@ -383,7 +383,7 @@ def getRawDataFrom():
 
             LOGGER.info(queryAirU)
 
-            dataAirU = influxClientAirU.query(queryAirU, epoch=None)
+            dataAirU = influxClientAirU.query(queryAirU, epoch=None, chunked=True)
             dataAirU = dataAirU.raw
 
             # LOGGER.info(dataAirU)

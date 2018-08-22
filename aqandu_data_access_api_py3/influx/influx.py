@@ -531,6 +531,226 @@ def getRawDataFrom():
     return resp
 
 
+@influx.route('/api/debug_rawData', methods=['GET'])
+def getDebugRawData():
+
+    airUdbs = ['altitude', 'humidity', 'latitude', 'longitude', 'pm1', 'pm25', 'pm10', 'posix', 'secActive', 'temperature', 'co', 'no']
+
+    LOGGER.info('*********** DEBUGGING rawDataFrom request started ***********')
+
+    queryParameters = request.args
+    LOGGER.info(queryParameters)
+
+    dataSeries = []
+    if queryParameters['sensorSource'] == 'airu':
+        LOGGER.info('airu')
+        LOGGER.info(queryParameters['sensorSource'])
+
+        start = time.time()
+
+        # create createSelection
+        whatToShow = queryParameters['show'].split(',')
+        LOGGER.info(whatToShow)
+
+        # http://0.0.0.0:5000/api/rawDataFrom?id=D0B5C2F31E1F&sensorSource=AirU&start=2017-12-02T22:17:00Z&end=2017-12-03T22:17:00Z&show=all
+
+        influxClientAirU = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                          port=current_app.config['INFLUX_PORT'],
+                                          username=current_app.config['INFLUX_USERNAME'],
+                                          password=current_app.config['INFLUX_PASSWORD'],
+                                          database=current_app.config['INFLUX_AIRU_DATABASE'],
+                                          ssl=current_app.config['SSL'],
+                                          verify_ssl=current_app.config['SSL'])
+
+        # getting the mac address from the customID send as a query parameter
+        customIDToMAC = getCustomSensorIDToMAC()
+
+        theID = queryParameters['id']
+        if theID in customIDToMAC:
+            theID = customIDToMAC[theID]
+        else:
+            LOGGER.info('this is an unknow ID, not in db')
+            message = {'status': 404,
+                       'message': 'unknown ID, so sensor with that ID'
+                       }
+            errorResp = jsonify(message)
+            errorResp.headers.add('Access-Control-Allow-Origin', '*')
+            errorResp.status_code = 404
+
+            return errorResp
+            # raise UnknownIDError("unknown ID")
+
+        # query each db
+        toShow = []
+        if 'all' in whatToShow:
+            toShow = airUdbs
+        else:
+            toShow = whatToShow
+
+        # loop over the measurements
+        for aDB in toShow:
+            LOGGER.info(aDB)
+
+            if aDB == 'pm25':
+                # normalizing to pm25
+                fieldString = lookupParameterToAirUInflux.get(aDB) + ' AS pm25'
+            else:
+                fieldString = lookupParameterToAirUInflux.get(aDB)
+
+            queryAirU = "SELECT " + fieldString + " FROM " + aDB + " " \
+                        "WHERE ID = '" + theID + "' " \
+                        "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
+
+            LOGGER.info(queryAirU)
+
+            dataAirU = influxClientAirU.query(queryAirU, epoch=None, chunked=True, chunk_size=10)
+            dataAirU = dataAirU.raw
+
+            LOGGER.info(dataAirU)
+
+            # check if query gave data back
+            if 'series' in dataAirU:
+                valuesAirU = dataAirU['series'][0]['values']
+                columnsAirU = dataAirU['series'][0]['columns']
+
+                # LOGGER.info(len(valuesAirU))
+                # LOGGER.info(len(columnsAirU))
+
+                if not dataSeries:
+                    dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                    # LOGGER.info(len(dataSeries))
+                else:
+                    newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                    # LOGGER.info(len(newDataSeries))
+
+                    # print(list(zip(dataSeries, newDataSeries)))
+                    # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)
+                    # dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
+
+                    # LOGGER.info(len(dataSeries))
+                    # LOGGER.info(len(newDataSeries))
+
+                    tmpList = []
+                    for dict1, dict2 in list(zip(dataSeries, newDataSeries)):
+                        # print(elem1, elem2)
+                        # LOGGER.info(dict1)
+                        # LOGGER.info(dict2)
+
+                        if dict1['time'].split('.')[0][:-3] == dict2['time'].split('.')[0][:-3]:
+                            LOGGER.info('equal')
+                            # replace the time attribute with a new key so it does not copy over the dict1's time when being merged
+                            dict2['time_' + aDB] = dict2.pop('time')
+                            mergedObject = mergeTwoDicts(dict1, dict2)
+
+                            tmpList.append(mergedObject)
+
+                    LOGGER.info(len(tmpList))
+                    dataSeries = tmpList
+
+                # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
+
+        queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get("pm25") + "), ID, \"Sensor Model\" FROM pm25 " \
+                       "WHERE ID = '" + theID + "' "
+        LOGGER.info(queryForTags)
+
+        dataTags = influxClientAirU.query(queryForTags, epoch=None)
+        dataTags = dataTags.raw
+        # LOGGER.info(dataTags)
+
+        dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+        dataSeries_Tags[0]['Sensor Source'] = 'airu'
+        # LOGGER.info(dataSeries_Tags)
+
+        newDataSeries = {}
+        newDataSeries["data"] = dataSeries
+        newDataSeries["tags"] = dataSeries_Tags
+
+        end = time.time()
+
+    else:
+
+        influxClientPolling = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                             port=current_app.config['INFLUX_PORT'],
+                                             username=current_app.config['INFLUX_USERNAME'],
+                                             password=current_app.config['INFLUX_PASSWORD'],
+                                             database=current_app.config['INFLUX_POLLING_DATABASE'],
+                                             ssl=current_app.config['SSL'],
+                                             verify_ssl=current_app.config['SSL'])
+
+        # TODO do some parameter checking
+        # TODO check if queryParameters exist if not write excpetion
+
+        selectString = createSelection('raw', queryParameters)
+        LOGGER.info(selectString)
+
+        query = "SELECT " + selectString + " FROM airQuality " \
+                "WHERE ID = '" + queryParameters['id'] + "' " \
+                "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
+        LOGGER.info(query)
+
+        start = time.time()
+
+        data = influxClientPolling.query(query, epoch=None)
+
+        # vies me an internal server error ---> maybe there is no data for this sensor at that time?? check!! if that is the case make it so the program does not crash --> output reasonable error message.
+        #
+        # https://air.eng.utah.edu/dbapi/api/rawDataFrom?id=6271&sensorSource=Purple%20Air&start=2018-07-24T07:00:00Z&end=2018-07-25T07:00:00Z&show=pm25
+        #
+        #
+        # There is no data for 6315 for this timeframe:
+        #  [getRawDataFrom:587]
+        #  Output reasonable error message if the query is empty, not braking everything.
+        #
+        #
+        # SELECT "pm2.5 (ug/m^3)" AS pm25 FROM airQuality WHERE ID = '6315' AND time >= '2018-07-24T07:00:00Z' AND time <= '2018-07-25T07:00:00Z'
+
+        if len(data) > 0:
+            # query gave back data
+            data = data.raw
+
+            LOGGER.info(data['series'][0]['values'][0])
+
+            theValues = data['series'][0]['values']
+            theColumns = data['series'][0]['columns']
+
+            # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
+            dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+
+            queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality " \
+                           "WHERE ID = '" + queryParameters['id'] + "' "
+            LOGGER.info(queryForTags)
+
+            dataTags = influxClientPolling.query(queryForTags, epoch=None)
+            dataTags = dataTags.raw
+            LOGGER.info(dataTags)
+
+            dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+            LOGGER.info(dataSeries_Tags)
+
+            newDataSeries = {}
+            newDataSeries["data"] = dataSeries
+            newDataSeries["tags"] = dataSeries_Tags
+
+        else:
+            # query gave back nothing, means there is no data for sensor with ID queryParameters['id'] for the time range = [queryParameters['start'], queryParameters['end']
+
+            newDataSeries = {}
+            newDataSeries["data"] = []
+            newDataSeries["tags"] = []
+
+        end = time.time()
+
+    LOGGER.info('*********** Time to download: %s ***********', end - start)
+
+    # LOGGER.info(newDataSeries["data"])
+    # LOGGER.info(len(newDataSeries["data"]))
+
+    resp = jsonify(newDataSeries)
+    resp.status_code = 200
+
+    return resp
+
+
 # http://0.0.0.0:5000/api/processedDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&function=mean&functionArg=pm25&timeInterval=30m
 @influx.route('/api/processedDataFrom', methods=['GET'])
 def getProcessedDataFrom():

@@ -393,28 +393,28 @@ def getRawDataFrom():
                 valuesAirU = dataAirU['series'][0]['values']
                 columnsAirU = dataAirU['series'][0]['columns']
 
-                LOGGER.info(len(valuesAirU))
-                LOGGER.info(len(columnsAirU))
+                # LOGGER.info(len(valuesAirU))
+                # LOGGER.info(len(columnsAirU))
 
                 if not dataSeries:
                     dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
-                    LOGGER.info(len(dataSeries))
+                    # LOGGER.info(len(dataSeries))
                 else:
                     newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
-                    LOGGER.info(len(newDataSeries))
+                    # LOGGER.info(len(newDataSeries))
 
                     # print(list(zip(dataSeries, newDataSeries)))
                     # as a security I add the timestamp from the merged db, the difference in timestamps are in the 0.1 milisecond (0.0001)
                     # dataSeries = list(map(lambda y: {**y[0], **y[1], 'time_' + aDB: y[1]['time']} if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0] else {0}, list(zip(dataSeries, newDataSeries))))
 
-                    LOGGER.info(len(dataSeries))
-                    LOGGER.info(len(newDataSeries))
+                    # LOGGER.info(len(dataSeries))
+                    # LOGGER.info(len(newDataSeries))
 
                     tmpList = []
                     for dict1, dict2 in list(zip(dataSeries, newDataSeries)):
                         # print(elem1, elem2)
-                        LOGGER.info(dict1)
-                        LOGGER.info(dict2)
+                        # LOGGER.info(dict1)
+                        # LOGGER.info(dict2)
 
                         if dict1['time'].split('.')[0][:-3] == dict2['time'].split('.')[0][:-3]:
                             LOGGER.info('equal')
@@ -435,11 +435,11 @@ def getRawDataFrom():
 
         dataTags = influxClientAirU.query(queryForTags, epoch=None)
         dataTags = dataTags.raw
-        LOGGER.info(dataTags)
+        # LOGGER.info(dataTags)
 
         dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
         dataSeries_Tags[0]['Sensor Source'] = 'airu'
-        LOGGER.info(dataSeries_Tags)
+        # LOGGER.info(dataSeries_Tags)
 
         newDataSeries = {}
         newDataSeries["data"] = dataSeries
@@ -522,8 +522,8 @@ def getRawDataFrom():
 
     LOGGER.info('*********** Time to download: %s ***********', end - start)
 
-    LOGGER.info(newDataSeries["data"])
-    LOGGER.info(len(newDataSeries["data"]))
+    # LOGGER.info(newDataSeries["data"])
+    # LOGGER.info(len(newDataSeries["data"]))
 
     resp = jsonify(newDataSeries)
     resp.status_code = 200

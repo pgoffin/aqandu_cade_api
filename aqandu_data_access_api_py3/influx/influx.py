@@ -390,17 +390,23 @@ def getRawDataFrom():
 
             # check if query gave data back
             if 'series' in dataAirU:
-                valuesAirU = dataAirU['series'][0]['values']
-                columnsAirU = dataAirU['series'][0]['columns']
 
-                # LOGGER.info(len(valuesAirU))
-                # LOGGER.info(len(columnsAirU))
+                concatenatedSeries = []
+                for aSerie in dataAirU['series']:
+
+                    valuesAirU = aSerie['values']
+                    columnsAirU = aSerie['columns']
+
+                    # LOGGER.info(len(valuesAirU))
+                    # LOGGER.info(len(columnsAirU))
+
+                    concatenatedSeries = concatenatedSeries + list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
 
                 if not dataSeries:
-                    dataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                    dataSeries = concatenatedSeries
                     # LOGGER.info(len(dataSeries))
                 else:
-                    newDataSeries = list(map(lambda x: dict(zip(columnsAirU, x)), valuesAirU))
+                    newDataSeries = concatenatedSeries
                     # LOGGER.info(len(newDataSeries))
 
                     # print(list(zip(dataSeries, newDataSeries)))

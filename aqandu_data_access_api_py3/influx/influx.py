@@ -1575,11 +1575,8 @@ def createSelection(typeOfQuery, querystring):
     LOGGER.info(querystring)
     if typeOfQuery == 'raw':
 
-        # db = querystring['sensorSource']
-
         show = querystring['show'].split(',')
 
-        # if db != 'AirU':
         # create the selection string
         if 'all' in show:
             selectString = "*"
@@ -1652,12 +1649,14 @@ def getMacToCustomSensorID():
     db = mongoClient.airudb
     macToCustomID = {}
 
-    # for aSensor in db.sensors.find():
+    # only use sensor that have been added to the macToCustomSensorID collection
     for aSensor in db.macToCustomSensorID.find():
+        LOGGER.debug(aSensor)
         theMAC = ''.join(aSensor['macAddress'].split(':'))
         macToCustomID[theMAC] = aSensor['customSensorID']
-        LOGGER.info(theMAC)
-        LOGGER.info(macToCustomID)
+        LOGGER.info('sensor ID: {} and MAC address {}'.format(aSensor['customSensorID'], theMAC))
+
+    LOGGER.info(macToCustomID)
 
     LOGGER.info('******** getMacToCustomSensorID done ********')
     return macToCustomID
@@ -1677,12 +1676,12 @@ def getCustomSensorIDToMAC():
     db = mongoClient.airudb
     customIDToMAC = {}
 
-    # for aSensor in db.sensors.find():
+    # only use sensor that have been added to the macToCustomSensorID collection
     for aSensor in db.macToCustomSensorID.find():
+        LOGGER.debug(aSensor)
         theMAC = ''.join(aSensor['macAddress'].split(':'))
         customIDToMAC[aSensor['customSensorID']] = theMAC
-        # LOGGER.info(theMAC)
-        # LOGGER.info(customIDToMAC)
+        LOGGER.info('sensor ID: {} and MAC address {}'.format(aSensor['customSensorID'], theMAC))
 
     LOGGER.info('******** getMacToCustomSensorIDToMac DONE ********')
     return customIDToMAC

@@ -1654,7 +1654,7 @@ def getMacToCustomSensorID():
         LOGGER.debug(aSensor)
         theMAC = ''.join(aSensor['macAddress'].split(':'))
         macToCustomID[theMAC] = aSensor['customSensorID']
-        LOGGER.info('sensor ID: {} and MAC address {}'.format(aSensor['customSensorID'], theMAC))
+        LOGGER.debug('sensor ID: {} and corresponding MAC address: {}'.format(aSensor['customSensorID'], theMAC))
 
     LOGGER.info(macToCustomID)
 
@@ -1681,7 +1681,7 @@ def getCustomSensorIDToMAC():
         LOGGER.debug(aSensor)
         theMAC = ''.join(aSensor['macAddress'].split(':'))
         customIDToMAC[aSensor['customSensorID']] = theMAC
-        LOGGER.info('sensor ID: {} and MAC address {}'.format(aSensor['customSensorID'], theMAC))
+        LOGGER.debug('sensor ID: {} and corresponding MAC address: {}'.format(aSensor['customSensorID'], theMAC))
 
     LOGGER.info('******** getMacToCustomSensorIDToMac DONE ********')
     return customIDToMAC
@@ -1757,75 +1757,82 @@ def getInfluxAirUSensors(minus5min):
     LOGGER.info(macToCustomID)
 
     for airU in liveAirUs:
-        LOGGER.info(airU)
+        LOGGER.debug(airU)
 
         macAddress = airU['macAddress']
-        LOGGER.info(macAddress)
+        LOGGER.debug(macAddress)
 
+        LOGGER.info('started get latitude')
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + " "\
                               "WHERE ID = '" + macAddress + "' and time >= '" + minus5min + "'"
 
-        LOGGER.info(queryInfluxAirU_lat)
+        LOGGER.debug(queryInfluxAirU_lat)
 
         dataAirU_lat = influxClientAirU.query(queryInfluxAirU_lat, epoch='ms')
         dataAirU_lat = dataAirU_lat.raw
-        LOGGER.info(dataAirU_lat)
+        LOGGER.debug(dataAirU_lat)
 
         if 'series' not in dataAirU_lat:
-            LOGGER.info('%s missing latitude', macAddress)
+            LOGGER.info('{} missing latitude'.format(macAddress))
             continue
 
         avgLat = dataAirU_lat['series'][0]['values'][0][1]
+        LOGGER.info('finished get latitude')
+
+        LOGGER.info('started get longitude')
 
         queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
                               "WHERE ID = '" + macAddress + "' and time >= '" + minus5min + "' "
 
-        LOGGER.info(queryInfluxAirU_lng)
+        LOGGER.debug(queryInfluxAirU_lng)
 
         dataAirU_lng = influxClientAirU.query(queryInfluxAirU_lng, epoch='ms')
         dataAirU_lng = dataAirU_lng.raw
-        LOGGER.info(dataAirU_lng)
+        LOGGER.debug(dataAirU_lng)
 
         if 'series' not in dataAirU_lng:
-            LOGGER.info('%s missing longitude', macAddress)
+            LOGGER.info('{} missing longitude'.format(macAddress))
             continue
 
         avgLng = dataAirU_lng['series'][0]['values'][0][1]
+        LOGGER.info('finished get longitude')
+
+        LOGGER.info('started get latest pm25 measurement')
 
         queryInfluxAirU_lastPM25 = "SELECT LAST(" + lookupParameterToAirUInflux.get('pm25') + ") AS pm25, ID " \
                                    "FROM " + current_app.config['INFLUX_AIRU_PM25_MEASUREMENT'] + " "\
                                    "WHERE ID = '" + macAddress + "' "
 
-        LOGGER.info(queryInfluxAirU_lastPM25)
+        LOGGER.debug(queryInfluxAirU_lastPM25)
 
         dataAirU_lastPM25 = influxClientAirU.query(queryInfluxAirU_lastPM25, epoch='ms')
         dataAirU_lastPM25 = dataAirU_lastPM25.raw
 
-        LOGGER.info(dataAirU_lastPM25)
+        LOGGER.debug(dataAirU_lastPM25)
 
         if 'series' not in dataAirU_lastPM25:
-            LOGGER.info('%s missing lastPM25', macAddress)
+            LOGGER.info('{} missing lastPM25'.format(macAddress))
             continue
 
         lastPM25 = dataAirU_lastPM25['series'][0]['values'][0][1]
         pm25time = dataAirU_lastPM25['series'][0]['values'][0][0]
 
-        # LOGGER.info(airU['macAddress'])
+        LOGGER.info('finished get latest pm25 measurement')
 
         newID = macAddress
         if macAddress in macToCustomID:
             newID = macToCustomID[macAddress]
 
-            LOGGER.info('newID is %s', newID)
+            LOGGER.debug('newID is {}'.format(newID))
 
             anAirU = {'ID': newID, 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
             # anAirU = {'ID': airU['macAddress'], 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
-            LOGGER.info(anAirU)
+            LOGGER.debug(anAirU)
 
             dataSeries.append(anAirU)
-            LOGGER.info('airU appended')
+            LOGGER.debug('airU appended')
 
     LOGGER.info(dataSeries)
     LOGGER.info('******** influx airU done ********')

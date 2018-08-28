@@ -1572,10 +1572,18 @@ def getEstimatesForLocation_debugging():
 
 def createSelection(typeOfQuery, querystring):
     """Creates the selection string for the SELECT statement."""
+
     LOGGER.info(querystring)
+
+    addTags = False
+    tagString = 'altitude, id, latitude, longitude, sensor_model, sensor_source, sensor_version, start'
+
     if typeOfQuery == 'raw':
 
         show = querystring['show'].split(',')
+
+        if 'meta' in show:
+            addTags = True
 
         # create the selection string
         if 'all' in show:
@@ -1592,6 +1600,11 @@ def createSelection(typeOfQuery, querystring):
 
                     # selectString = selectString + ", " + showExists + ", "
                     selectString = selectString + (', ' if selectString != '' else '') + showExists
+                # else:
+                    # TODO have an error message coming for this
+
+        if addTags:
+            selectString = selectString + ', ' + tagString
 
     elif typeOfQuery == 'processed':
         argument = querystring['functionArg']

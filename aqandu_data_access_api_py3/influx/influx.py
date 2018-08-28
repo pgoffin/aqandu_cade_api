@@ -1576,7 +1576,8 @@ def createSelection(typeOfQuery, querystring):
     LOGGER.info(querystring)
 
     addTags = False
-    tagString = 'altitude, id, latitude, longitude, sensor_model, sensor_source, sensor_version, start'
+    tags = ['altitude', 'id', 'latitude', 'longitude', 'sensor_model', 'sensor_source', 'sensor_version', 'start']
+    tagString = ','.join(list(map(lambda x: lookupQueryParameterToInflux.get(x), tags)))
 
     if typeOfQuery == 'raw':
 

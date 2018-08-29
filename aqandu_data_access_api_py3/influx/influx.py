@@ -231,6 +231,7 @@ def get_data():
 
         # hour Averaging
         if hourAvg:
+            dff = dff.replace(-1, np.nan)
             dff = dff.resample('H').mean()
             avg_str = '_HR-AVG'
         else:

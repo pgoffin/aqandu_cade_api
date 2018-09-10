@@ -1647,7 +1647,6 @@ def getGridEstimates():
     LOGGER.info('the lowEstimates')
     LOGGER.info(lowEstimates.count())
     for estimateSliceLow in lowEstimates:
-        # LOGGER.info(estimateSliceLow)
         estimationDateSliceDateLow = estimateSliceLow['estimationFor']
         LOGGER.info(estimationDateSliceDateLow)
 
@@ -1659,6 +1658,7 @@ def getGridEstimates():
             aVariability = estimateSliceLow['estimate'][aGridID]['variability']
 
             aGridElement = {'lat': aLat, 'lng': aLng, 'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
+            LOGGER.info(aGridElement)
             theGridValues.append(aGridElement)
 
         theGridValuesOverTime.append({estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'): theGridValues})

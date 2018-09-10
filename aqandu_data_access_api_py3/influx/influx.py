@@ -1651,7 +1651,10 @@ def getGridEstimates():
         LOGGER.info(estimationDateSliceDateLow)
 
         theGridValues = []
+        LOGGER.info(int(bottomLeftCornerIndex))
+        LOGGER.info(int(topRightCornerIndex) + 1)
         for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
+            LOGGER.info(aGridID)
             aLat = theGrid[aGridID]['lat'][0]
             LOGGER.info(aLat)
             aLng = theGrid[aGridID]['lngs'][0]

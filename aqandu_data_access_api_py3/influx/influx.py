@@ -1653,9 +1653,13 @@ def getGridEstimates():
         theGridValues = []
         for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
             aLat = theGrid[aGridID]['lat'][0]
+            LOGGER.info(aLat)
             aLng = theGrid[aGridID]['lngs'][0]
+            LOGGER.info(aLng)
             aPm25 = estimateSliceLow['estimate'][aGridID]['pm25']
+            LOGGER.info(aPm25)
             aVariability = estimateSliceLow['estimate'][aGridID]['variability']
+            LOGGER.info(aVariability)
 
             aGridElement = {'lat': aLat, 'lng': aLng, 'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
             LOGGER.info(aGridElement)

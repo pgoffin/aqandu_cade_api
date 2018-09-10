@@ -1634,10 +1634,11 @@ def getGridEstimates():
 
         theGridValues = []
         for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
-            aLat = theGrid[aGridID]['lat'][0]
-            aLng = theGrid[aGridID]['lngs'][0]
-            aPm25 = estimateSliceHigh['estimate'][aGridID]['pm25']
-            aVariability = estimateSliceHigh['estimate'][aGridID]['variability']
+            stringyfiedGridID = str(aGridID)
+            aLat = theGrid[stringyfiedGridID]['lat'][0]
+            aLng = theGrid[stringyfiedGridID]['lngs'][0]
+            aPm25 = estimateSliceHigh['estimate'][stringyfiedGridID]['pm25']
+            aVariability = estimateSliceHigh['estimate'][stringyfiedGridID]['variability']
 
             aGridElement = {'lat': aLat, 'lng': aLng, 'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
             theGridValues.append(aGridElement)
@@ -1654,14 +1655,15 @@ def getGridEstimates():
         LOGGER.info(int(bottomLeftCornerIndex))
         LOGGER.info(int(topRightCornerIndex) + 1)
         for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
+            stringyfiedGridID = str(aGridID)
             LOGGER.info(aGridID)
-            aLat = theGrid[aGridID]['lat'][0]
+            aLat = theGrid[stringyfiedGridID]['lat'][0]
             LOGGER.info(aLat)
-            aLng = theGrid[aGridID]['lngs'][0]
+            aLng = theGrid[stringyfiedGridID]['lngs'][0]
             LOGGER.info(aLng)
-            aPm25 = estimateSliceLow['estimate'][aGridID]['pm25']
+            aPm25 = estimateSliceLow['estimate'][stringyfiedGridID]['pm25']
             LOGGER.info(aPm25)
-            aVariability = estimateSliceLow['estimate'][aGridID]['variability']
+            aVariability = estimateSliceLow['estimate'][stringyfiedGridID]['variability']
             LOGGER.info(aVariability)
 
             aGridElement = {'lat': aLat, 'lng': aLng, 'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}

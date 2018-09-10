@@ -1652,22 +1652,22 @@ def getGridEstimates():
         LOGGER.info(estimationDateSliceDateLow)
 
         theGridValues = []
-        LOGGER.info(int(bottomLeftCornerIndex))
-        LOGGER.info(int(topRightCornerIndex) + 1)
+        LOGGER.debug(int(bottomLeftCornerIndex))
+        LOGGER.debug(int(topRightCornerIndex) + 1)
         for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
             stringyfiedGridID = str(aGridID)
-            LOGGER.info(aGridID)
+            LOGGER.debug(aGridID)
             aLat = theGrid[stringyfiedGridID]['lat'][0]
-            LOGGER.info(aLat)
+            LOGGER.debug(aLat)
             aLng = theGrid[stringyfiedGridID]['lngs'][0]
-            LOGGER.info(aLng)
+            LOGGER.debug(aLng)
             aPm25 = estimateSliceLow['estimate'][stringyfiedGridID]['pm25']
-            LOGGER.info(aPm25)
+            LOGGER.debug(aPm25)
             aVariability = estimateSliceLow['estimate'][stringyfiedGridID]['variability']
-            LOGGER.info(aVariability)
+            LOGGER.debug(aVariability)
 
             aGridElement = {'lat': aLat, 'lng': aLng, 'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
-            LOGGER.info(aGridElement)
+            LOGGER.debug(aGridElement)
             theGridValues.append(aGridElement)
 
         theGridValuesOverTime.append({estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'): theGridValues})

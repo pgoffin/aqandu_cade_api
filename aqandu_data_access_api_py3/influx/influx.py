@@ -11,6 +11,7 @@ from influxdb import InfluxDBClient, DataFrameClient
 from pymongo import MongoClient
 from werkzeug.local import LocalProxy
 import pandas as pd
+import numpy as np
 
 # from .. import app
 from flask import current_app
@@ -1565,6 +1566,109 @@ def getEstimatesForLocation_debugging():
     resp.status_code = 200
 
     LOGGER.info('*********** getting getEstimatesForLocation request done ***********')
+
+    return resp
+
+
+@influx.route('/api/getGridEstimates', methods=['GET'])
+def getGridEstimates():
+    # need the timespan
+
+    LOGGER.info('*********** getGridEstimates started ***********')
+
+    queryParameters = request.args
+    LOGGER.info(queryParameters)
+
+    startDate = queryParameters['start']
+    startDate = datetime.strptime(startDate, '%Y-%m-%dT%H:%M:%SZ')
+    endDate = queryParameters['end']
+    endDate = datetime.strptime(endDate, '%Y-%m-%dT%H:%M:%SZ')
+
+    LOGGER.info('the start date')
+    LOGGER.info(startDate)
+    LOGGER.info('the end date')
+    LOGGER.info(endDate)
+
+    # use location to get the 4 estimation data corners
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+
+    gridInfo = db.estimationMetadata.find_one({"metadataType": current_app.config['METADATA_TYPE_HIGH_UNCERTAINTY'], "gridID": current_app.config['CURRENT_GRID_VERSION']})
+
+    LOGGER.info(gridInfo)
+
+    if gridInfo is not None:
+        theGrid = gridInfo['transformedGrid']
+
+        numberGridCells_LAT = gridInfo['numberOfGridCells']['lat']
+        numberGridCells_LONG = gridInfo['numberOfGridCells']['long']
+
+        LOGGER.info(theGrid)
+        LOGGER.info(numberGridCells_LAT)
+        LOGGER.info(numberGridCells_LONG)
+
+        topRightCornerIndex = str((int(numberGridCells_LAT + 1) * int(numberGridCells_LONG + 1)) - 1)
+        bottomLeftCornerIndex = str(0)
+    else:
+        LOGGER.info('grid info is none!')
+
+    # get the 4 corners for each timestamp between the timespan
+    # take all estimates in timeSpan
+
+    # first take estimates from high collection
+    # then estimates from low collection
+    allHighEstimates = db.timeSlicedEstimates_high.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+
+    theGridValuesOverTime = []  # [{timestamp:{}}]
+    LOGGER.info('the allHighEstimates')
+    for estimateSliceHigh in allHighEstimates:
+        estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
+
+        theGridValues = []
+        for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
+            aLat = theGrid[aGridID]['lat'][0]
+            aLng = theGrid[aGridID]['lngs'][0]
+            aPm25 = estimateSliceHigh['estimate'][aGridID]['pm25']
+            aVariability = estimateSliceHigh['estimate'][aGridID]['variability']
+
+            aGridElement = {'lat': aLat, 'lng': aLng, 'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
+            theGridValues.append(aGridElement)
+
+        theGridValuesOverTime.append({estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'): theGridValues})
+
+    LOGGER.info('the lowEstimates')
+    LOGGER.info(lowEstimates.count())
+    for estimateSliceLow in lowEstimates:
+        # LOGGER.info(estimateSliceLow)
+        estimationDateSliceDateLow = estimateSliceLow['estimationFor']
+        LOGGER.info(estimationDateSliceDateLow)
+
+        theGridValues = []
+        for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
+            aLat = theGrid[aGridID]['lat'][0]
+            aLng = theGrid[aGridID]['lngs'][0]
+            aPm25 = estimateSliceLow['estimate'][aGridID]['pm25']
+            aVariability = estimateSliceLow['estimate'][aGridID]['variability']
+
+            aGridElement = {'lat': aLat, 'lng': aLng, 'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
+            theGridValues.append(aGridElement)
+
+        theGridValuesOverTime.append({estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'): theGridValues})
+
+        LOGGER.info('done with lowEstimates')
+
+    resp = jsonify(theGridValuesOverTime)
+    resp.status_code = 200
+
+    LOGGER.info('*********** getting getGridEstimates request done ***********')
 
     return resp
 

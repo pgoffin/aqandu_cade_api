@@ -1570,9 +1570,10 @@ def getEstimatesForLocation_debugging():
     return resp
 
 
+# too much data
 @influx.route('/api/getGridEstimates', methods=['GET'])
 def getGridEstimates():
-    # need the timespan
+    # needs only the timespan
 
     LOGGER.info('*********** getGridEstimates started ***********')
 
@@ -1627,7 +1628,18 @@ def getGridEstimates():
     allHighEstimates = db.timeSlicedEstimates_high.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
     lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
 
-    theGridValuesOverTime = []  # [{timestamp:{}}]
+    theGridValuesOverTime = []  # [{theGrid},{timestamp:{}}, ...]
+
+    # append the grid info, each lat long crresponds to a gridID
+    theGridInfo = {}
+    for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
+        stringyfiedGridID = str(aGridID)
+        aLat = theGrid[stringyfiedGridID]['lat'][0]
+        aLng = theGrid[stringyfiedGridID]['lngs'][0]
+        theGridInfo[aGridID] = {'lat': aLat, 'lng': aLng}
+
+    theGridValuesOverTime.append(theGridInfo)
+
     LOGGER.info('the allHighEstimates')
     for estimateSliceHigh in allHighEstimates:
         estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
@@ -1635,12 +1647,10 @@ def getGridEstimates():
         theGridValues = []
         for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
             stringyfiedGridID = str(aGridID)
-            aLat = theGrid[stringyfiedGridID]['lat'][0]
-            aLng = theGrid[stringyfiedGridID]['lngs'][0]
             aPm25 = estimateSliceHigh['estimate'][stringyfiedGridID]['pm25']
             aVariability = estimateSliceHigh['estimate'][stringyfiedGridID]['variability']
 
-            aGridElement = {'lat': aLat, 'lng': aLng, 'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
+            aGridElement = {'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
             theGridValues.append(aGridElement)
 
         theGridValuesOverTime.append({estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'): theGridValues})
@@ -1657,16 +1667,12 @@ def getGridEstimates():
         for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
             stringyfiedGridID = str(aGridID)
             LOGGER.debug(aGridID)
-            aLat = theGrid[stringyfiedGridID]['lat'][0]
-            LOGGER.debug(aLat)
-            aLng = theGrid[stringyfiedGridID]['lngs'][0]
-            LOGGER.debug(aLng)
             aPm25 = estimateSliceLow['estimate'][stringyfiedGridID]['pm25']
             LOGGER.debug(aPm25)
             aVariability = estimateSliceLow['estimate'][stringyfiedGridID]['variability']
             LOGGER.debug(aVariability)
 
-            aGridElement = {'lat': aLat, 'lng': aLng, 'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
+            aGridElement = {'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
             LOGGER.debug(aGridElement)
             theGridValues.append(aGridElement)
 

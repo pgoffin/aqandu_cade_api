@@ -1625,12 +1625,12 @@ def getGridEstimates():
 
     # first take estimates from high collection
     # then estimates from low collection
-    allHighEstimates = db.timeSlicedEstimates_high.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
-    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', -1)
+    allHighEstimates = db.timeSlicedEstimates_high.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', 1)
+    lowEstimates = db.timeSlicedEstimates_low.find({"estimationFor": {"$gte": startDate, "$lt": endDate}}).sort('estimationFor', 1)
 
     theGridValuesOverTime = []  # [{theGrid},{timestamp:{}}, ...]
 
-    # append the grid info, each lat long crresponds to a gridID
+    # append the grid info, each lat long corresponds to a gridID
     theGridInfo = {}
     for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
         stringyfiedGridID = str(aGridID)
@@ -1640,28 +1640,14 @@ def getGridEstimates():
 
     theGridValuesOverTime.append(theGridInfo)
 
-    LOGGER.info('the allHighEstimates')
-    for estimateSliceHigh in allHighEstimates:
-        estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
-
-        theGridValues = []
-        for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
-            stringyfiedGridID = str(aGridID)
-            aPm25 = estimateSliceHigh['estimate'][stringyfiedGridID]['pm25']
-            aVariability = estimateSliceHigh['estimate'][stringyfiedGridID]['variability']
-
-            aGridElement = {'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
-            theGridValues.append(aGridElement)
-
-        theGridValuesOverTime.append({estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'): theGridValues})
-
     LOGGER.info('the lowEstimates')
     LOGGER.info(lowEstimates.count())
     for estimateSliceLow in lowEstimates:
         estimationDateSliceDateLow = estimateSliceLow['estimationFor']
         LOGGER.info(estimationDateSliceDateLow)
 
-        theGridValues = []
+        pm25s = []
+        variability = []
         LOGGER.debug(int(bottomLeftCornerIndex))
         LOGGER.debug(int(topRightCornerIndex) + 1)
         for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
@@ -1669,16 +1655,38 @@ def getGridEstimates():
             LOGGER.debug(aGridID)
             aPm25 = estimateSliceLow['estimate'][stringyfiedGridID]['pm25']
             LOGGER.debug(aPm25)
+            pm25s.append(aPm25)
             aVariability = estimateSliceLow['estimate'][stringyfiedGridID]['variability']
             LOGGER.debug(aVariability)
+            variability.append(aVariability)
 
-            aGridElement = {'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
-            LOGGER.debug(aGridElement)
-            theGridValues.append(aGridElement)
+            # aGridElement = {'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
+            # LOGGER.debug(aGridElement)
+            # theGridValues.append(aGridElement)
 
-        theGridValuesOverTime.append({estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'): theGridValues})
+        gridDataForTimestamp_low = {'pm25': pm25s, 'variability': variability}
+        theGridValuesOverTime.append({estimationDateSliceDateLow.strftime('%Y-%m-%dT%H:%M:%SZ'): gridDataForTimestamp_low})
 
         LOGGER.info('done with lowEstimates')
+
+    LOGGER.info('the allHighEstimates')
+    for estimateSliceHigh in allHighEstimates:
+        estimationDateSliceDateHigh = estimateSliceHigh['estimationFor']
+
+        # theGridValues = []
+        pm25s = []
+        variability = []
+        for aGridID in range(int(bottomLeftCornerIndex), int(topRightCornerIndex) + 1):
+            stringyfiedGridID = str(aGridID)
+            aPm25 = estimateSliceHigh['estimate'][stringyfiedGridID]['pm25']
+            pm25s.append(aPm25)
+            aVariability = estimateSliceHigh['estimate'][stringyfiedGridID]['variability']
+            variability.append(aVariability)
+
+            # aGridElement = {'pm25': aPm25, 'variability': aVariability, 'gridID': aGridID}
+            # theGridValues.append(aGridElement)
+        gridDataForTimestamp_high = {'pm25': pm25s, 'variability': variability}
+        theGridValuesOverTime.append({estimationDateSliceDateHigh.strftime('%Y-%m-%dT%H:%M:%SZ'): gridDataForTimestamp_high})
 
     resp = jsonify(theGridValuesOverTime)
     resp.status_code = 200

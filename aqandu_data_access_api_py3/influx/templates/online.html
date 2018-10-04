@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>AirU Responses (airu/offline)</title>
+</head>
+
+<body>
+
+Search By MAC:<br> <input type="text" id="search_form_input">
+
+<div id="dbtable"></div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+<script>
+$("#search_form_input").keyup(function(){
+    var text = $(this).val();
+
+    $.ajax({
+      url: "/dbquery",
+      type: "get",
+      data: {jsdata: text},
+      success: function(response) {
+        $("#dbtable").html(response);
+      },
+      error: function(xhr) {
+        //Do Something to handle error
+      }
+    });
+});
+</script>
+
+<script type="text/javascript">
+    window.onload = setupRefresh;
+    function setupRefresh()
+    {
+        setInterval("refreshBlock();",3000);
+    }
+
+    function refreshBlock()
+    {
+        var inbox = document.getElementById("search_form_input");
+        var text = inbox.value;
+        if (text.length === 0){
+            $.ajax({
+                url: "/dbquery",
+                type: "get",
+                data: {jsdata: text},
+                success: function(response) {
+                $("#dbtable").html(response);
+                },
+                error: function(xhr) {
+                }
+            });
+        }
+    }
+  </script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function()
+    {
+        var inbox = document.getElementById("search_form_input");
+        var text = inbox.value;
+        if (text.length === 0){
+            $.ajax({
+                url: "/dbquery",
+                type: "get",
+                data: {jsdata: text},
+                success: function(response) {
+                $("#dbtable").html(response);
+                },
+                error: function(xhr) {
+                }
+            });
+        }
+    });
+  </script>
+
+</body>
+
+</html>

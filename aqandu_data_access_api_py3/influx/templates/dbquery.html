@@ -1,0 +1,22 @@
+<table border=1 frame=void cellpadding="10">
+    <tr>
+        <th>MAC</th>
+        <th>PM2.5</th>
+        <th>Temperature</th>
+        <th>Humidity</th>
+        <th>CO</th>
+        <th>NO</th>
+        <th>Uptime</th>
+    </tr>
+    {% for entry in table %}
+        {% if entry[-1] == 0 %}
+            <tr style="background-color: rgba(255,0,0,0.24)">
+        {% else %}
+            <tr>
+        {% endif %}
+        {% for element in entry[:-1] %}
+                <td>{{ element }}</td>
+        {% endfor %}
+        </tr>
+    {% endfor %}
+</table>

@@ -77,6 +77,61 @@ lookupParameterToAirUInflux = {
 }
 
 
+@app.route('/test/online')
+def online():
+        logger.info('********** Test/Online **********')
+
+        # Server won't break if there's a render issue
+        try:
+            return render_template('online.html')
+        except Exception as e:
+            logger.info('dashboard.html could not be rendered')
+            return str(e)
+
+
+@app.route('/dbquery')
+def dbquery():
+    text = request.args.get('jsdata')
+
+    try:
+        dfclient = DataFrameClient(host=current_app.config['INFLUX_HOST'],
+                           port=current_app.config['INFLUX_PORT'],
+                           username=current_app.config['INFLUX_USERNAME'],
+                           password=current_app.config['INFLUX_PASSWORD'],
+                           database='airu_offline',
+                           ssl=current_app.config['SSL'],
+                           verify_ssl=current_app.config['SSL'])
+
+        query = 'SELECT * FROM airQuality WHERE time >= now() - 2m'
+        df = dfclient.query(query, chunked=True)['airQuality'].drop_duplicates(subset='ID', keep='last')
+
+        df = df[['ID', 'PM2.5', 'Temperature', 'Humidity', 'CO', 'NO', 'SecActive']]
+        df = df.sort_values(by=['ID'])
+
+        if text:
+            text = text.replace(':', '').upper()
+            df = df[df['ID'].str.contains(text)]
+
+        df['good'] = (df['PM2.5'] < 10) & \
+                     (df['Temperature'] > 20) & \
+                     (df['Humidity'] >= 0) & \
+                     (df['CO'] > 0) & \
+                     (df['NO'] > 0) & \
+                     (df['SecActive'] < 3600)
+
+        df['ID'] = [''.join(list(''.join(l+':'*(n % 2 == 1))
+                                 for n,l in enumerate(list(ID))))[:-1]
+                    for ID in df['ID']]
+
+        df_list = df.values.tolist()
+
+    except:
+        df_list = []
+
+    return render_template('dbquery.html', table=df_list)
+
+
+
 @influx.route("/api/dashboard")
 def dashboard():
 

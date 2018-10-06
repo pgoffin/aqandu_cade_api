@@ -84,11 +84,11 @@ def online():
         try:
             return render_template('online.html')
         except Exception as e:
-            logger.info('dashboard.html could not be rendered')
+            logger.info('online.html could not be rendered')
             return str(e)
 
 
-@app.route('/dbquery')
+@app.route('/test/dbquery')
 def dbquery():
     text = request.args.get('jsdata')
 

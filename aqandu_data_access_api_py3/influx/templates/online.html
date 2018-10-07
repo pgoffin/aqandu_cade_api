@@ -19,24 +19,23 @@ Search By MAC:<br> <input type="text" id="search_form_input">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
 <script>
-$("#search_form_input").keyup(function(){
-    var text = $(this).val();
+    $("#search_form_input").keyup(function(){
+        var text = $(this).val();
 
-    $.ajax({
-      url: "/dbapi/dbquery",
-      type: "get",
-      data: {jsdata: text},
-      success: function(response) {
-        $("#dbtable").html(response);
-      },
-      error: function(xhr) {
-        //Do Something to handle error
-      }
+        $.ajax({
+          url: "/dbapi/dbquery",
+          type: "get",
+          data: {jsdata: text},
+          success: function(response) {
+            $("#dbtable").html(response);
+          },
+          error: function(xhr) {
+            //Do Something to handle error
+          }
+        });
     });
-});
-</script>
 
-<script type="text/javascript">
+
     window.onload = setupRefresh;
     function setupRefresh()
     {
@@ -60,10 +59,7 @@ $("#search_form_input").keyup(function(){
             });
         }
     }
-  </script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script>
     $(document).ready(function()
     {
         var inbox = document.getElementById("search_form_input");
@@ -81,7 +77,8 @@ $("#search_form_input").keyup(function(){
             });
         }
     });
-  </script>
+    
+</script>
 
 </body>
 

@@ -23,7 +23,7 @@ $("#search_form_input").keyup(function(){
     var text = $(this).val();
 
     $.ajax({
-      url: "/dbquery",
+      url: "/dbapi/dbquery",
       type: "get",
       data: {jsdata: text},
       success: function(response) {

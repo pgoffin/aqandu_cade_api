@@ -866,7 +866,7 @@ def getProcessedDataFrom():
         selectString = createSelection('processed', queryParameters)
         LOGGER.info(selectString)
 
-        query = "SELECT " + selectString + " FROM pm25 " \
+        query = "SELECT " + selectString + " " \
                 "WHERE ID = '" + theID + "' " \
                 "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ", " + minutesOffset + ")"
         LOGGER.info(query)
@@ -1801,11 +1801,11 @@ def createSelection(typeOfQuery, querystring):
         LOGGER.info(argumentExists)
 
         if argumentExists is not None:
-            alias = ''
+            alias = ' '
             if argument == 'pm25':
-                alias = alias + ' AS pm25 '
+                alias = alias + 'AS pm25 '
 
-            selectString = querystring['function'] + "(" + argumentExists + ")" + alias
+            selectString = querystring['function'] + "(" + argumentExists + ")" + alias + 'FROM ' + argument
 
     return selectString
 

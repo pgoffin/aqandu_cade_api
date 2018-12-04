@@ -41,7 +41,7 @@ lookupQueryParameterToInflux = {
     'longitude': 'Longitude',
     'ozon': '\"Ozon concentration (ppb)\"',
     'pressure': '\"Pressure (Pa)\"',
-    'sensor_model': '\"SensorModel\"',
+    'sensor_model': '\"Sensor Model\"',
     'sensor_source': '\"Sensor Source\"',
     'sensor_version': '\"Sensor Version\"',
     'sensor_error': '\"Sensor error code\"',
@@ -559,7 +559,7 @@ def getRawDataFrom():
             # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
             dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
 
-            queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"SensorModel\", \"Sensor Source\" FROM airQuality " \
+            queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality " \
                            "WHERE ID = '" + queryParameters['id'] + "' "
             LOGGER.info(queryForTags)
 
@@ -786,7 +786,7 @@ def getDebugRawData():
             # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
             dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
 
-            queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"SensorModel\", \"Sensor Source\" FROM airQuality " \
+            queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality " \
                            "WHERE ID = '" + queryParameters['id'] + "' "
             LOGGER.info(queryForTags)
 
@@ -942,7 +942,7 @@ def getProcessedDataFrom():
 
         # print(pmTimeSeries)
 
-        queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"SensorModel\", \"Sensor Source\" FROM airQuality WHERE ID = '" + queryParameters['id'] + "' "
+        queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality WHERE ID = '" + queryParameters['id'] + "' "
 
         dataTags = influxClientPolling.query(queryForTags, epoch=None)
         dataTags = dataTags.raw
@@ -982,7 +982,7 @@ def getLastValuesForLiveSensor():
     queryParameters = request.args
     LOGGER.info(queryParameters['fieldKey'])
 
-    queryPolling = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['fieldKey']) + "), ID, \"SensorModel\", \"Sensor Source\" FROM airQuality GROUP BY ID"
+    queryPolling = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['fieldKey']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality GROUP BY ID"
 
     data = influxClientPolling.query(queryPolling, epoch=None)
     data = data.raw
@@ -1905,7 +1905,7 @@ def getInfluxPollingSensors(aDateStr):
                                          ssl=current_app.config['SSL'],
                                          verify_ssl=current_app.config['SSL'])
 
-    queryInflux = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"SensorModel\" " \
+    queryInflux = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
                   "FROM airQuality WHERE time >= '" + aDateStr + "' " \
                   "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
                   "LIMIT 400"

@@ -886,8 +886,9 @@ def getProcessedDataFrom():
 
         # print(pmTimeSeries)
 
-        queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['functionArg']) + "), ID, \"SensorModel\" FROM pm25 " \
-                       " WHERE ID = '" + theID + "' "
+        queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['functionArg']) + "), ID, \"SensorModel\" " \
+                       "FROM " + queryParameters['functionArg'] + " " \
+                       "WHERE ID = '" + theID + "' "
         LOGGER.info(queryForTags)
 
         dataTags = influxClientAirU.query(queryForTags, epoch=None)

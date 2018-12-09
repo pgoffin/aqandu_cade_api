@@ -357,7 +357,7 @@ def getLiveSensors(sensorSource):
 
         LOGGER.info('get all dataSeries done')
     else:
-        abort(404)
+        abort(400)
 
     end = time.time()
 

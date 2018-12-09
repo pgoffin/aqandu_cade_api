@@ -983,9 +983,11 @@ def getLastValuesForLiveSensor():
     LOGGER.info(queryParameters['fieldKey'])
 
     queryPolling = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['fieldKey']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality GROUP BY ID"
+    LOGGER.info(queryPolling)
 
     data = influxClientPolling.query(queryPolling, epoch=None)
     data = data.raw
+    LOGGER.info(data)
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
 
@@ -1001,9 +1003,11 @@ def getLastValuesForLiveSensor():
                                       verify_ssl=current_app.config['SSL'])
 
     queryAirU = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['fieldKey']) + "), ID, \"SensorModel\" FROM " + queryParameters['fieldKey'] + " GROUP BY ID"
+    LOGGER.info(queryAirU)
 
     dataAirU = influxClientAirU.query(queryAirU, epoch=None)
     dataAirU = dataAirU.raw
+    LOGGER.info(dataAirU)
 
     dataSeriesAirU = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataAirU['series']))
 

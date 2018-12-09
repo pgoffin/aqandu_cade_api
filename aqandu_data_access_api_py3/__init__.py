@@ -38,6 +38,7 @@ Compress(app)
 # CORS(app)
 # sentry = Sentry(app, dsn=app.config['SENTRY'])
 
+
 # getting to this page with url: http://air.eng.utah.edu/dbapi/
 @app.route("/")
 def hello():

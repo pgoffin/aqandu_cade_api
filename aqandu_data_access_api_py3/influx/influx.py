@@ -6,7 +6,7 @@ import math
 import time
 
 from datetime import datetime, timedelta
-from flask import jsonify, request, Blueprint, redirect, render_template, url_for, make_response
+from flask import abort, jsonify, request, Blueprint, redirect, render_template, url_for, make_response
 from influxdb import InfluxDBClient, DataFrameClient
 from pymongo import MongoClient
 from werkzeug.local import LocalProxy
@@ -289,9 +289,9 @@ def get_data():
         if hourAvg:
             dff = dff.replace(-1, np.nan)
             dff = dff.resample('H').mean()
-            avg_str = '_HR-AVG'
-        else:
-            avg_str = ''
+            # avg_str = '_HR-AVG'
+        # else:
+            # avg_str = ''
 
         name_or_multiple = '_' + sensorList[0] if len(sensorList) == 1 else '_multiple'
         filename = 'AirU{}_{}_{}_{}.csv'.format(name_or_multiple, dataframe_key, startDate, endDate)
@@ -308,8 +308,8 @@ def get_data():
         return redirect(url_for("influx.dashboard"))
 
 
-@influx.route('/api/liveSensors/<type>', methods=['GET'])
-def getLiveSensors(type):
+@influx.route('/api/liveSensors/<sensorSource>', methods=['GET'])
+def getLiveSensors(sensorSource):
     """Get sensors that are active (pushed data) since yesterday (beginning of day)"""
 
     LOGGER.info('*********** liveSensors request started ***********')
@@ -334,23 +334,21 @@ def getLiveSensors(type):
     dataSeries = []
     start = time.time()
 
-    if type == 'purpleAir':
+    if sensorSource == 'purpleAir':
 
         dataSeries = getInfluxPollingSensors(yesterdayStr)
 
-    elif type == 'airU':
+    elif sensorSource == 'airU':
 
-        # dataSeries = getInfluxAirUSensors(yesterdayStr, nowMinus5Str)
         dataSeries = getInfluxAirUSensors(nowMinus5Str)
 
-    elif type == 'all':
+    elif sensorSource == 'all':
 
         LOGGER.info('get all dataSeries started')
 
         pollingDataSeries = getInfluxPollingSensors(yesterdayStr)
         LOGGER.info(pollingDataSeries)
 
-        # airUDataSeries = getInfluxAirUSensors(yesterdayStr, nowMinus5Str)
         airUDataSeries = getInfluxAirUSensors(nowMinus5Str)
         LOGGER.info(airUDataSeries)
 
@@ -358,6 +356,8 @@ def getLiveSensors(type):
         LOGGER.info(dataSeries)
 
         LOGGER.info('get all dataSeries done')
+    else:
+        abort(404)
 
     end = time.time()
 

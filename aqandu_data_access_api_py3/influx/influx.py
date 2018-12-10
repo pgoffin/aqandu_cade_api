@@ -922,7 +922,7 @@ def getProcessedDataFrom():
         selectString = createSelection('processed', queryParameters)
         LOGGER.info(selectString)
 
-        query = "SELECT " + selectString + " FROM airQuality " \
+        query = "SELECT " + selectString + " " \
                 "WHERE ID = '" + queryParameters['id'] + "' " \
                 "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ", " + minutesOffset + ")"
         LOGGER.info(query)
@@ -1798,12 +1798,15 @@ def createSelection(typeOfQuery, querystring):
 
     elif typeOfQuery == 'processed':
         argument = querystring['functionArg']
+        theDB = argument
 
         if querystring['sensorSource'] != 'airu':
             argumentExists = lookupQueryParameterToInflux.get(argument)
+            theDB = 'airQuality'
         else:
             argumentExists = lookupParameterToAirUInflux.get(argument)
 
+        LOGGER.info(theDB)
         LOGGER.info(argumentExists)
 
         if argumentExists is not None:
@@ -1811,7 +1814,7 @@ def createSelection(typeOfQuery, querystring):
             if argument == 'pm25':
                 alias = alias + 'AS pm25 '
 
-            selectString = querystring['function'] + "(" + argumentExists + ")" + alias + 'FROM ' + argument
+            selectString = querystring['function'] + "(" + argumentExists + ")" + alias + 'FROM ' + theDB
 
     return selectString
 

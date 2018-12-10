@@ -875,7 +875,7 @@ def getProcessedDataFrom():
 
         data = influxClientAirU.query(query, epoch=None)
         data = data.raw
-        LOGGER.info(data)
+        # LOGGER.info(data)
 
         # parse the data
         theValues = data['series'][0]['values']
@@ -893,11 +893,11 @@ def getProcessedDataFrom():
 
         dataTags = influxClientAirU.query(queryForTags, epoch=None)
         dataTags = dataTags.raw
-        LOGGER.info(dataTags)
+        # LOGGER.info(dataTags)
 
         dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
         dataSeries_Tags[0]['Sensor Source'] = 'airu'
-        LOGGER.info(dataSeries_Tags)
+        # LOGGER.info(dataSeries_Tags)
 
         newDataSeries = {}
         newDataSeries["data"] = dataSeries
@@ -931,7 +931,7 @@ def getProcessedDataFrom():
 
         data = influxClientPolling.query(query, epoch=None)
         data = data.raw
-        LOGGER.info(data)
+        # LOGGER.info(data)
 
         # parse the data
         theValues = data['series'][0]['values']
@@ -946,10 +946,10 @@ def getProcessedDataFrom():
 
         dataTags = influxClientPolling.query(queryForTags, epoch=None)
         dataTags = dataTags.raw
-        LOGGER.info(dataTags)
+        # LOGGER.info(dataTags)
 
         dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
-        LOGGER.info(dataSeries_Tags)
+        # LOGGER.info(dataSeries_Tags)
 
         newDataSeries = {}
         newDataSeries["data"] = dataSeries

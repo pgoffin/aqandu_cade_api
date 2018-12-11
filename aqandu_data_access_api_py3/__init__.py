@@ -28,7 +28,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d
 # theFile.setLevel(logging.INFO)
 # logger.addHandler(theFile)
 
-logHandler = handlers.TimedRotatingFileHandler('aqanduAPI.log', when='D', interval=1, backupCount=3)
+logHandler = handlers.TimedRotatingFileHandler('aqanduAPI.log', when='h', interval=6, backupCount=5)
 logHandler.setLevel(logging.INFO)
 logHandler.setFormatter(formatter)
 app.logger.addHandler(logHandler)

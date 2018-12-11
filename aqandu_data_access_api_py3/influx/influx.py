@@ -313,6 +313,11 @@ def getLiveSensors(sensorSource):
     """Get sensors that are active (pushed data) since yesterday (beginning of day)"""
 
     LOGGER.info('*********** liveSensors request started ***********')
+    LOGGER.info(sensorSource)
+
+    if sensorSource not in ['purpleAir', 'airU', 'all']:
+        LOGGER.info('sensorSource parameter is wrong')
+        abort(404)
 
     # now = datetime.now()
     #
@@ -328,6 +333,7 @@ def getLiveSensors(sensorSource):
     # yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
     yesterdayStr = yesterday.strftime('%Y-%m-%dT%H:%M:%SZ')
     LOGGER.info(yesterdayStr)
+
     nowMinus5Str = nowMinus5.strftime('%Y-%m-%dT%H:%M:%SZ')
     LOGGER.info(nowMinus5Str)
 
@@ -347,17 +353,21 @@ def getLiveSensors(sensorSource):
         LOGGER.info('get all dataSeries started')
 
         pollingDataSeries = getInfluxPollingSensors(yesterdayStr)
-        LOGGER.info(pollingDataSeries)
+        LOGGER.info(len(pollingDataSeries))
+        LOGGER.debug(pollingDataSeries)
 
         airUDataSeries = getInfluxAirUSensors(nowMinus5Str)
-        LOGGER.info(airUDataSeries)
+        LOGGER.info(len(airUDataSeries))
+        LOGGER.debug(airUDataSeries)
 
         dataSeries = pollingDataSeries + airUDataSeries
-        LOGGER.info(dataSeries)
+        LOGGER.info(len(dataSeries))
+        LOGGER.debug(dataSeries)
 
         LOGGER.info('get all dataSeries done')
     else:
-        abort(400)
+        LOGGER.info('wrong path is not catched')
+        abort(404)
 
     end = time.time()
 

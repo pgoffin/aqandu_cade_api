@@ -327,12 +327,16 @@ def getLiveSensors(sensorSource):
     utc_dt = datetime.utcnow()
 
     yesterday = utc_dt - timedelta(days=1)
+    nowMinus3h = utc_dt - timedelta(hours=3)
     nowMinus5 = utc_dt - timedelta(minutes=5)
 
     # yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
     # yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
     yesterdayStr = yesterday.strftime('%Y-%m-%dT%H:%M:%SZ')
     LOGGER.info(yesterdayStr)
+
+    nowMinus3h_str = nowMinus3h.strftime('%Y-%m-%dT%H:%M:%SZ')
+    LOGGER.info(nowMinus3h_str)
 
     nowMinus5Str = nowMinus5.strftime('%Y-%m-%dT%H:%M:%SZ')
     LOGGER.info(nowMinus5Str)
@@ -343,7 +347,7 @@ def getLiveSensors(sensorSource):
     if sensorSource == 'purpleAir':
 
         # get sensors that have pushed data to the db during the last 5min
-        dataSeries = getInfluxPollingSensors(nowMinus5Str)
+        dataSeries = getInfluxPollingSensors(nowMinus3h_str)
         LOGGER.info(len(dataSeries))
 
     elif sensorSource == 'airU':
@@ -357,7 +361,7 @@ def getLiveSensors(sensorSource):
         # get sensors that have pushed data to the db during the last 5min
         LOGGER.info('get all dataSeries started')
 
-        pollingDataSeries = getInfluxPollingSensors(nowMinus5Str)
+        pollingDataSeries = getInfluxPollingSensors(nowMinus3h_str)
         LOGGER.info(len(pollingDataSeries))
         LOGGER.debug(pollingDataSeries)
 

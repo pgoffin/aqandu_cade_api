@@ -342,17 +342,22 @@ def getLiveSensors(sensorSource):
 
     if sensorSource == 'purpleAir':
 
-        dataSeries = getInfluxPollingSensors(yesterdayStr)
+        # get sensors that have pushed data to the db during the last 5min
+        dataSeries = getInfluxPollingSensors(nowMinus5Str)
+        LOGGER.info(len(dataSeries))
 
     elif sensorSource == 'airU':
 
+        # get sensors that have pushed data to the db during the last 5min
         dataSeries = getInfluxAirUSensors(nowMinus5Str)
+        LOGGER.info(len(dataSeries))
 
     elif sensorSource == 'all':
 
+        # get sensors that have pushed data to the db during the last 5min
         LOGGER.info('get all dataSeries started')
 
-        pollingDataSeries = getInfluxPollingSensors(yesterdayStr)
+        pollingDataSeries = getInfluxPollingSensors(nowMinus5Str)
         LOGGER.info(len(pollingDataSeries))
         LOGGER.debug(pollingDataSeries)
 
@@ -1952,14 +1957,15 @@ def getInfluxPollingSensors(aDateStr):
     return dataSeries
 
 
-def getInfluxAirUSensors(minus5min):
+def getInfluxAirUSensors(aDateStr):
 
     LOGGER.info('******** influx airU started ********')
 
     dataSeries = []
 
     liveAirUs = getAllCurrentlyLiveAirUs()  # call to mongodb
-    LOGGER.info(liveAirUs)
+    LOGGER.info(len(liveAirUs))
+    LOGGER.debug(liveAirUs)
 
     influxClientAirU = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
                                       port=current_app.config['INFLUX_PORT'],
@@ -1981,7 +1987,7 @@ def getInfluxAirUSensors(minus5min):
         LOGGER.info('started get latitude')
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LATITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + macAddress + "' and time >= '" + minus5min + "'"
+                              "WHERE ID = '" + macAddress + "' and time >= '" + aDateStr + "'"
 
         LOGGER.debug(queryInfluxAirU_lat)
 
@@ -2000,7 +2006,7 @@ def getInfluxAirUSensors(minus5min):
 
         queryInfluxAirU_lng = "SELECT MEAN(Longitude) " \
                               "FROM " + current_app.config['INFLUX_AIRU_LONGITUDE_MEASUREMENT'] + " "\
-                              "WHERE ID = '" + macAddress + "' and time >= '" + minus5min + "' "
+                              "WHERE ID = '" + macAddress + "' and time >= '" + aDateStr + "' "
 
         LOGGER.debug(queryInfluxAirU_lng)
 

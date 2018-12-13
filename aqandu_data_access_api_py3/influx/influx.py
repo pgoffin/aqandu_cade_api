@@ -391,6 +391,35 @@ def getLiveSensors(sensorSource):
         LOGGER.info(len(dataSeries))
         LOGGER.debug(dataSeries)
 
+        # from https://stackoverflow.com/questions/38279269/python-comparing-each-item-of-a-list-to-every-other-item-in-that-list by Kevin
+        lats = dict()
+        for idx, sensor in enumerate(dataSeries):
+            if sensor['Latitude'] in lats:
+                lats[sensor['Latitude']].append(idx)
+            else:
+                lats[sensor['Latitude']] = [idx]
+
+        for lat, sameLats in lats.items():
+            if len(sameLats) > 1:
+                for i in range(len(sameLats)):
+                    for j in range(i + 1, len(sameLats)):
+                        if dataSeries[sameLats[i]]['ID'] != dataSeries[sameLats[j]]['ID'] and dataSeries[sameLats[i]]['Longitude'] == dataSeries[sameLats[j]]['Longitude']:
+                            dataSeries[sameLats[j]]['Longitude'] = str(float(dataSeries[sameLats[j]]['Longitude']) - 0.0005)
+
+# for i in range(len(dataSeries)):
+#     # LOGGER.info('i is %s', i)
+#     for j in range(i + 1, len(dataSeries)):
+#         # LOGGER.info('j is %s', j)
+#         # LOGGER.info('dataSeries[i] is %s', dataSeries[i])
+#         # LOGGER.info('dataSeries[j] is %s', dataSeries[j])
+#         if dataSeries[i]['ID'] != dataSeries[j]['ID']:
+#             if dataSeries[i]['Latitude'] == dataSeries[j]['Latitude'] and dataSeries[i]['Longitude'] == dataSeries[j]['Longitude']:
+#                 dataSeries[j]['Longitude'] = str(float(dataSeries[j]['Longitude']) - 0.0005)
+
+        for idx, sensor in enumerate(dataSeries):
+            if sensor['Longitude'] in first_column:
+                print ('rows matching for element {} from row {} are {}'.format(list[1], idx,  first_column[list[1]]))
+
         LOGGER.info('get all dataSeries done')
     else:
         LOGGER.info('wrong path is not catched')

@@ -1954,6 +1954,8 @@ def getInfluxPollingSensors(aDateStr, sensorSource):
                   "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
                   "LIMIT 400"
 
+    LOGGER.info(queryInflux)
+
     # start = time.time()
     data = influxClientPolling.query(queryInflux, epoch='ms')
     data = data.raw

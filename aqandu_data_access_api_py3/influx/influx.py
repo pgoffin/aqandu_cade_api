@@ -374,7 +374,7 @@ def getLiveSensors(sensorSource):
         # get sensors that have pushed data to the db during the last 5min
         LOGGER.info('get all dataSeries started')
 
-        dataSeries_purpleAir = getInfluxPollingSensors(nowMinus3h_str, "\"Purple Air\"")
+        dataSeries_purpleAir = getInfluxPollingSensors(nowMinus3h_str, "Purple Air")
         LOGGER.info('length of dataSeries_purpleAir is {}'.format(len(dataSeries_purpleAir)))
 
         dataSeries_mesowest = getInfluxPollingSensors(nowMinus20m_str, "Mesowest")

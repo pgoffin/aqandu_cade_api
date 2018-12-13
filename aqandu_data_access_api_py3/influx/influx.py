@@ -326,20 +326,24 @@ def getLiveSensors(sensorSource):
     # utc_dt = local_dt.astimezone(pytz.utc)  # trasnform local now time to UTC
     utc_dt = datetime.utcnow()
 
-    yesterday = utc_dt - timedelta(days=1)
+    # yesterday = utc_dt - timedelta(days=1)
     nowMinus3h = utc_dt - timedelta(hours=3)
-    nowMinus5 = utc_dt - timedelta(minutes=5)
+    nowMinus20m = utc_dt - timedelta(minutes=20)
+    nowMinus5m = utc_dt - timedelta(minutes=5)
 
     # yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
     # yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
-    yesterdayStr = yesterday.strftime('%Y-%m-%dT%H:%M:%SZ')
-    LOGGER.info(yesterdayStr)
+    # yesterdayStr = yesterday.strftime('%Y-%m-%dT%H:%M:%SZ')
+    # LOGGER.info(yesterdayStr)
 
     nowMinus3h_str = nowMinus3h.strftime('%Y-%m-%dT%H:%M:%SZ')
     LOGGER.info(nowMinus3h_str)
 
-    nowMinus5Str = nowMinus5.strftime('%Y-%m-%dT%H:%M:%SZ')
-    LOGGER.info(nowMinus5Str)
+    nowMinus20m_str = nowMinus20m.strftime('%Y-%m-%dT%H:%M:%SZ')
+    LOGGER.info(nowMinus20m_str)
+
+    nowMinus5mStr = nowMinus5m.strftime('%Y-%m-%dT%H:%M:%SZ')
+    LOGGER.info(nowMinus5mStr)
 
     dataSeries = []
     start = time.time()
@@ -347,13 +351,22 @@ def getLiveSensors(sensorSource):
     if sensorSource == 'purpleAir':
 
         # get sensors that have pushed data to the db during the last 5min
-        dataSeries = getInfluxPollingSensors(nowMinus3h_str)
-        LOGGER.info(len(dataSeries))
+        dataSeries_purpleAir = getInfluxPollingSensors(nowMinus5mStr, "\"Purple Air\"")
+        LOGGER.info('length of dataSeries_purpleAir is {}'.format(len(dataSeries_purpleAir)))
+
+        dataSeries_mesowest = getInfluxPollingSensors(nowMinus20m_str, "Mesowest")
+        LOGGER.info('length of dataSeries_mesowest is {}'.format(len(dataSeries_mesowest)))
+
+        dataSeries_DAQ = getInfluxPollingSensors(nowMinus3h_str, "DAQ")
+        LOGGER.info('length of dataSeries_DAQ is {}'.format(len(dataSeries_DAQ)))
+
+        dataSeries = dataSeries_purpleAir + dataSeries_mesowest + dataSeries_DAQ
+        LOGGER.info('length of merged dataSeries is {}'.format(len(dataSeries)))
 
     elif sensorSource == 'airU':
 
         # get sensors that have pushed data to the db during the last 5min
-        dataSeries = getInfluxAirUSensors(nowMinus5Str)
+        dataSeries = getInfluxAirUSensors(nowMinus5mStr)
         LOGGER.info(len(dataSeries))
 
     elif sensorSource == 'all':
@@ -361,15 +374,20 @@ def getLiveSensors(sensorSource):
         # get sensors that have pushed data to the db during the last 5min
         LOGGER.info('get all dataSeries started')
 
-        pollingDataSeries = getInfluxPollingSensors(nowMinus3h_str)
-        LOGGER.info(len(pollingDataSeries))
-        LOGGER.debug(pollingDataSeries)
+        dataSeries_purpleAir = getInfluxPollingSensors(nowMinus3h_str, "\"Purple Air\"")
+        LOGGER.info('length of dataSeries_purpleAir is {}'.format(len(dataSeries_purpleAir)))
 
-        airUDataSeries = getInfluxAirUSensors(nowMinus5Str)
+        dataSeries_mesowest = getInfluxPollingSensors(nowMinus20m_str, "Mesowest")
+        LOGGER.info('length of dataSeries_mesowest is {}'.format(len(dataSeries_mesowest)))
+
+        dataSeries_DAQ = getInfluxPollingSensors(nowMinus3h_str, "DAQ")
+        LOGGER.info('length of dataSeries_DAQ is {}'.format(len(dataSeries_DAQ)))
+
+        airUDataSeries = getInfluxAirUSensors(nowMinus5mStr)
         LOGGER.info(len(airUDataSeries))
         LOGGER.debug(airUDataSeries)
 
-        dataSeries = pollingDataSeries + airUDataSeries
+        dataSeries = dataSeries_purpleAir + dataSeries_mesowest + dataSeries_DAQ + airUDataSeries
         LOGGER.info(len(dataSeries))
         LOGGER.debug(dataSeries)
 
@@ -1919,7 +1937,7 @@ def mergeTwoDicts(x, y):
     return z
 
 
-def getInfluxPollingSensors(aDateStr):
+def getInfluxPollingSensors(aDateStr, sensorSource):
 
     LOGGER.info('******** influx polling started ********')
 
@@ -1932,7 +1950,7 @@ def getInfluxPollingSensors(aDateStr):
                                          verify_ssl=current_app.config['SSL'])
 
     queryInflux = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
-                  "FROM airQuality WHERE time >= '" + aDateStr + "' " \
+                  "FROM airQuality WHERE time >= '" + aDateStr + "' and \"Sensor Source\" = '" + sensorSource + "' " \
                   "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
                   "LIMIT 400"
 
@@ -1943,16 +1961,17 @@ def getInfluxPollingSensors(aDateStr):
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
     # print(dataSeries)
 
-    # locating the double/parallel sensors (sensor with same location) and slightly changing the second sensors location, results in both dots visible
-    for i in range(len(dataSeries)):
-        # LOGGER.info('i is %s', i)
-        for j in range(i + 1, len(dataSeries)):
-            # LOGGER.info('j is %s', j)
-            # LOGGER.info('dataSeries[i] is %s', dataSeries[i])
-            # LOGGER.info('dataSeries[j] is %s', dataSeries[j])
-            if dataSeries[i]['ID'] != dataSeries[j]['ID']:
-                if dataSeries[i]['Latitude'] == dataSeries[j]['Latitude'] and dataSeries[i]['Longitude'] == dataSeries[j]['Longitude']:
-                    dataSeries[j]['Longitude'] = str(float(dataSeries[j]['Longitude']) - 0.0005)
+# TODO THIS NEEDS TO BE IMPROVED in an easier way
+    # # locating the double/parallel sensors (sensor with same location) and slightly changing the second sensors location, results in both dots visible
+    # for i in range(len(dataSeries)):
+    #     # LOGGER.info('i is %s', i)
+    #     for j in range(i + 1, len(dataSeries)):
+    #         # LOGGER.info('j is %s', j)
+    #         # LOGGER.info('dataSeries[i] is %s', dataSeries[i])
+    #         # LOGGER.info('dataSeries[j] is %s', dataSeries[j])
+    #         if dataSeries[i]['ID'] != dataSeries[j]['ID']:
+    #             if dataSeries[i]['Latitude'] == dataSeries[j]['Latitude'] and dataSeries[i]['Longitude'] == dataSeries[j]['Longitude']:
+    #                 dataSeries[j]['Longitude'] = str(float(dataSeries[j]['Longitude']) - 0.0005)
 
     LOGGER.info(dataSeries)
 

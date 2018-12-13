@@ -416,10 +416,6 @@ def getLiveSensors(sensorSource):
 #             if dataSeries[i]['Latitude'] == dataSeries[j]['Latitude'] and dataSeries[i]['Longitude'] == dataSeries[j]['Longitude']:
 #                 dataSeries[j]['Longitude'] = str(float(dataSeries[j]['Longitude']) - 0.0005)
 
-        for idx, sensor in enumerate(dataSeries):
-            if sensor['Longitude'] in first_column:
-                print ('rows matching for element {} from row {} are {}'.format(list[1], idx,  first_column[list[1]]))
-
         LOGGER.info('get all dataSeries done')
     else:
         LOGGER.info('wrong path is not catched')

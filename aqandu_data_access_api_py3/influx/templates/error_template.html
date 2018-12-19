@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{#{% extends "layout.html" %}#}
+<!-- {#{% extends "layout.html" %}#} -->
 {% block body %}
 
 <body class="body">
@@ -8,6 +8,6 @@
     {% else %}
         <h5>No error! How did we get here?</h5>
     {% endif %}
-    <a href={{url_for('dashboard')}}>Take me back</a>
+    <a href="{{ url_for('dashboard') }}">Take me back</a>
 </body>
 {% endblock %}

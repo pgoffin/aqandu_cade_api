@@ -152,7 +152,7 @@ def errorHandler(error):
     LOGGER.info('errorHandler with error={}'.format(str(error)))
 
     try:
-        return render_template('error_template.html', error=error)
+        return render_template('error_template.html', anError=error)
     except Exception as e:
         LOGGER.info('error_template.html could not be rendered')
         return str(e)

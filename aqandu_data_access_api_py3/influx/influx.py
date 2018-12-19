@@ -146,7 +146,7 @@ def dashboard():
 
 
 @influx.route("/api/errorHandler/<error>")
-def errorHandler(error):
+def error_handler(error):
 
     LOGGER.info('********** errorHandler **********')
     LOGGER.info('errorHandler with error={}'.format(str(error)))
@@ -177,7 +177,7 @@ def get_data():
     LOGGER.info('dataType={}, sensorList={}, startDate={}, endDate={}'.format(dataType, sensorList, startDate, endDate))
     if dataType == 'Not Supported':
         msg = "Option is not supported"
-        return redirect(url_for(".errorHandler", error=msg))
+        return redirect(url_for(".error_handler", error=msg))
 
     # Format the dates to the correct Influx string
     try:
@@ -185,7 +185,7 @@ def get_data():
         end_dt = datetime.strptime(endDate, '%Y-%m-%d')
     except ValueError as e:
         LOGGER.info('date conversion error: {}'.format(str(e)))
-        return redirect(url_for(".errorHandler", error='ERROR: ' + str(e)))
+        return redirect(url_for(".error_handler", error='ERROR: ' + str(e)))
 
     start_influx_query = datetime.strftime(start_dt, '%Y-%m-%dT%H:%M:%SZ')
     end_influx_query = datetime.strftime(end_dt, '%Y-%m-%dT%H:%M:%SZ')
@@ -206,7 +206,7 @@ def get_data():
 
     if dataType != 'pm25' and not all(airU_in_list):
         LOGGER.info('unexpected data type for sensor list - redirect to errorHandler')
-        return redirect(url_for(".errorHandler", error='You cannot access that data type for sensors that are not AirU sensors'))
+        return redirect(url_for(".error_handler", error='You cannot access that data type for sensors that are not AirU sensors'))
 
     customIDToMAC = None
     if any(airU_in_list):

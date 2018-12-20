@@ -1,7 +1,3 @@
-# import requests
-# import sys
-# import bson
-# import pytz
 import math
 import time
 
@@ -13,21 +9,10 @@ from werkzeug.local import LocalProxy
 import pandas as pd
 import numpy as np
 
-# from .. import app
 from flask import current_app
 
 
-# define Python user-defined exceptions
-class Error(Exception):
-    """Base class for other exceptions"""
-    pass
-
-
-class UnknownIDError(Error):
-    """Raised when ID is not in db"""
-    pass
-
-
+# from here: http://flask.pocoo.org/docs/1.0/patterns/apierrors/
 class InvalidUsage(Exception):
     status_code = 400
 
@@ -47,7 +32,7 @@ class InvalidUsage(Exception):
 influx = Blueprint('influx', __name__, template_folder='templates')
 LOGGER = LocalProxy(lambda: current_app.logger)
 
-# lookup table to transform querString to influx column name
+# lookup table to transform queryString to influx column name
 lookupQueryParameterToInflux = {
     'pm25': '\"pm2.5 (ug/m^3)\"',
     'altitude': '\"Altitude (m)\"',
@@ -168,17 +153,17 @@ def dashboard():
         return str(e)
 
 
-@influx.route("/api/errorHandler/<error>")
-def error_handler(error):
-
-    LOGGER.info('********** errorHandler **********')
-    LOGGER.info('errorHandler with error={}'.format(str(error)))
-
-    try:
-        return render_template('error_template.html', anError=error)
-    except Exception as e:
-        LOGGER.info('error_template.html could not be rendered')
-        return str(e)
+# @influx.route("/api/errorHandler/<error>")
+# def error_handler(error):
+#
+#     LOGGER.info('********** errorHandler **********')
+#     LOGGER.info('errorHandler with error={}'.format(str(error)))
+#
+#     try:
+#         return render_template('error_template.html', anError=error)
+#     except Exception as e:
+#         LOGGER.info('error_template.html could not be rendered')
+#         return str(e)
 
 
 @influx.route("/api/get_data", methods=['POST'])
@@ -200,7 +185,8 @@ def get_data():
     LOGGER.info('dataType={}, sensorList={}, startDate={}, endDate={}'.format(dataType, sensorList, startDate, endDate))
     if dataType == 'Not Supported':
         msg = "Option is not supported"
-        return redirect(url_for(".error_handler", error=msg))
+        # return redirect(url_for(".error_handler", error=msg))
+        raise InvalidUsage(msg, status_code=400)
 
     # Format the dates to the correct Influx string
     try:
@@ -208,7 +194,8 @@ def get_data():
         end_dt = datetime.strptime(endDate, '%Y-%m-%d')
     except ValueError as e:
         LOGGER.info('date conversion error: {}'.format(str(e)))
-        return redirect(url_for(".error_handler", error='ERROR: ' + str(e)))
+        # return redirect(url_for(".error_handler", error='ERROR: ' + str(e)))
+        raise InvalidUsage('ERROR: ' + str(e), status_code=400)
 
     start_influx_query = datetime.strftime(start_dt, '%Y-%m-%dT%H:%M:%SZ')
     end_influx_query = datetime.strftime(end_dt, '%Y-%m-%dT%H:%M:%SZ')

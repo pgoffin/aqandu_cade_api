@@ -206,6 +206,8 @@ def get_data():
 
     if dataType != 'pm25' and not all(airU_in_list):
         LOGGER.info('unexpected data type for sensor list - redirect to errorHandler')
+        LOGGER.info(url_for("influx.dashboard"))
+        LOGGER.info(url_for(".error_handler"))
         return redirect(url_for(".error_handler", error='You cannot access that data type for sensors that are not AirU sensors'))
 
     customIDToMAC = None

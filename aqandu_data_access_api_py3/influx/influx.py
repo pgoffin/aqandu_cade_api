@@ -28,6 +28,22 @@ class UnknownIDError(Error):
     pass
 
 
+class InvalidUsage(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
+
 influx = Blueprint('influx', __name__, template_folder='templates')
 LOGGER = LocalProxy(lambda: current_app.logger)
 
@@ -75,6 +91,13 @@ lookupParameterToAirUInflux = {
     'co': 'CO',
     'no': 'NO'
 }
+
+
+@influx.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
 
 
 @influx.route('/test/online')
@@ -206,9 +229,10 @@ def get_data():
 
     if dataType != 'pm25' and not all(airU_in_list):
         LOGGER.info('unexpected data type for sensor list - redirect to errorHandler')
-        LOGGER.info(url_for("influx.dashboard"))
-        LOGGER.info(url_for(".error_handler", error='test message'))
-        return redirect(url_for(".error_handler", error='You cannot access that data type for sensors that are not AirU sensors'))
+        # LOGGER.info(url_for("influx.dashboard"))
+        # LOGGER.info(url_for(".error_handler", error='test message'))
+        raise InvalidUsage('You cannot access that data type for sensors that are not AirU sensors', status_code=400)
+        # return redirect(url_for(".error_handler", error='You cannot access that data type for sensors that are not AirU sensors'))
 
     customIDToMAC = None
     if any(airU_in_list):

@@ -1834,6 +1834,116 @@ def getGridEstimates():
     return resp
 
 
+@influx.route('/api/sensorsAtTime', methods=['GET'])
+# where <sensorSource> is 'purpleAir', 'airU', or 'all'.
+# where <time> is a string formatted like 2019-01-04T22:00:00Z
+def getSensorsAtSelectTime():
+    """Get sensors that are active around the time in the selectedTime datetime string"""
+
+    LOGGER.info(' getSensorsAtSelectTime request started ***********')
+
+    queryParameters = request.args
+    LOGGER.info(queryParameters)
+
+    sensorSource = queryParameters['sensorSource']
+    selectedTime = queryParameters['selectedTime']
+
+    if sensorSource not in ['purpleAir', 'airU', 'all']:
+        LOGGER.info('sensorSource parameter is wrong')
+        # abort(404)
+        InvalidUsage('sensorSource parameter is wrong', status_code=404)
+
+    selectedTimeStop = datetime.strptime(selectedTime, '%Y-%m-%dT%H:%M:%SZ')
+
+    # Calculates the start of the time periods
+    selectedTime3hStart = selectedTimeStop - timedelta(hours=3)
+    selectedTime20mStart = selectedTimeStop - timedelta(minutes=20)
+    selectedTime5mStart = selectedTimeStop - timedelta(minutes=5)
+
+    # Formats each time into a string
+    selectedTime3hStartStr = selectedTime3hStart.strftime('%Y-%m-%dT%H:%M:%SZ')
+    selectedTime20mStartStr = selectedTime20mStart.strftime('%Y-%m-%dT%H:%M:%SZ')
+    selectedTime5mStartStr = selectedTime5mStart.strftime('%Y-%m-%dT%H:%M:%SZ')
+    selectedTimeStopStr = selectedTimeStop.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    dataSeries = []
+    start = time.time()
+
+    if sensorSource == 'purpleAir':
+
+        # get sensors that have pushed data to the db during the 5 minutes before the entered time
+        dataSeries_purpleAir = getInfluxPollingSensorsSelectTime(selectedTime5mStartStr, selectedTimeStopStr, "Purple Air")
+        LOGGER.info('length of dataSeries_purpleAir is {}'.format(len(dataSeries_purpleAir)))
+
+        dataSeries_mesowest = getInfluxPollingSensorsSelectTime(selectedTime20mStartStr, selectedTimeStopStr, "Mesowest")
+        LOGGER.info('length of dataSeries_mesowest is {}'.format(len(dataSeries_mesowest)))
+
+        dataSeries_DAQ = getInfluxPollingSensorsSelectTime(selectedTime3hStartStr, selectedTimeStopStr, "DAQ")
+        LOGGER.info('length of dataSeries_DAQ is {}'.format(len(dataSeries_DAQ)))
+
+        dataSeries = dataSeries_purpleAir + dataSeries_mesowest + dataSeries_DAQ
+        LOGGER.info('length of merged dataSeries is {}'.format(len(dataSeries)))
+
+    elif sensorSource == 'airU':
+
+        # get sensors that have pushed data to the db during the last 5min
+        dataSeries = getInfluxAirUSensorsSelectTime(selectedTime5mStartStr, selectedTimeStopStr)
+        LOGGER.info(len(dataSeries))
+
+    elif sensorSource == 'all':
+
+        # get sensors that have pushed data to the db during the last 5min
+        LOGGER.info('get all dataSeries started')
+
+        dataSeries_purpleAir = getInfluxPollingSensorsSelectTime(selectedTime5mStartStr, selectedTimeStopStr, "Purple Air")
+        LOGGER.info('length of dataSeries_purpleAir is {}'.format(len(dataSeries_purpleAir)))
+
+        dataSeries_mesowest = getInfluxPollingSensorsSelectTime(selectedTime20mStartStr, selectedTimeStopStr, "Mesowest")
+        LOGGER.info('length of dataSeries_mesowest is {}'.format(len(dataSeries_mesowest)))
+
+        dataSeries_DAQ = getInfluxPollingSensorsSelectTime(selectedTime3hStartStr, selectedTimeStopStr, "DAQ")
+        LOGGER.info('length of dataSeries_DAQ is {}'.format(len(dataSeries_DAQ)))
+
+        airUDataSeries = getInfluxAirUSensorsSelectTime(selectedTime5mStartStr, selectedTimeStopStr)
+        LOGGER.info(len(airUDataSeries))
+        LOGGER.debug(airUDataSeries)
+
+        dataSeries = dataSeries_purpleAir + dataSeries_mesowest + dataSeries_DAQ + airUDataSeries
+        LOGGER.info(len(dataSeries))
+        LOGGER.debug(dataSeries)
+
+        # from https://stackoverflow.com/questions/38279269/python-comparing-each-item-of-a-list-to-every-other-item-in-that-list by Kevin
+        lats = dict()
+        for idx, sensor in enumerate(dataSeries):
+            if sensor['Latitude'] in lats:
+                lats[sensor['Latitude']].append(idx)
+            else:
+                lats[sensor['Latitude']] = [idx]
+
+        for lat, sameLats in lats.items():
+            if len(sameLats) > 1:
+                for i in range(len(sameLats)):
+                    for j in range(i + 1, len(sameLats)):
+                        if dataSeries[sameLats[i]]['ID'] != dataSeries[sameLats[j]]['ID'] and dataSeries[sameLats[i]]['Longitude'] == dataSeries[sameLats[j]]['Longitude']:
+                            dataSeries[sameLats[j]]['Longitude'] = str(float(dataSeries[sameLats[j]]['Longitude']) - 0.0005)
+
+        LOGGER.info('get all dataSeries done')
+    else:
+        LOGGER.info('wrong path is not catched')
+        print('wrong path is not catched')
+        # abort(404)
+        InvalidUsage('wrong path is not catched', status_code=404)
+
+    end = time.time()
+
+    print("*********** Time to download:", end - start)
+
+    resp = jsonify(dataSeries)
+    resp.status_code = 200
+
+    return resp
+
+
 # HELPER FUNCTIONS
 
 def createSelection(typeOfQuery, querystring):
@@ -2270,132 +2380,28 @@ def getSensorSource(sensorID):
         except ValueError as e:
             LOGGER.error('getSensorSource: {}'.format(str(e)))
             return False
-        
-@influx.route('/api/sensorsAtTime/<sensorSource>&<selectedTime>', methods=['GET'])
-  # where <sensorSource> is 'purpleAir', 'airU', or 'all'.
-  # where <time> is a string formatted like 2019-01-04T22:00:00Z
-def getSensorsAtSelectTime(sensorSource, selectedTime):
-    """Get sensors that are active around the time in the selectedTime datetime string"""
-
-    LOGGER.info(' getSensorsAtSelectTime request started ***********')
-    
-    queryParameters = request.args
-    LOGGER.info(queryParameters)
-    
-    sensorSource = queryParameters['sensorSource']
-    selectedTime = queryParameters['selectedTime']
-
-    if sensorSource not in ['purpleAir', 'airU', 'all']:
-        LOGGER.info('sensorSource parameter is wrong')
-        abort(404)
-
-    selectedTimeStop = datetime.strptime(selectedTime,'%Y-%m-%dT%H:%M:%SZ')
-    
-    # Calculates the start of the time periods
-    selectedTime3hStart = selectedTimeStop - timedelta(hours=3)
-    selectedTime20mStart = selectedTimeStop - timedelta(minutes=20)
-    selectedTime5mStart = selectedTimeStop - timedelta(minutes=5)
-
-    # Formats each time into a string
-    selectedTime3hStartStr = selectedTime3hStart.strftime('%Y-%m-%dT%H:%M:%SZ')
-    selectedTime20mStartStr = selectedTime20mStart.strftime('%Y-%m-%dT%H:%M:%SZ')
-    selectedTime5mStartStr = selectedTime5mStart.strftime('%Y-%m-%dT%H:%M:%SZ')
-    selectedTimeStopStr = selectedTimeStop.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-    dataSeries = []
-    start = time.time()
+def getInfluxPollingSensorsSelectTime(aDateStart, aDateEnd, sensorSource):
 
-    if sensorSource == 'purpleAir':
-
-        # get sensors that have pushed data to the db during the 5 minutes before the entered time
-        dataSeries_purpleAir = getInfluxPollingSensorsSelectTime(selectedTime5mStartStr,selectedTimeStopStr, "Purple Air")
-        LOGGER.info('length of dataSeries_purpleAir is {}'.format(len(dataSeries_purpleAir)))
-
-        dataSeries_mesowest = getInfluxPollingSensorsSelectTime(selectedTime20mStartStr,selectedTimeStopStr, "Mesowest")
-        LOGGER.info('length of dataSeries_mesowest is {}'.format(len(dataSeries_mesowest)))
-
-        dataSeries_DAQ = getInfluxPollingSensorsSelectTime(selectedTime3hStartStr,selectedTimeStopStr, "DAQ")
-        LOGGER.info('length of dataSeries_DAQ is {}'.format(len(dataSeries_DAQ)))
-
-        dataSeries = dataSeries_purpleAir + dataSeries_mesowest + dataSeries_DAQ
-        LOGGER.info('length of merged dataSeries is {}'.format(len(dataSeries)))
-
-    elif sensorSource == 'airU':
-
-        # get sensors that have pushed data to the db during the last 5min
-        dataSeries = getInfluxAirUSensorsSelectTime(selectedTime5mStartStr,selectedTimeStopStr)
-        LOGGER.info(len(dataSeries))
-
-    elif sensorSource == 'all':
-
-        # get sensors that have pushed data to the db during the last 5min
-        LOGGER.info('get all dataSeries started')
-
-        dataSeries_purpleAir = getInfluxPollingSensorsSelectTime(selectedTime5mStartStr,selectedTimeStopStr, "Purple Air")
-        LOGGER.info('length of dataSeries_purpleAir is {}'.format(len(dataSeries_purpleAir)))
-
-        dataSeries_mesowest = getInfluxPollingSensorsSelectTime(selectedTime20mStartStr,selectedTimeStopStr, "Mesowest")
-        LOGGER.info('length of dataSeries_mesowest is {}'.format(len(dataSeries_mesowest)))
-
-        dataSeries_DAQ = getInfluxPollingSensorsSelectTime(selectedTime3hStartStr,selectedTimeStopStr, "DAQ")
-        LOGGER.info('length of dataSeries_DAQ is {}'.format(len(dataSeries_DAQ)))
-
-        airUDataSeries = getInfluxAirUSensorsSelectTime(selectedTime5mStartStr,selectedTimeStopStr)
-        LOGGER.info(len(airUDataSeries))
-        LOGGER.debug(airUDataSeries)
-
-        dataSeries = dataSeries_purpleAir + dataSeries_mesowest + dataSeries_DAQ + airUDataSeries
-        LOGGER.info(len(dataSeries))
-        LOGGER.debug(dataSeries)
-
-        # from https://stackoverflow.com/questions/38279269/python-comparing-each-item-of-a-list-to-every-other-item-in-that-list by Kevin
-        lats = dict()
-        for idx, sensor in enumerate(dataSeries):
-            if sensor['Latitude'] in lats:
-                lats[sensor['Latitude']].append(idx)
-            else:
-                lats[sensor['Latitude']] = [idx]
-
-        for lat, sameLats in lats.items():
-            if len(sameLats) > 1:
-                for i in range(len(sameLats)):
-                    for j in range(i + 1, len(sameLats)):
-                        if dataSeries[sameLats[i]]['ID'] != dataSeries[sameLats[j]]['ID'] and dataSeries[sameLats[i]]['Longitude'] == dataSeries[sameLats[j]]['Longitude']:
-                            dataSeries[sameLats[j]]['Longitude'] = str(float(dataSeries[sameLats[j]]['Longitude']) - 0.0005)
-
-        LOGGER.info('get all dataSeries done')
-    else:
-        LOGGER.info('wrong path is not catched')
-        print('wrong path is not catched')
-        abort(404)
-
-    end = time.time()
-
-    print("*********** Time to download:", end - start)
-
-    return jsonify(dataSeries)
-
-def getInfluxPollingSensorsSelectTime(aDateStart,aDateEnd, sensorSource):
-
-    LOGGER.info('******** influx polling started ********')
+    LOGGER.info('******** influx SelectTime polling started ********')
 
     influxClientPolling = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
                                          port=current_app.config['INFLUX_PORT'],
                                          username=current_app.config['INFLUX_USERNAME'],
                                          password=current_app.config['INFLUX_PASSWORD'],
                                          database='defaultdb',
-                                         ssl = current_app.config["SSL"],
-                                         verify_ssl = current_app.config["SSL"])
+                                         ssl=current_app.config["SSL"],
+                                         verify_ssl=current_app.config["SSL"])
 
     queryInflux = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
-                  "FROM airQuality WHERE time >= '" + aDateStart + "' and time <= '" + aDateEnd +"' and \"Sensor Source\" = '" + sensorSource + "' " \
+                  "FROM airQuality WHERE time >= '" + aDateStart + "' and time <= '" + aDateEnd + "' and \"Sensor Source\" = '" + sensorSource + "' " \
                   "GROUP BY ID, Latitude, Longitude, \"Sensor Source\"" \
                   "LIMIT 400"
 
     LOGGER.info(queryInflux)
 
-    start = time.time()
+    # start = time.time()
     data = influxClientPolling.query(queryInflux, epoch='ms')
     data = data.raw
 
@@ -2403,14 +2409,14 @@ def getInfluxPollingSensorsSelectTime(aDateStart,aDateEnd, sensorSource):
 
     LOGGER.info(dataSeries)
 
-    LOGGER.info('******** influx polling done ********')
+    LOGGER.info('******** influx SelectTime polling done ********')
 
     return dataSeries
-  
-  
-def getInfluxAirUSensorsSelectTime(aDateStart,aDateStop):
-    
-    LOGGER.info('******** influx airU started ********')
+
+
+def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
+
+    LOGGER.info('******** influx SelectTime airU started ********')
 
     dataSeries = []
 
@@ -2423,12 +2429,12 @@ def getInfluxAirUSensorsSelectTime(aDateStart,aDateStop):
                                          username=current_app.config['INFLUX_USERNAME'],
                                          password=current_app.config['INFLUX_PASSWORD'],
                                          database='defaultdb',
-                                         ssl = current_app.config["SSL"],
-                                         verify_ssl = current_app.config["SSL"])
+                                         ssl=current_app.config["SSL"],
+                                         verify_ssl=current_app.config["SSL"])
 
     macToCustomID = getMacToCustomSensorID()
     LOGGER.info(macToCustomID)
-    
+
     for airU in liveAirUs:
         LOGGER.debug(airU)
 
@@ -2439,15 +2445,15 @@ def getInfluxAirUSensorsSelectTime(aDateStart,aDateStop):
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
                               "FROM " + 'latitude' + " "\
                               "WHERE ID = '" + macAddress + "' and time >= '" + aDateStart + "' and time >= '" + aDateStop + "'"
-        
+
         LOGGER.debug(queryInfluxAirU_lat)
 
         dataAirU_lat = influxClientPolling.query(queryInfluxAirU_lat, epoch='ms')
- 
+
         dataAirU_lat = dataAirU_lat.raw
         LOGGER.debug(dataAirU_lat)
 
-    if 'series' not in dataAirU_lat:
+        if 'series' not in dataAirU_lat:
             LOGGER.info('{} missing latitude'.format(macAddress))
             continue
 
@@ -2504,31 +2510,11 @@ def getInfluxAirUSensorsSelectTime(aDateStart,aDateStop):
             anAirU = {'ID': newID, 'Latitude': str(avgLat), 'Longitude': str(avgLng), 'Sensor Source': 'airu', 'pm25': lastPM25, 'time': pm25time}
 
             LOGGER.debug(anAirU)
-      
+
             dataSeries.append(anAirU)
             LOGGER.debug('airU appended')
 
     LOGGER.info(dataSeries)
-    LOGGER.info('******** influx airU done ********')
+    LOGGER.info('******** influx SelectTime airU done ********')
 
     return dataSeries
-  
-def getAllCurrentlyLiveAirUs():
-    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
-        user=current_app.config['MONGO_USER'],
-        password=current_app.config['MONGO_PASSWORD'],
-        host=current_app.config['MONGO_HOST'],
-        port=current_app.config['MONGO_PORT'],
-        database=current_app.config['MONGO_DATABASE']) # 'airudb'
-
-                
-    mongoClient = MongoClient(mongodb_url)
-    db = mongoClient.airudb
-    liveAirUs = []
-
-    for aSensor in db.liveSensors.find():
-        if aSensor['macAddress']:
-            liveAirUs.append({'macAddress': ''.join(aSensor['macAddress'].split(':'))})
-
-    return liveAirUs
-

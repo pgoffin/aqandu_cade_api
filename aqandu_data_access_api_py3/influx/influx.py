@@ -2,7 +2,7 @@ import math
 import time
 
 from datetime import datetime, timedelta
-from flask import abort, jsonify, request, Blueprint, redirect, render_template, url_for, make_response
+from flask import jsonify, request, Blueprint, redirect, render_template, url_for, make_response
 from influxdb import InfluxDBClient, DataFrameClient
 from pymongo import MongoClient
 from werkzeug.local import LocalProxy
@@ -330,7 +330,8 @@ def getLiveSensors(sensorSource):
 
     if sensorSource not in ['purpleAir', 'airU', 'all']:
         LOGGER.info('sensorSource parameter is wrong')
-        abort(404)
+        # abort(404)
+        InvalidUsage('The sensorSource has to be one of these: purpleAir, airU, all.', status_code=404)
 
     # now = datetime.now()
     #
@@ -432,7 +433,8 @@ def getLiveSensors(sensorSource):
         LOGGER.info('get all dataSeries done')
     else:
         LOGGER.info('wrong path is not catched')
-        abort(404)
+        # abort(404)
+        InvalidUsage('Something is really wrong, here!!', status_code=404)
 
     end = time.time()
 

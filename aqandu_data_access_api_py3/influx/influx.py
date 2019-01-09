@@ -2275,8 +2275,13 @@ def getSensorSource(sensorID):
 def getSensorsAtSelectTime(sensorSource, selectedTime):
     """Get sensors that are active around the time in the selectedTime datetime string"""
 
-    LOGGER.info('*********** liveSensors request started ***********')
-    LOGGER.info(sensorSource)
+    LOGGER.info(' getSensorsAtSelectTime request started ***********')
+    
+    queryParameters = request.args
+    LOGGER.info(queryParameters)
+    
+    sensorSource = queryParameters['sensorSource']
+    selectedTime = queryParameters['selectedTime']
 
     if sensorSource not in ['purpleAir', 'airU', 'all']:
         LOGGER.info('sensorSource parameter is wrong')

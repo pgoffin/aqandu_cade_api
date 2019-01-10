@@ -2431,13 +2431,13 @@ def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
     LOGGER.info(len(liveAirUs))
     LOGGER.debug(liveAirUs)
 
-    influxClientPolling = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
-                                         port=current_app.config['INFLUX_PORT'],
-                                         username=current_app.config['INFLUX_USERNAME'],
-                                         password=current_app.config['INFLUX_PASSWORD'],
-                                         database='defaultdb',
-                                         ssl=current_app.config["SSL"],
-                                         verify_ssl=current_app.config["SSL"])
+    influxClientAirU = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                      port=current_app.config['INFLUX_PORT'],
+                                      username=current_app.config['INFLUX_USERNAME'],
+                                      password=current_app.config['INFLUX_PASSWORD'],
+                                      database=current_app.config['INFLUX_AIRU_DATABASE'],
+                                      ssl=current_app.config['SSL'],
+                                      verify_ssl=current_app.config['SSL'])
 
     macToCustomID = getMacToCustomSensorID()
     LOGGER.info(macToCustomID)

@@ -1864,10 +1864,13 @@ def getSensorsAtSelectTime():
     selectedTime3hStartStr = selectedTime3hStart.strftime('%Y-%m-%dT%H:%M:%SZ')
     selectedTime20mStartStr = selectedTime20mStart.strftime('%Y-%m-%dT%H:%M:%SZ')
     selectedTime5mStartStr = selectedTime5mStart.strftime('%Y-%m-%dT%H:%M:%SZ')
-    selectedTimeStopStr = selectedTimeStop.strftime('%Y-%m-%dT%H:%M:%SZ')
+    # selectedTimeStopStr = selectedTimeStop.strftime('%Y-%m-%dT%H:%M:%SZ')
+    selectedTimeStopStr = selectedTimeStop
 
     dataSeries = []
     start = time.time()
+
+    LOGGER.info('string conversion done')
 
     if sensorSource == 'purpleAir':
 

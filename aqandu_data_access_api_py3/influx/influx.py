@@ -1836,7 +1836,7 @@ def getGridEstimates():
 
 @influx.route('/api/sensorsAtTime', methods=['GET'])
 # where <sensorSource> is 'purpleAir', 'airU', or 'all'.
-# where <time> is a string formatted like 2019-01-04T22:00:00Z
+# where <selectedTime> is a string formatted like 2019-01-04T22:00:00Z
 def getSensorsAtSelectTime():
     """Get sensors that are active around the time in the selectedTime datetime string"""
 
@@ -1854,9 +1854,11 @@ def getSensorsAtSelectTime():
         InvalidUsage('sensorSource parameter is wrong', status_code=404)
 
     selectedTimeStop = datetime.strptime(selectedTime, '%Y-%m-%dT%H:%M:%SZ')
+    LOGGER.info('here 1')
 
     # Calculates the start of the time periods
     selectedTime3hStart = selectedTimeStop - timedelta(hours=3)
+    LOGGER.info('here 2')
     selectedTime20mStart = selectedTimeStop - timedelta(minutes=20)
     selectedTime5mStart = selectedTimeStop - timedelta(minutes=5)
 
@@ -2446,7 +2448,7 @@ def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
         LOGGER.info('started get latitude')
         queryInfluxAirU_lat = "SELECT MEAN(Latitude) " \
                               "FROM " + 'latitude' + " "\
-                              "WHERE ID = '" + macAddress + "' and time >= '" + aDateStart + "' and time >= '" + aDateStop + "'"
+                              "WHERE ID = '" + macAddress + "' and time >= '" + aDateStart + "' and time <= '" + aDateStop + "'"
 
         LOGGER.debug(queryInfluxAirU_lat)
 

@@ -2394,9 +2394,9 @@ def getInfluxPollingSensorsSelectTime(aDateStart, aDateEnd, sensorSource):
                                          port=current_app.config['INFLUX_PORT'],
                                          username=current_app.config['INFLUX_USERNAME'],
                                          password=current_app.config['INFLUX_PASSWORD'],
-                                         database='defaultdb',
-                                         ssl=current_app.config["SSL"],
-                                         verify_ssl=current_app.config["SSL"])
+                                         database=current_app.config['INFLUX_POLLING_DATABASE'],
+                                         ssl=current_app.config['SSL'],
+                                         verify_ssl=current_app.config['SSL'])
 
     queryInflux = "SELECT ID, \"Sensor Source\", Latitude, Longitude, LAST(\"pm2.5 (ug/m^3)\") AS pm25, \"Sensor Model\" " \
                   "FROM airQuality WHERE time >= '" + aDateStart + "' and time <= '" + aDateEnd + "' and \"Sensor Source\" = '" + sensorSource + "' " \
@@ -2431,13 +2431,13 @@ def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
     LOGGER.info(len(liveAirUs))
     LOGGER.debug(liveAirUs)
 
-    influxClientAirU = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
-                                      port=current_app.config['INFLUX_PORT'],
-                                      username=current_app.config['INFLUX_USERNAME'],
-                                      password=current_app.config['INFLUX_PASSWORD'],
-                                      database=current_app.config['INFLUX_AIRU_DATABASE'],
-                                      ssl=current_app.config['SSL'],
-                                      verify_ssl=current_app.config['SSL'])
+    influxClientPolling = InfluxDBClient(host=current_app.config['INFLUX_HOST'],
+                                         port=current_app.config['INFLUX_PORT'],
+                                         username=current_app.config['INFLUX_USERNAME'],
+                                         password=current_app.config['INFLUX_PASSWORD'],
+                                         database=current_app.config['INFLUX_AIRU_DATABASE'],
+                                         ssl=current_app.config['SSL'],
+                                         verify_ssl=current_app.config['SSL'])
 
     macToCustomID = getMacToCustomSensorID()
     LOGGER.info(macToCustomID)

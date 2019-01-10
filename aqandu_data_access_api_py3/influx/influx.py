@@ -2453,7 +2453,7 @@ def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
                               "FROM " + 'latitude' + " "\
                               "WHERE ID = '" + macAddress + "' and time >= '" + aDateStart + "' and time <= '" + aDateStop + "'"
 
-        LOGGER.debug(queryInfluxAirU_lat)
+        LOGGER.info(queryInfluxAirU_lat)
 
         dataAirU_lat = influxClientPolling.query(queryInfluxAirU_lat, epoch='ms')
 

@@ -2458,7 +2458,7 @@ def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
         dataAirU_lat = influxClientPolling.query(queryInfluxAirU_lat, epoch='ms')
 
         dataAirU_lat = dataAirU_lat.raw
-        LOGGER.debug(dataAirU_lat)
+        LOGGER.info(dataAirU_lat)
 
         if 'series' not in dataAirU_lat:
             LOGGER.info('{} missing latitude'.format(macAddress))

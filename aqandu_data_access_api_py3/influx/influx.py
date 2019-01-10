@@ -2422,6 +2422,9 @@ def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
 
     LOGGER.info('******** influx SelectTime airU started ********')
 
+    LOGGER.info(aDateStart)
+    LOGGER.info(aDateStop)
+
     dataSeries = []
 
     liveAirUs = getAllCurrentlyLiveAirUs()  # call to mongodb

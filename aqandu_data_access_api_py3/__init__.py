@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_compress import Compress
-# from flask_mail import Mail
+from flask_mail import Mail
 # from flask_cors import CORS
 import logging
 import logging.handlers as handlers
@@ -10,7 +10,7 @@ app = Flask(__name__, instance_relative_config=True)   # create the application 
 app.config.from_object('config')
 app.config.from_pyfile('config.py')
 
-# mail = Mail(app)
+mail = Mail(app)
 
 # register the blueprints
 from aqandu_data_access_api_py3.influx.influx import influx

@@ -1840,7 +1840,7 @@ def getGridEstimates():
 def getSensorsAtSelectTime():
     """Get sensors that are active around the time in the selectedTime datetime string"""
 
-    LOGGER.info(' getSensorsAtSelectTime request started ***********')
+    LOGGER.info('*********** getSensorsAtSelectTime request started ***********')
 
     queryParameters = request.args
     LOGGER.info(queryParameters)
@@ -1864,8 +1864,7 @@ def getSensorsAtSelectTime():
     selectedTime3hStartStr = selectedTime3hStart.strftime('%Y-%m-%dT%H:%M:%SZ')
     selectedTime20mStartStr = selectedTime20mStart.strftime('%Y-%m-%dT%H:%M:%SZ')
     selectedTime5mStartStr = selectedTime5mStart.strftime('%Y-%m-%dT%H:%M:%SZ')
-    # selectedTimeStopStr = selectedTimeStop.strftime('%Y-%m-%dT%H:%M:%SZ')
-    selectedTimeStopStr = selectedTimeStop
+    selectedTimeStopStr = selectedTimeStop.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     dataSeries = []
     start = time.time()

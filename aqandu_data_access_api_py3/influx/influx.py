@@ -1979,7 +1979,7 @@ def getBatchForMac():
     batch1 = []
     batch2 = []
     batchAssignment = {}
-    for aMac in content:
+    for aMac in content['mac']:
         LOGGER.info(aMac)
         LOGGER.info(theMappings[aMac])
         print(aMac)

@@ -1980,6 +1980,10 @@ def getBatchForMac():
     batch2 = []
     batchAssignment = {}
     for aMac in content:
+        LOGGER.info(aMac)
+        LOGGER.info(theMappings[aMac])
+        print(aMac)
+        print(theMappings[aMac])
         sensorID = int(theMappings[aMac].split('-')[2])
 
         if sensorID >= batchBoundary:

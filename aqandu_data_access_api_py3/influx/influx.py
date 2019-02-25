@@ -1957,10 +1957,56 @@ def getBatchForMac():
     content = request.get_json()
     print(content)
 
-    resp = jsonify(content)
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+
+    theMappings = {}
+    for aMapping in db.mappingMACToSensorID.find():
+        # if aSensor['macAddress']:
+        aMac = aMapping['macAddress']
+        aSensorID = aMapping['customSensorID']
+        theMappings[aMac] = aSensorID
+
+    batchBoundary = 155
+    inBothBatches = []
+    batch1 = []
+    batch2 = []
+    batchAssignment = {}
+    for aMac in content:
+        sensorID = int(theMappings[aMac].split('-')[2])
+
+        if sensorID >= batchBoundary:
+            # batch 2
+
+            if aMac not in batch1:
+                batch2.append(aMac)
+                batchAssignment[aMac] = 'batch2'
+            elif aMac in batch1:
+                inBothBatches.append(aMac)
+                batchAssignment[aMac] = 'bothBatch'
+
+        elif sensorID < batchBoundary:
+            # batch 1
+
+            if aMac not in batch2:
+                batch1.append(aMac)
+                batchAssignment[aMac] = 'batch1'
+            elif aMac in batch2:
+                inBothBatches.append(aMac)
+                batchAssignment[aMac] = 'bothBatch'
+
+    resp = jsonify(batchAssignment)
     resp.status_code = 200
 
     return resp
+
 
 # HELPER FUNCTIONS
 

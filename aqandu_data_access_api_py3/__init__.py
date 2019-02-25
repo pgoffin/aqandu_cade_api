@@ -28,6 +28,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d
 # theFile.setLevel(logging.INFO)
 # logger.addHandler(theFile)
 
+# to remove debug logs from flask to be logged in the gunicorn logs
 del app.logger.handlers[:]
 
 logHandler = handlers.TimedRotatingFileHandler('aqanduAPI.log', when='h', interval=6, backupCount=5)

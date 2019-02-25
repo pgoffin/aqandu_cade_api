@@ -1948,7 +1948,18 @@ def getSensorsAtSelectTime():
     return resp
 
 
+@influx.route('/api/macToBatch', methods=['POST'])
+# where <sensorSource> is 'purpleAir', 'airU', or 'all'.
+# where <selectedTime> is a string formatted like 2019-01-04T22:00:00Z
+def getBatchForMac():
+
+    print(request.is_json)
+    content = request.get_json()
+    print(content)
+    return content
+
 # HELPER FUNCTIONS
+
 
 def createSelection(typeOfQuery, querystring):
     """Creates the selection string for the SELECT statement."""

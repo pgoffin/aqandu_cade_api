@@ -24,7 +24,7 @@ app.register_blueprint(mongo)
 del app.logger.handlers[:]
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d] - %(levelname)s - %(message)s')
 
@@ -36,7 +36,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d
 # del app.logger.handlers[:]
 
 logHandler = handlers.TimedRotatingFileHandler('aqanduAPI.log', when='h', interval=6, backupCount=5)
-logHandler.setLevel(logging.INFO)
+logHandler.setLevel(logging.DEBUG)
 logHandler.setFormatter(formatter)
 app.logger.addHandler(logHandler)
 

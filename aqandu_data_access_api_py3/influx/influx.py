@@ -1990,20 +1990,22 @@ def getBatchForMac():
         if sensorID >= batchBoundary:
             # batch 2
 
-            if aMac not in batch1:
+            if aMac not in batch1 and aMac not in batch2:
                 batch2.append(aMac)
                 batchAssignment[aMac] = 'batch2'
-            elif aMac in batch1:
+            elif aMac in batch1 and aMac not in batch2:
+                batch2.append(aMac)
                 inBothBatches.append(aMac)
                 batchAssignment[aMac] = 'bothBatch'
 
         elif sensorID < batchBoundary:
             # batch 1
 
-            if aMac not in batch2:
+            if aMac not in batch2 and aMac not in batch1:
                 batch1.append(aMac)
                 batchAssignment[aMac] = 'batch1'
-            elif aMac in batch2:
+            elif aMac in batch2 and aMac not in batch1:
+                batch1.append(aMac)
                 inBothBatches.append(aMac)
                 batchAssignment[aMac] = 'bothBatch'
 

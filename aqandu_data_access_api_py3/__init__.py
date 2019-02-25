@@ -19,6 +19,10 @@ from aqandu_data_access_api_py3.mongo.mongo import mongo
 app.register_blueprint(influx)
 app.register_blueprint(mongo)
 
+
+# to remove debug logs from flask to be logged in the gunicorn logs
+del app.logger.handlers[:]
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -29,7 +33,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d
 # logger.addHandler(theFile)
 
 # to remove debug logs from flask to be logged in the gunicorn logs
-del app.logger.handlers[:]
+# del app.logger.handlers[:]
 
 logHandler = handlers.TimedRotatingFileHandler('aqanduAPI.log', when='h', interval=6, backupCount=5)
 logHandler.setLevel(logging.INFO)

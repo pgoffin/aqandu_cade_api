@@ -1956,7 +1956,11 @@ def getBatchForMac():
     print(request.is_json)
     content = request.get_json()
     print(content)
-    return content
+
+    resp = jsonify(content)
+    resp.status_code = 200
+
+    return resp
 
 # HELPER FUNCTIONS
 

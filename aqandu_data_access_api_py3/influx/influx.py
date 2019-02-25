@@ -1972,7 +1972,12 @@ def getBatchForMac():
         # if aSensor['macAddress']:
         aMac = aMapping['macAddress']
         aSensorID = aMapping['customSensorID']
-        theMappings[aMac] = aSensorID
+
+        aMapping = theMappings.get(aMac)
+        if aMapping is not None:
+            theMappings[aMac].append(aSensorID)
+        else:
+            theMappings[aMac] = [aSensorID]
 
     batchBoundary = 155
     inBothBatches = []
@@ -1981,33 +1986,32 @@ def getBatchForMac():
     batchAssignment = {}
     for aMac in content['mac']:
         aMacWithColon = aMac[0:2] + ':' + aMac[2:4] + ':' + aMac[4:6]  + ':' + aMac[6:8] + ':' + aMac[8:10]  + ':' + aMac[10:12]
-        LOGGER.info(aMac)
-        LOGGER.info(theMappings[aMacWithColon])
-        print(aMac)
-        print(theMappings[aMacWithColon])
-        sensorID = int(theMappings[aMacWithColon].split('-')[2])
 
-        if sensorID >= batchBoundary:
-            # batch 2
+        for aSensorID in theMappings[aMacWithColon]:
 
-            if aMac not in batch1 and aMac not in batch2:
-                batch2.append(aMac)
-                batchAssignment[aMac] = 'batch2'
-            elif aMac in batch1 and aMac not in batch2:
-                batch2.append(aMac)
-                inBothBatches.append(aMac)
-                batchAssignment[aMac] = 'bothBatch'
+            sensorID = int(aSensorID.split('-')[2])
 
-        elif sensorID < batchBoundary:
-            # batch 1
+            if sensorID >= batchBoundary:
+                # batch 2
 
-            if aMac not in batch2 and aMac not in batch1:
-                batch1.append(aMac)
-                batchAssignment[aMac] = 'batch1'
-            elif aMac in batch2 and aMac not in batch1:
-                batch1.append(aMac)
-                inBothBatches.append(aMac)
-                batchAssignment[aMac] = 'bothBatch'
+                if aMac not in batch1 and aMac not in batch2:
+                    batch2.append(aMac)
+                    batchAssignment[aMac] = 'batch2'
+                elif aMac in batch1 and aMac not in batch2:
+                    batch2.append(aMac)
+                    inBothBatches.append(aMac)
+                    batchAssignment[aMac] = 'bothBatch'
+
+            elif sensorID < batchBoundary:
+                # batch 1
+
+                if aMac not in batch2 and aMac not in batch1:
+                    batch1.append(aMac)
+                    batchAssignment[aMac] = 'batch1'
+                elif aMac in batch2 and aMac not in batch1:
+                    batch1.append(aMac)
+                    inBothBatches.append(aMac)
+                    batchAssignment[aMac] = 'bothBatch'
 
     resp = jsonify(batchAssignment)
     resp.status_code = 200

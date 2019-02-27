@@ -955,30 +955,35 @@ def getProcessedDataFrom():
         # LOGGER.info(data)
 # TODO need to check these dictionary call for validity first!!!!!!! else output an error message
         # parse the data
-        theValues = data['series'][0]['values']
-        theColumns = data['series'][0]['columns']
 
-        dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
-        # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
+        if 'series' in data:
+            theValues = data['series'][0]['values']
+            theColumns = data['series'][0]['columns']
 
-        # print(pmTimeSeries)
+            dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+            # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
 
-        queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['functionArg']) + "), ID, \"SensorModel\" " \
-                       "FROM " + queryParameters['functionArg'] + " " \
-                       "WHERE ID = '" + theID + "' "
-        LOGGER.info(queryForTags)
+            # print(pmTimeSeries)
 
-        dataTags = influxClientAirU.query(queryForTags, epoch=None)
-        dataTags = dataTags.raw
-        # LOGGER.info(dataTags)
+            queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['functionArg']) + "), ID, \"SensorModel\" " \
+                           "FROM " + queryParameters['functionArg'] + " " \
+                           "WHERE ID = '" + theID + "' "
+            LOGGER.info(queryForTags)
 
-        dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
-        dataSeries_Tags[0]['Sensor Source'] = 'airu'
-        # LOGGER.info(dataSeries_Tags)
+            dataTags = influxClientAirU.query(queryForTags, epoch=None)
+            dataTags = dataTags.raw
+            # LOGGER.info(dataTags)
 
-        newDataSeries = {}
-        newDataSeries["data"] = dataSeries
-        newDataSeries["tags"] = dataSeries_Tags
+            dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+            dataSeries_Tags[0]['Sensor Source'] = 'airu'
+            # LOGGER.info(dataSeries_Tags)
+
+            newDataSeries = {}
+            newDataSeries["data"] = dataSeries
+            newDataSeries["tags"] = dataSeries_Tags
+        else:
+            msg = 'database returned no data, either there is no data with these criteria or you have an error in your query'
+            raise InvalidUsage(msg, status_code=400)
 
         end = time.time()
     else:
@@ -1985,7 +1990,7 @@ def getBatchForMac():
     batch2 = []
     batchAssignment = {}
     for aMac in content['mac']:
-        aMacWithColon = aMac[0:2] + ':' + aMac[2:4] + ':' + aMac[4:6]  + ':' + aMac[6:8] + ':' + aMac[8:10]  + ':' + aMac[10:12]
+        aMacWithColon = aMac[0:2] + ':' + aMac[2:4] + ':' + aMac[4:6] + ':' + aMac[6:8] + ':' + aMac[8:10] + ':' + aMac[10:12]
 
         for aSensorID in theMappings[aMacWithColon]:
 

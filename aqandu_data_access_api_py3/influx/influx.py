@@ -9,6 +9,8 @@ from werkzeug.local import LocalProxy
 import pandas as pd
 import numpy as np
 
+import logging
+
 from flask import current_app
 
 
@@ -30,7 +32,8 @@ class InvalidUsage(Exception):
 
 
 influx = Blueprint('influx', __name__, template_folder='templates')
-LOGGER = LocalProxy(lambda: current_app.logger)
+# LOGGER = LocalProxy(lambda: current_app.logger)
+LOGGER = logging.getLogger('aqandu')
 
 # lookup table to transform queryString to influx column name
 lookupQueryParameterToInflux = {

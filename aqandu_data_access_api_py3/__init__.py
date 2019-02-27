@@ -23,7 +23,8 @@ app.register_blueprint(mongo)
 # to remove debug logs from flask to be logged in the gunicorn logs
 del app.logger.handlers[:]
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
+logger = logging.getLogger('aqandu')
 logger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d] - %(levelname)s - %(message)s')

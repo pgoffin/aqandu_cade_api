@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from flask import jsonify, request, Blueprint, redirect, render_template, url_for, make_response
 from influxdb import InfluxDBClient, DataFrameClient
 from pymongo import MongoClient
-# from werkzeug.local import LocalProxy
+from werkzeug.local import LocalProxy
 import pandas as pd
 import numpy as np
 
@@ -32,9 +32,9 @@ class InvalidUsage(Exception):
 
 
 influx = Blueprint('influx', __name__, template_folder='templates')
-# LOGGER = LocalProxy(lambda: current_app.logger)
+Uncaught_LOGGER = LocalProxy(lambda: current_app.logger)
 LOGGER = logging.getLogger('aqandu')
-Uncaught_LOGGER = logging.getLogger('uncaughtExcpt')
+# Uncaught_LOGGER = logging.getLogger('uncaughtExcpt')
 
 # lookup table to transform queryString to influx column name
 lookupQueryParameterToInflux = {
@@ -89,13 +89,13 @@ def handle_invalid_usage(error):
     return response
 
 
-@influx.errorhandler(Exception)
-def exception_handler(error):
-    Uncaught_LOGGER.error("An uncaught exception", exc_info=True)
-
-    response = jsonify(error.to_dict())
-    response.status_code = error.status_code
-    return response
+# @influx.errorhandler(Exception)
+# def exception_handler(error):
+#     Uncaught_LOGGER.error("An uncaught exception", exc_info=True)
+#
+#     response = jsonify(error.to_dict())
+#     response.status_code = error.status_code
+#     return response
 
 
 @influx.route('/test/online')

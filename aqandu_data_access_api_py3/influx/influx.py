@@ -95,7 +95,7 @@ def handle_invalid_usage(error):
 def exception_handler(error):
     Uncaught_LOGGER.error("An uncaught exception", exc_info=True)
 
-    response = jsonify(error.to_dict())
+    response = jsonify(error='An uncaught exception')
     response.status_code = error.status_code
     return response
 
@@ -572,7 +572,7 @@ def getRawDataFrom():
                         # LOGGER.info(dict2)
 
                         if dict1['time'].split('.')[0][:-3] == dict2['time'].split('.')[0][:-3]:
-                            LOGGER.info('equal')
+                            LOGGER.debug('equal')
                             # replace the time attribute with a new key so it does not copy over the dict1's time when being merged
                             dict2['time_' + aDB] = dict2.pop('time')
                             mergedObject = mergeTwoDicts(dict1, dict2)

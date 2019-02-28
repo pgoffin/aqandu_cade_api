@@ -1082,7 +1082,7 @@ def getLastValuesForLiveSensor():
 
     data = influxClientPolling.query(queryPolling, epoch=None)
     data = data.raw
-    LOGGER.info(data)
+    LOGGER.debug(data)
 
     dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
 
@@ -1102,7 +1102,7 @@ def getLastValuesForLiveSensor():
 
     dataAirU = influxClientAirU.query(queryAirU, epoch=None)
     dataAirU = dataAirU.raw
-    LOGGER.info(dataAirU)
+    LOGGER.debug(dataAirU)
 
     dataSeriesAirU = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataAirU['series']))
 

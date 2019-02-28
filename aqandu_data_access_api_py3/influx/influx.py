@@ -34,9 +34,9 @@ class InvalidUsage(Exception):
 
 
 influx = Blueprint('influx', __name__, template_folder='templates')
-Uncaught_LOGGER = LocalProxy(lambda: current_app.logger)
+# Uncaught_LOGGER = LocalProxy(lambda: current_app.logger)
 LOGGER = logging.getLogger('aqandu')
-# Uncaught_LOGGER = logging.getLogger('uncaughtExcpt')
+Uncaught_LOGGER = logging.getLogger('uncaughtExcpt')
 
 # lookup table to transform queryString to influx column name
 lookupQueryParameterToInflux = {
@@ -91,13 +91,14 @@ def handle_invalid_usage(error):
     return response
 
 
-@influx.errorhandler(HTTPException)
+@influx.errorhandler(500)
 def exception_handler(error):
     Uncaught_LOGGER.error("An uncaught exception", exc_info=True)
 
-    response = jsonify(error='An uncaught exception')
-    response.status_code = error.status_code
-    return response
+    # response = jsonify(error='An uncaught exception')
+    # response.status_code = error.status_code
+    # return response
+    return 'An uncaught exception', 500
 
 
 @influx.route('/test/online')

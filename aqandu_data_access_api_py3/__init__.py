@@ -42,11 +42,11 @@ logger.addHandler(logHandler)
 # uncaughtExcpt_logger = logging.getLogger('uncaughtExcpt')
 # uncaughtExcpt_logger.setLevel(logging.INFO)
 
-# uncaughtExcpt_logHandler = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d] - %(levelname)s - %(message)s')
-# uncaughtExcpt_logHandler = handlers.TimedRotatingFileHandler('uncaughtErrors.log', when='h', interval=6, backupCount=5)
-# uncaughtExcpt_logHandler.setLevel(logging.INFO)
-# uncaughtExcpt_logHandler.setFormatter(uncaughtExcpt_logHandler)
-# app.logger.addHandler(uncaughtExcpt_logHandler)
+uncaughtExcpt_logHandler = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d] - %(levelname)s - %(message)s')
+uncaughtExcpt_logHandler = handlers.TimedRotatingFileHandler('uncaughtErrors.log', when='h', interval=6, backupCount=5)
+uncaughtExcpt_logHandler.setLevel(logging.INFO)
+uncaughtExcpt_logHandler.setFormatter(uncaughtExcpt_logHandler)
+app.logger.addHandler(uncaughtExcpt_logHandler)
 
 
 def handle_error(error):

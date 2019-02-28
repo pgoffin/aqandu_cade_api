@@ -6,6 +6,8 @@ from flask import jsonify, request, Blueprint, redirect, render_template, url_fo
 from influxdb import InfluxDBClient, DataFrameClient
 from pymongo import MongoClient
 from werkzeug.local import LocalProxy
+from werkzeug.exceptions import HTTPException
+
 import pandas as pd
 import numpy as np
 
@@ -89,7 +91,7 @@ def handle_invalid_usage(error):
     return response
 
 
-@influx.errorhandler(500)
+@influx.errorhandler(HTTPException)
 def exception_handler(error):
     Uncaught_LOGGER.error("An uncaught exception", exc_info=True)
 
@@ -2327,7 +2329,7 @@ def getInfluxAirUSensors(aDateStr):
             dataSeries.append(anAirU)
             LOGGER.debug('airU appended')
 
-    LOGGER.info(dataSeries)
+    LOGGER.debug(dataSeries)
     LOGGER.info('******** influx airU done ********')
 
     return dataSeries

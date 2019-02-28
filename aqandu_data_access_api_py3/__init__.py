@@ -5,7 +5,7 @@ from flask_mail import Mail
 import logging
 import logging.handlers as handlers
 # from raven.contrib.flask import Sentry
-from werkzeug.exceptions import HTTPException, default_exceptions
+# from werkzeug.exceptions import HTTPException, default_exceptions
 
 app = Flask(__name__, instance_relative_config=True)   # create the application instance
 app.config.from_object('config')
@@ -42,22 +42,22 @@ logger.addHandler(logHandler)
 uncaughtExcpt_logger = logging.getLogger('uncaughtExcpt')
 uncaughtExcpt_logger.setLevel(logging.INFO)
 
-uncaughtExcpt_logHandler = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d] - %(levelname)s - %(message)s')
+uncaughtExcpt_formatter = logging.Formatter('%(asctime)s - %(name)s - [%(funcName)s:%(lineno)d] - %(levelname)s - %(message)s')
 uncaughtExcpt_logHandler = handlers.TimedRotatingFileHandler('uncaughtErrors.log', when='h', interval=6, backupCount=5)
 uncaughtExcpt_logHandler.setLevel(logging.INFO)
-uncaughtExcpt_logHandler.setFormatter(uncaughtExcpt_logHandler)
+uncaughtExcpt_logHandler.setFormatter(uncaughtExcpt_formatter)
 uncaughtExcpt_logger.addHandler(uncaughtExcpt_logHandler)
 
 
-def handle_error(error):
-    code = 500
-    if isinstance(error, HTTPException):
-        code = error.code
-    return jsonify(error='error', code=code)
-
-
-for exc in default_exceptions:
-    app.register_error_handler(exc, handle_error)
+# def handle_error(error):
+#     code = 500
+#     if isinstance(error, HTTPException):
+#         code = error.code
+#     return jsonify(error='error', code=code)
+#
+#
+# for exc in default_exceptions:
+#     app.register_error_handler(exc, handle_error)
 
 Compress(app)
 # CORS(app)

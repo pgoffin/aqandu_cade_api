@@ -1996,7 +1996,7 @@ def getBatchForMac():
         aMacWithColon = aMac[0:2] + ':' + aMac[2:4] + ':' + aMac[4:6] + ':' + aMac[6:8] + ':' + aMac[8:10] + ':' + aMac[10:12]
 
         if theMappings.get(aMacWithColon) is not None:
-            # check if there is a mapping
+            # check if there is a mapping, if no mapping then don't consider that data
             for aSensorID in theMappings[aMacWithColon]:
 
                 sensorID = int(aSensorID.split('-')[2])

@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from flask import jsonify, request, Blueprint, redirect, render_template, url_for, make_response
 from influxdb import InfluxDBClient, DataFrameClient
 from pymongo import MongoClient
-from werkzeug.local import LocalProxy
+# from werkzeug.local import LocalProxy
 import pandas as pd
 import numpy as np
 
@@ -34,6 +34,7 @@ class InvalidUsage(Exception):
 influx = Blueprint('influx', __name__, template_folder='templates')
 # LOGGER = LocalProxy(lambda: current_app.logger)
 LOGGER = logging.getLogger('aqandu')
+Uncaught_LOGGER = logging.getLogger('uncaughtExcpt')
 
 # lookup table to transform queryString to influx column name
 lookupQueryParameterToInflux = {
@@ -83,6 +84,15 @@ lookupParameterToAirUInflux = {
 
 @influx.errorhandler(InvalidUsage)
 def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+
+@influx.errorhandler(Exception)
+def exception_handler(error):
+    Uncaught_LOGGER.error("An uncaught exception", exc_info=True)
+
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
@@ -959,34 +969,34 @@ def getProcessedDataFrom():
 # TODO need to check these dictionary call for validity first!!!!!!! else output an error message
         # parse the data
 
-        if 'series' in data:
-            theValues = data['series'][0]['values']
-            theColumns = data['series'][0]['columns']
+        # if 'series' in data:
+        theValues = data['series'][0]['values']
+        theColumns = data['series'][0]['columns']
 
-            dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
-            # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
+        dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+        # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
 
-            # print(pmTimeSeries)
+        # print(pmTimeSeries)
 
-            queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['functionArg']) + "), ID, \"SensorModel\" " \
-                           "FROM " + queryParameters['functionArg'] + " " \
-                           "WHERE ID = '" + theID + "' "
-            LOGGER.info(queryForTags)
+        queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['functionArg']) + "), ID, \"SensorModel\" " \
+                       "FROM " + queryParameters['functionArg'] + " " \
+                       "WHERE ID = '" + theID + "' "
+        LOGGER.info(queryForTags)
 
-            dataTags = influxClientAirU.query(queryForTags, epoch=None)
-            dataTags = dataTags.raw
-            # LOGGER.info(dataTags)
+        dataTags = influxClientAirU.query(queryForTags, epoch=None)
+        dataTags = dataTags.raw
+        # LOGGER.info(dataTags)
 
-            dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
-            dataSeries_Tags[0]['Sensor Source'] = 'airu'
-            # LOGGER.info(dataSeries_Tags)
+        dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+        dataSeries_Tags[0]['Sensor Source'] = 'airu'
+        # LOGGER.info(dataSeries_Tags)
 
-            newDataSeries = {}
-            newDataSeries["data"] = dataSeries
-            newDataSeries["tags"] = dataSeries_Tags
-        else:
-            msg = 'database returned no data, either there is no data with these criteria or you have an error in your query'
-            raise InvalidUsage(msg, status_code=400)
+        newDataSeries = {}
+        newDataSeries["data"] = dataSeries
+        newDataSeries["tags"] = dataSeries_Tags
+        # else:
+        #     msg = 'database returned no data, either there is no data with these criteria or you have an error in your query'
+        #     raise InvalidUsage(msg, status_code=400)
 
         end = time.time()
     else:

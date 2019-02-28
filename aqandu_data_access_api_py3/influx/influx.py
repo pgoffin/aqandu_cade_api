@@ -89,13 +89,13 @@ def handle_invalid_usage(error):
     return response
 
 
-# @influx.errorhandler(Exception)
-# def exception_handler(error):
-#     Uncaught_LOGGER.error("An uncaught exception", exc_info=True)
-#
-#     response = jsonify(error.to_dict())
-#     response.status_code = error.status_code
-#     return response
+@influx.errorhandler(500)
+def exception_handler(error):
+    Uncaught_LOGGER.error("An uncaught exception", exc_info=True)
+
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
 
 
 @influx.route('/test/online')

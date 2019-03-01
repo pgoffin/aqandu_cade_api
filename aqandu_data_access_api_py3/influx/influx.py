@@ -353,18 +353,16 @@ def getLiveSensors(sensorSource):
     # utc_dt = local_dt.astimezone(pytz.utc)  # trasnform local now time to UTC
     utc_dt = datetime.utcnow()
 
-    # yesterday = utc_dt - timedelta(days=1)
-    nowMinus3h = utc_dt - timedelta(hours=3)
+    # nowMinus3h = utc_dt - timedelta(hours=3)
+    nowMinus4h = utc_dt - timedelta(hours=4)
     nowMinus20m = utc_dt - timedelta(minutes=20)
     nowMinus5m = utc_dt - timedelta(minutes=5)
 
-    # yesterdayBeginningOfDay = yesterday.replace(hour=00, minute=00, second=00)
-    # yesterdayStr = yesterdayBeginningOfDay.strftime('%Y-%m-%dT%H:%M:%SZ')
-    # yesterdayStr = yesterday.strftime('%Y-%m-%dT%H:%M:%SZ')
-    # LOGGER.info(yesterdayStr)
+    # nowMinus3h_str = nowMinus3h.strftime('%Y-%m-%dT%H:%M:%SZ')
+    # LOGGER.info(nowMinus3h_str)
 
-    nowMinus3h_str = nowMinus3h.strftime('%Y-%m-%dT%H:%M:%SZ')
-    LOGGER.info(nowMinus3h_str)
+    nowMinus4h_str = nowMinus4h.strftime('%Y-%m-%dT%H:%M:%SZ')
+    LOGGER.info(nowMinus4h_str)
 
     nowMinus20m_str = nowMinus20m.strftime('%Y-%m-%dT%H:%M:%SZ')
     LOGGER.info(nowMinus20m_str)
@@ -384,7 +382,7 @@ def getLiveSensors(sensorSource):
         dataSeries_mesowest = getInfluxPollingSensors(nowMinus20m_str, "Mesowest")
         LOGGER.info('length of dataSeries_mesowest is {}'.format(len(dataSeries_mesowest)))
 
-        dataSeries_DAQ = getInfluxPollingSensors(nowMinus3h_str, "DAQ")
+        dataSeries_DAQ = getInfluxPollingSensors(nowMinus4h_str, "DAQ")
         LOGGER.info('length of dataSeries_DAQ is {}'.format(len(dataSeries_DAQ)))
 
         dataSeries = dataSeries_purpleAir + dataSeries_mesowest + dataSeries_DAQ
@@ -401,13 +399,13 @@ def getLiveSensors(sensorSource):
         # get sensors that have pushed data to the db during the last 5min
         LOGGER.info('get all dataSeries started')
 
-        dataSeries_purpleAir = getInfluxPollingSensors(nowMinus3h_str, "Purple Air")
+        dataSeries_purpleAir = getInfluxPollingSensors(nowMinus5mStr, "Purple Air")
         LOGGER.info('length of dataSeries_purpleAir is {}'.format(len(dataSeries_purpleAir)))
 
         dataSeries_mesowest = getInfluxPollingSensors(nowMinus20m_str, "Mesowest")
         LOGGER.info('length of dataSeries_mesowest is {}'.format(len(dataSeries_mesowest)))
 
-        dataSeries_DAQ = getInfluxPollingSensors(nowMinus3h_str, "DAQ")
+        dataSeries_DAQ = getInfluxPollingSensors(nowMinus4h_str, "DAQ")
         LOGGER.info('length of dataSeries_DAQ is {}'.format(len(dataSeries_DAQ)))
 
         airUDataSeries = getInfluxAirUSensors(nowMinus5mStr)
@@ -2206,7 +2204,11 @@ def getInfluxPollingSensors(aDateStr, sensorSource):
     data = influxClientPolling.query(queryInflux, epoch='ms')
     data = data.raw
 
-    dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
+    dataSeries = []
+    if 'series' in data:
+        # if for some reason the 'series' is not in the data, then give it back empty
+
+        dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
     # print(dataSeries)
 
 # TODO THIS NEEDS TO BE IMPROVED in an easier way
@@ -2221,7 +2223,7 @@ def getInfluxPollingSensors(aDateStr, sensorSource):
     #             if dataSeries[i]['Latitude'] == dataSeries[j]['Latitude'] and dataSeries[i]['Longitude'] == dataSeries[j]['Longitude']:
     #                 dataSeries[j]['Longitude'] = str(float(dataSeries[j]['Longitude']) - 0.0005)
 
-    LOGGER.info(dataSeries)
+        LOGGER.debug(dataSeries)
 
     LOGGER.info('******** influx polling done ********')
 

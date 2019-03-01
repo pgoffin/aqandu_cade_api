@@ -11,11 +11,14 @@ from influxdb import InfluxDBClient
 from influxdb.exceptions import InfluxDBClientError
 from pymongo import MongoClient
 from twilio.rest import Client
-from werkzeug.local import LocalProxy
+# from werkzeug.local import LocalProxy
+
+import logging
 
 from aqandu_data_access_api_py3 import mail, app
 
-LOGGER = LocalProxy(lambda: current_app.logger)
+# LOGGER = LocalProxy(lambda: current_app.logger)
+LOGGER = logging.getLogger('aqandu')
 
 mongo = Blueprint('mongo', __name__)
 

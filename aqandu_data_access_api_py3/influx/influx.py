@@ -614,62 +614,68 @@ def getRawDataFrom():
         selectString = createSelection('raw', queryParameters)
         LOGGER.info(selectString)
 
-        query = "SELECT " + selectString + " FROM airQuality " \
-                "WHERE ID = '" + queryParameters['id'] + "' " \
-                "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
-        LOGGER.info(query)
+        if selectString:
 
-        start = time.time()
+            query = "SELECT " + selectString + " FROM airQuality " \
+                    "WHERE ID = '" + queryParameters['id'] + "' " \
+                    "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' "
+            LOGGER.info(query)
 
-        data = influxClientPolling.query(query, epoch=None)
+            start = time.time()
 
-        # vies me an internal server error ---> maybe there is no data for this sensor at that time?? check!! if that is the case make it so the program does not crash --> output reasonable error message.
-        #
-        # https://air.eng.utah.edu/dbapi/api/rawDataFrom?id=6271&sensorSource=Purple%20Air&start=2018-07-24T07:00:00Z&end=2018-07-25T07:00:00Z&show=pm25
-        #
-        #
-        # There is no data for 6315 for this timeframe:
-        #  [getRawDataFrom:587]
-        #  Output reasonable error message if the query is empty, not braking everything.
-        #
-        #
-        # SELECT "pm2.5 (ug/m^3)" AS pm25 FROM airQuality WHERE ID = '6315' AND time >= '2018-07-24T07:00:00Z' AND time <= '2018-07-25T07:00:00Z'
+            data = influxClientPolling.query(query, epoch=None)
 
-        if len(data) > 0:
-            # query gave back data
-            data = data.raw
+            # vies me an internal server error ---> maybe there is no data for this sensor at that time?? check!! if that is the case make it so the program does not crash --> output reasonable error message.
+            #
+            # https://air.eng.utah.edu/dbapi/api/rawDataFrom?id=6271&sensorSource=Purple%20Air&start=2018-07-24T07:00:00Z&end=2018-07-25T07:00:00Z&show=pm25
+            #
+            #
+            # There is no data for 6315 for this timeframe:
+            #  [getRawDataFrom:587]
+            #  Output reasonable error message if the query is empty, not braking everything.
+            #
+            #
+            # SELECT "pm2.5 (ug/m^3)" AS pm25 FROM airQuality WHERE ID = '6315' AND time >= '2018-07-24T07:00:00Z' AND time <= '2018-07-25T07:00:00Z'
 
-            LOGGER.info(data['series'][0]['values'][0])
+            if len(data) > 0:
+                # query gave back data
+                data = data.raw
 
-            theValues = data['series'][0]['values']
-            theColumns = data['series'][0]['columns']
+                LOGGER.info(data['series'][0]['values'][0])
 
-            # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
-            dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+                theValues = data['series'][0]['values']
+                theColumns = data['series'][0]['columns']
 
-            queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality " \
-                           "WHERE ID = '" + queryParameters['id'] + "' "
-            LOGGER.info(queryForTags)
+                # pmTimeSeries = list(map(lambda x: {'time': x[0], 'pm25': x[1]}, theValues))
+                dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
 
-            dataTags = influxClientPolling.query(queryForTags, epoch=None)
-            dataTags = dataTags.raw
-            LOGGER.info(dataTags)
+                queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get("pm25") + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality " \
+                               "WHERE ID = '" + queryParameters['id'] + "' "
+                LOGGER.info(queryForTags)
 
-            dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
-            LOGGER.info(dataSeries_Tags)
+                dataTags = influxClientPolling.query(queryForTags, epoch=None)
+                dataTags = dataTags.raw
+                LOGGER.info(dataTags)
 
-            newDataSeries = {}
-            newDataSeries["data"] = dataSeries
-            newDataSeries["tags"] = dataSeries_Tags
+                dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+                LOGGER.info(dataSeries_Tags)
 
+                newDataSeries = {}
+                newDataSeries["data"] = dataSeries
+                newDataSeries["tags"] = dataSeries_Tags
+
+            else:
+                # query gave back nothing, means there is no data for sensor with ID queryParameters['id'] for the time range = [queryParameters['start'], queryParameters['end']
+
+                newDataSeries = {}
+                newDataSeries["data"] = []
+                newDataSeries["tags"] = []
+
+            end = time.time()
         else:
-            # query gave back nothing, means there is no data for sensor with ID queryParameters['id'] for the time range = [queryParameters['start'], queryParameters['end']
-
             newDataSeries = {}
             newDataSeries["data"] = []
             newDataSeries["tags"] = []
-
-        end = time.time()
 
     LOGGER.info('*********** Time to download: %s ***********', end - start)
 
@@ -954,47 +960,53 @@ def getProcessedDataFrom():
         selectString = createSelection('processed', queryParameters)
         LOGGER.info(selectString)
 
-        query = "SELECT " + selectString + " " \
-                "WHERE ID = '" + theID + "' " \
-                "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ", " + minutesOffset + ")"
-        LOGGER.info(query)
+        if selectString:
 
-        start = time.time()
+            query = "SELECT " + selectString + " " \
+                    "WHERE ID = '" + theID + "' " \
+                    "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ", " + minutesOffset + ")"
+            LOGGER.info(query)
 
-        data = influxClientAirU.query(query, epoch=None)
-        data = data.raw
-        # LOGGER.info(data)
-# TODO need to check these dictionary call for validity first!!!!!!! else output an error message
-        # parse the data
+            start = time.time()
 
-        if 'series' in data:
-            theValues = data['series'][0]['values']
-            theColumns = data['series'][0]['columns']
+            data = influxClientAirU.query(query, epoch=None)
+            data = data.raw
+            # LOGGER.info(data)
+    # TODO need to check these dictionary call for validity first!!!!!!! else output an error message
+            # parse the data
 
-            dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
-            # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
+            if 'series' in data:
+                theValues = data['series'][0]['values']
+                theColumns = data['series'][0]['columns']
 
-            # print(pmTimeSeries)
+                dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+                # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
 
-            queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['functionArg']) + "), ID, \"SensorModel\" " \
-                           "FROM " + queryParameters['functionArg'] + " " \
-                           "WHERE ID = '" + theID + "' "
-            LOGGER.info(queryForTags)
+                # print(pmTimeSeries)
 
-            dataTags = influxClientAirU.query(queryForTags, epoch=None)
-            dataTags = dataTags.raw
-            # LOGGER.info(dataTags)
+                queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get(queryParameters['functionArg']) + "), ID, \"SensorModel\" " \
+                               "FROM " + queryParameters['functionArg'] + " " \
+                               "WHERE ID = '" + theID + "' "
+                LOGGER.info(queryForTags)
 
-            dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
-            dataSeries_Tags[0]['Sensor Source'] = 'airu'
-            # LOGGER.info(dataSeries_Tags)
+                dataTags = influxClientAirU.query(queryForTags, epoch=None)
+                dataTags = dataTags.raw
+                # LOGGER.info(dataTags)
 
-            newDataSeries = {}
-            newDataSeries["data"] = dataSeries
-            newDataSeries["tags"] = dataSeries_Tags
+                dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+                dataSeries_Tags[0]['Sensor Source'] = 'airu'
+                # LOGGER.info(dataSeries_Tags)
+
+                newDataSeries = {}
+                newDataSeries["data"] = dataSeries
+                newDataSeries["tags"] = dataSeries_Tags
+            else:
+                msg = 'database returned no data, either there is no data with these criteria or you have an error in your query'
+                raise InvalidUsage(msg, status_code=400)
         else:
-            msg = 'database returned no data, either there is no data with these criteria or you have an error in your query'
-            raise InvalidUsage(msg, status_code=400)
+            newDataSeries = {}
+            newDataSeries["data"] = []
+            newDataSeries["tags"] = []
 
         end = time.time()
     else:
@@ -1015,38 +1027,48 @@ def getProcessedDataFrom():
         selectString = createSelection('processed', queryParameters)
         LOGGER.info(selectString)
 
-        query = "SELECT " + selectString + " " \
-                "WHERE ID = '" + queryParameters['id'] + "' " \
-                "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ", " + minutesOffset + ")"
-        LOGGER.info(query)
+        if selectString:
 
-        start = time.time()
+            query = "SELECT " + selectString + " " \
+                    "WHERE ID = '" + queryParameters['id'] + "' " \
+                    "AND time >= '" + queryParameters['start'] + "' AND time <= '" + queryParameters['end'] + "' GROUP BY time(" + queryParameters['timeInterval'] + ", " + minutesOffset + ")"
+            LOGGER.info(query)
 
-        data = influxClientPolling.query(query, epoch=None)
-        data = data.raw
-        # LOGGER.info(data)
+            start = time.time()
 
-        # parse the data
-        theValues = data['series'][0]['values']
-        theColumns = data['series'][0]['columns']
+            data = influxClientPolling.query(query, epoch=None)
+            data = data.raw
+            # LOGGER.info(data)
 
-        dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
-        # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
+            if 'series' in data:
+                # parse the data
+                theValues = data['series'][0]['values']
+                theColumns = data['series'][0]['columns']
 
-        # print(pmTimeSeries)
+                dataSeries = list(map(lambda x: dict(zip(theColumns, x)), theValues))
+                # pmTimeSeries = list(map(lambda x: {time: x[0], 'pm2.5 (ug/m^3)': x[1]}, theValues))
 
-        queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality WHERE ID = '" + queryParameters['id'] + "' "
+                # print(pmTimeSeries)
 
-        dataTags = influxClientPolling.query(queryForTags, epoch=None)
-        dataTags = dataTags.raw
-        # LOGGER.info(dataTags)
+                queryForTags = "SELECT LAST(" + lookupQueryParameterToInflux.get(queryParameters['functionArg']) + "), ID, \"Sensor Model\", \"Sensor Source\" FROM airQuality WHERE ID = '" + queryParameters['id'] + "' "
 
-        dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
-        # LOGGER.info(dataSeries_Tags)
+                dataTags = influxClientPolling.query(queryForTags, epoch=None)
+                dataTags = dataTags.raw
+                # LOGGER.info(dataTags)
 
-        newDataSeries = {}
-        newDataSeries["data"] = dataSeries
-        newDataSeries["tags"] = dataSeries_Tags
+                dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+                # LOGGER.info(dataSeries_Tags)
+
+                newDataSeries = {}
+                newDataSeries["data"] = dataSeries
+                newDataSeries["tags"] = dataSeries_Tags
+            else:
+                msg = 'database returned no data, either there is no data with these criteria or you have an error in your query'
+                raise InvalidUsage(msg, status_code=400)
+        else:
+            newDataSeries = {}
+            newDataSeries["data"] = []
+            newDataSeries["tags"] = []
 
         end = time.time()
 
@@ -2049,6 +2071,8 @@ def createSelection(typeOfQuery, querystring):
     tags = ['altitude', 'id', 'latitude', 'longitude', 'sensor_model', 'sensor_source', 'sensor_version', 'start']
     tagString = ','.join(list(map(lambda x: lookupQueryParameterToInflux.get(x), tags)))
 
+    selectString = ''
+
     if typeOfQuery == 'raw':
 
         show = querystring['show'].split(',')
@@ -2061,7 +2085,7 @@ def createSelection(typeOfQuery, querystring):
             selectString = "*"
         else:
             # selectString = 'ID, \"SensorModel\", \"Sensor Source\"'
-            selectString = ''
+            # selectString = ''
             for aShow in show:
                 showExists = lookupQueryParameterToInflux.get(aShow)
 

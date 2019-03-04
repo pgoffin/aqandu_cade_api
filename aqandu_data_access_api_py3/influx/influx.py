@@ -90,7 +90,11 @@ def handle_invalid_usage(error):
 
 @influx.errorhandler(ValueError)
 def handle_value_error(error):
-    response = jsonify(error)
+
+    rv = dict(error.payload or ())
+    rv['message'] = error.message
+
+    response = jsonify(rv)
     response.status_code = 400
     return response
 
@@ -1764,6 +1768,7 @@ def getGridEstimates():
     LOGGER.info(queryParameters)
 
     if 'start' not in queryParameters or 'end' not in queryParameters:
+        LOGGER.info('missing a start and/or end date')
         msg = 'missing a start and/or end date'
         raise InvalidUsage(msg, status_code=400)
 

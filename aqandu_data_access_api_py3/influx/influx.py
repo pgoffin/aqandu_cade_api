@@ -1430,7 +1430,7 @@ def getEstimatesForLocation():
 
     gridInfo = db.estimationMetadata.find_one({"metadataType": current_app.config['METADATA_TYPE_HIGH_UNCERTAINTY'], "gridID": current_app.config['CURRENT_GRID_VERSION']})
 
-    LOGGER.info(gridInfo)
+    LOGGER.debug(gridInfo)
 
     theCorners = {}
     if gridInfo is not None:
@@ -1438,7 +1438,7 @@ def getEstimatesForLocation():
         numberGridCells_LAT = gridInfo['numberOfGridCells']['lat']
         numberGridCells_LONG = gridInfo['numberOfGridCells']['long']
 
-        LOGGER.info(theGrid)
+        LOGGER.debug(theGrid)
         LOGGER.info(numberGridCells_LAT)
         LOGGER.info(numberGridCells_LONG)
 
@@ -1750,14 +1750,20 @@ def getEstimatesForLocation_debugging():
 @influx.route('/api/getGridEstimates', methods=['GET'])
 def getGridEstimates():
     # needs only the timespan
-
+    # TODO check input parameters
     LOGGER.info('*********** getGridEstimates started ***********')
 
     queryParameters = request.args
     LOGGER.info(queryParameters)
 
     startDate = queryParameters['start']
-    startDate = datetime.strptime(startDate, '%Y-%m-%dT%H:%M:%SZ')
+    try:
+        # startDate = datetime.strptime(startDate, '%Y-%m-%dT%H:%M:%SZ')
+        if startDate != datetime.strptime(startDate, "%Y-%m-%dT%H:%M:%SZ").strftime('%Y-%m-%dT%H:%M:%SZ'):
+            raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")
+    except ValueError:
+        raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")
+
     endDate = queryParameters['end']
     endDate = datetime.strptime(endDate, '%Y-%m-%dT%H:%M:%SZ')
 
@@ -1779,7 +1785,7 @@ def getGridEstimates():
 
     gridInfo = db.estimationMetadata.find_one({"metadataType": current_app.config['METADATA_TYPE_HIGH_UNCERTAINTY'], "gridID": current_app.config['CURRENT_GRID_VERSION']})
 
-    LOGGER.info(gridInfo)
+    LOGGER.debug(gridInfo)
 
     if gridInfo is not None:
         theGrid = gridInfo['transformedGrid']
@@ -1787,7 +1793,7 @@ def getGridEstimates():
         numberGridCells_LAT = gridInfo['numberOfGridCells']['lat']
         numberGridCells_LONG = gridInfo['numberOfGridCells']['long']
 
-        LOGGER.info(theGrid)
+        LOGGER.debug(theGrid)
         LOGGER.info(numberGridCells_LAT)
         LOGGER.info(numberGridCells_LONG)
 

@@ -88,6 +88,13 @@ def handle_invalid_usage(error):
     return response
 
 
+@influx.errorhandler(ValueError)
+def handle_value_error(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+
 @influx.errorhandler(500)
 def exception_handler(error):
     uncaught_LOGGER.error("An uncaught exception", exc_info=True)

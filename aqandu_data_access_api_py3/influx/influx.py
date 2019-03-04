@@ -91,9 +91,6 @@ def handle_invalid_usage(error):
 @influx.errorhandler(ValueError)
 def handle_value_error(error):
 
-    rv = dict(error.payload or ())
-    rv['message'] = error.message
-
     rv = dict(())
     rv['message'] = error.__cause__ or error.__context__
 

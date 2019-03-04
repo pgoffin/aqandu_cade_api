@@ -90,8 +90,8 @@ def handle_invalid_usage(error):
 
 @influx.errorhandler(ValueError)
 def handle_value_error(error):
-    response = jsonify(error.to_dict())
-    response.status_code = error.status_code
+    response = jsonify(error)
+    response.status_code = 400
     return response
 
 
@@ -1763,10 +1763,14 @@ def getGridEstimates():
     queryParameters = request.args
     LOGGER.info(queryParameters)
 
-    startDate = queryParameters['start']
+    if 'start' not in queryParameters or 'end' not in queryParameters:
+        msg = 'missing a start and/or end date'
+        raise InvalidUsage(msg, status_code=400)
+
+    startDate_string = queryParameters['start']
     try:
-        # startDate = datetime.strptime(startDate, '%Y-%m-%dT%H:%M:%SZ')
-        if startDate != datetime.strptime(startDate, "%Y-%m-%dT%H:%M:%SZ").strftime('%Y-%m-%dT%H:%M:%SZ'):
+        startDate = datetime.strptime(startDate_string, '%Y-%m-%dT%H:%M:%SZ')
+        if startDate_string != startDate.strftime('%Y-%m-%dT%H:%M:%SZ'):
             raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")
     except ValueError:
         raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")

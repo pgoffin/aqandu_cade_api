@@ -94,6 +94,9 @@ def handle_value_error(error):
     rv = dict(error.payload or ())
     rv['message'] = error.message
 
+    rv = dict(())
+    rv['message'] = error.__cause__ or error.__context__
+
     response = jsonify(rv)
     response.status_code = 400
     return response

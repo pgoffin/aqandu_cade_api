@@ -1776,7 +1776,7 @@ def getGridEstimates():
     endDate_string = queryParameters['end']
 
     if not validateDate(startDate_string) or not validateDate(endDate_string):
-        resp = jsonify({'error message': "Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z"})
+        resp = jsonify({'error message': "Incorrect date format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z"})
         resp.status_code = 200
 
         return resp
@@ -2677,9 +2677,11 @@ def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
 
 def validateDate(dateString):
     try:
-        if dateString != datetime.strptime(dateString, "'%Y-%m-%dT%H:%M:%SZ'").strftime("%Y-%m-%dT%H:%M:%SZ"):
+        if dateString != datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%dT%H:%M:%SZ"):
             raise ValueError
 
+        LOGGER.info('{} valid date, no value error'.format(dateString))
         return True
     except ValueError:
+        LOGGER.info('{} not a valid date, value error'.format(dateString))
         return False

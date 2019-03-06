@@ -1773,15 +1773,23 @@ def getGridEstimates():
         raise InvalidUsage(msg, status_code=400)
 
     startDate_string = queryParameters['start']
-    try:
-        startDate = datetime.strptime(startDate_string, '%Y-%m-%dT%H:%M:%SZ')
-        if startDate_string != startDate.strftime('%Y-%m-%dT%H:%M:%SZ'):
-            raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")
-    except ValueError:
-        raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")
+    endDate_string = queryParameters['end']
 
-    endDate = queryParameters['end']
-    endDate = datetime.strptime(endDate, '%Y-%m-%dT%H:%M:%SZ')
+    if not validateDate(startDate_string) or not validateDate(endDate_string):
+        resp = jsonify({'error message': "Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z"})
+        resp.status_code = 200
+
+        return resp
+    # try:
+    #     startDate = datetime.strptime(startDate_string, '%Y-%m-%dT%H:%M:%SZ')
+    #     if startDate_string != startDate.strftime('%Y-%m-%dT%H:%M:%SZ'):
+    #         raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")
+    # except ValueError:
+    #     raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")
+
+    # endDate = queryParameters['end']
+    startDate = datetime.strptime(startDate_string, '%Y-%m-%dT%H:%M:%SZ')
+    endDate = datetime.strptime(endDate_string, '%Y-%m-%dT%H:%M:%SZ')
 
     LOGGER.info('the start date')
     LOGGER.info(startDate)
@@ -2665,3 +2673,13 @@ def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
     LOGGER.info('******** influx SelectTime airU done ********')
 
     return dataSeries
+
+
+def validateDate(dateString):
+    try:
+        if dateString != datetime.strptime(dateString, "'%Y-%m-%dT%H:%M:%SZ'").strftime("%Y-%m-%dT%H:%M:%SZ"):
+            raise ValueError
+
+        return True
+    except ValueError:
+        return False

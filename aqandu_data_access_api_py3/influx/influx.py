@@ -2562,9 +2562,13 @@ def getInfluxPollingSensorsSelectTime(aDateStart, aDateEnd, sensorSource):
     data = influxClientPolling.query(queryInflux, epoch='ms')
     data = data.raw
 
-    dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
+    dataSeries = []
+    if 'series' in data:
+        # if for some reason the 'series' is not in the data, then give it back empty
 
-    LOGGER.info(dataSeries)
+        dataSeries = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), data['series']))
+
+        LOGGER.info(dataSeries)
 
     LOGGER.info('******** influx SelectTime polling done ********')
 

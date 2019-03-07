@@ -269,6 +269,7 @@ def get_data():
                 ID = customIDToMAC[sensor]
             except KeyError as e:
                 LOGGER.info('{} is an unknown ID, not in DB. Error: {}'.format(sensor, str(e)))
+                raise
 
             database = 'INFLUX_AIRU_DATABASE'
             measName = dataType

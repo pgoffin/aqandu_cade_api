@@ -2694,7 +2694,7 @@ def validateDate(dateString):
 
 def validateInputs(neededInputs, inputs):
     """ checks that expected inputs are provided """
-    for anNeededInput in inputs:
+    for anNeededInput in neededInputs:
         if anNeededInput not in inputs:
             return False
 

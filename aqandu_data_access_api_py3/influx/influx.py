@@ -88,15 +88,15 @@ def handle_invalid_usage(error):
     return response
 
 
-@influx.errorhandler(ValueError)
-def handle_value_error(error):
-
-    rv = dict(())
-    rv['message'] = error.__cause__ or error.__context__
-
-    response = jsonify(rv)
-    response.status_code = 400
-    return response
+# @influx.errorhandler(ValueError)
+# def handle_value_error(error):
+#
+#     rv = dict(())
+#     rv['message'] = error.__cause__ or error.__context__
+#
+#     response = jsonify(rv)
+#     response.status_code = 400
+#     return response
 
 
 @influx.errorhandler(500)
@@ -1414,19 +1414,30 @@ def getEstimatesForLocation():
     queryParameters = request.args
     LOGGER.info(queryParameters)
 
+    if not validateInputs(['start', 'end', 'location_lat', 'location_lng'], queryParameters):
+        LOGGER.info('missing a start and/or end date and/or location_lat and/or location_lng')
+        msg = 'missing a start and/or end date and/or location_lat and/or location_lng'
+        raise InvalidUsage(msg, status_code=400)
+
     location_lat = queryParameters['location_lat']
     location_lng = queryParameters['location_lng']
-    startDate = queryParameters['start']
-    # LOGGER.info(startDate)
-    startDate = datetime.strptime(startDate, '%Y-%m-%dT%H:%M:%SZ')
-    # LOGGER.info(startDate)
-    endDate = queryParameters['end']
-    endDate = datetime.strptime(endDate, '%Y-%m-%dT%H:%M:%SZ')
+
+    startDate_string = queryParameters['start']
+    endDate_string = queryParameters['end']
+
+    if not validateDate(startDate_string) or not validateDate(endDate_string):
+        resp = jsonify({'message': "Incorrect date format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z"})
+        resp.status_code = 400
+
+        return resp
 
     LOGGER.info('the start date')
-    LOGGER.info(startDate)
+    LOGGER.info(startDate_string)
     LOGGER.info('the end date')
-    LOGGER.info(endDate)
+    LOGGER.info(endDate_string)
+
+    startDate = datetime.strptime(startDate_string, '%Y-%m-%dT%H:%M:%SZ')
+    endDate = datetime.strptime(endDate_string, '%Y-%m-%dT%H:%M:%SZ')
 
     # use location to get the 4 estimation data corners
     mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
@@ -1767,7 +1778,7 @@ def getGridEstimates():
     queryParameters = request.args
     LOGGER.info(queryParameters)
 
-    if 'start' not in queryParameters or 'end' not in queryParameters:
+    if not validateInputs(['start', 'end'], queryParameters):
         LOGGER.info('missing a start and/or end date')
         msg = 'missing a start and/or end date'
         raise InvalidUsage(msg, status_code=400)
@@ -1776,18 +1787,11 @@ def getGridEstimates():
     endDate_string = queryParameters['end']
 
     if not validateDate(startDate_string) or not validateDate(endDate_string):
-        resp = jsonify({'error message': "Incorrect date format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z"})
-        resp.status_code = 200
+        resp = jsonify({'message': "Incorrect date format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z"})
+        resp.status_code = 400
 
         return resp
-    # try:
-    #     startDate = datetime.strptime(startDate_string, '%Y-%m-%dT%H:%M:%SZ')
-    #     if startDate_string != startDate.strftime('%Y-%m-%dT%H:%M:%SZ'):
-    #         raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")
-    # except ValueError:
-    #     raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z")
 
-    # endDate = queryParameters['end']
     startDate = datetime.strptime(startDate_string, '%Y-%m-%dT%H:%M:%SZ')
     endDate = datetime.strptime(endDate_string, '%Y-%m-%dT%H:%M:%SZ')
 
@@ -2676,6 +2680,7 @@ def getInfluxAirUSensorsSelectTime(aDateStart, aDateStop):
 
 
 def validateDate(dateString):
+    """ check if date string is valid """
     try:
         if dateString != datetime.strptime(dateString, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%dT%H:%M:%SZ"):
             raise ValueError
@@ -2685,3 +2690,12 @@ def validateDate(dateString):
     except ValueError:
         LOGGER.info('{} not a valid date, value error'.format(dateString))
         return False
+
+
+def validateInputs(neededInputs, inputs):
+    """ checks that expected inputs are provided """
+    for anNeededInput in inputs:
+        if anNeededInput not in inputs:
+            return False
+
+    return True

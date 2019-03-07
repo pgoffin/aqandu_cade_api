@@ -355,7 +355,6 @@ def getLiveSensors(sensorSource):
 
     if sensorSource not in ['purpleAir', 'airU', 'all']:
         LOGGER.info('sensorSource parameter is wrong')
-        # abort(404)
         InvalidUsage('The sensorSource has to be one of these: purpleAir, airU, all.', status_code=404)
 
     # now = datetime.now()
@@ -467,7 +466,6 @@ def getLiveSensors(sensorSource):
 
 
 # /api/rawDataFrom?id=1010&sensorSource=PurpleAir&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=all
-# /api/rawDataFrom?id=1010&start=2017-10-01T00:00:00Z&end=2017-10-02T00:00:00Z&show=pm25,pm1
 @influx.route('/api/rawDataFrom', methods=['GET'])
 def getRawDataFrom():
 
@@ -477,6 +475,11 @@ def getRawDataFrom():
 
     queryParameters = request.args
     LOGGER.info(queryParameters)
+
+    if not validateInputs(['id', 'sensorSource', 'start', 'end', 'show'], queryParameters):
+        LOGGER.info('missing an id and/or a sensorSource and/or a start and/or an end date and/or a show')
+        msg = 'missing an id and/or a sensorSource and/or a start and/or end date and/or a show'
+        raise InvalidUsage(msg, status_code=400)
 
     dataSeries = []
     if queryParameters['sensorSource'] == 'airu':

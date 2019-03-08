@@ -1411,7 +1411,7 @@ def getLatestContour_debugging():
 
 @influx.route('/api/getEstimatesForLocation', methods=['GET'])
 def getEstimatesForLocation():
-    # need a location and the needed timespan
+    # needs a location and a timespan
 
     LOGGER.info('*********** getEstimatesForLocation started ***********')
 
@@ -1425,6 +1425,12 @@ def getEstimatesForLocation():
 
     location_lat = queryParameters['location_lat']
     location_lng = queryParameters['location_lng']
+
+    if not validateLocation(location_lat, location_lng):
+        resp = jsonify({'message': "Location is outside of the state of Utah or not valid lat/long"})
+        resp.status_code = 400
+
+        return resp
 
     startDate_string = queryParameters['start']
     endDate_string = queryParameters['end']
@@ -2705,5 +2711,29 @@ def validateInputs(neededInputs, inputs):
     for anNeededInput in neededInputs:
         if anNeededInput not in inputs:
             return False
+
+    return True
+
+
+def validateLocation(lat, lon):
+    """ checks if location is in Utah """
+    # simplified bbox from:
+    # https://gist.github.com/mishari/5ecfccd219925c04ac32
+    utahBbox = {
+        'left': 36.9979667663574,
+        'right': 42.0013885498047,
+        'bottom': -114.053932189941,
+        'top': -109.041069030762
+    }
+
+    # lat = specifies north-south position
+    # log = specifies east-west position
+    if lat is None or lon is None:
+        LOGGER.info('latitude or longitude is None and therefore not a valid location')
+        return False
+
+    if not((float(lon) < float(utahBbox['top'])) and (float(lon) > float(utahBbox['bottom']))) or not((float(lat) > float(utahBbox['left'])) and(float(lat) < float(utahBbox['right']))):
+        LOGGER.info('latitude and longitude is not location in Utah')
+        return False
 
     return True

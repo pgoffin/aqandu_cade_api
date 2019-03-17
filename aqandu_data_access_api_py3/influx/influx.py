@@ -481,6 +481,12 @@ def getRawDataFrom():
         msg = 'missing an id and/or a sensorSource and/or a start and/or end date and/or a show'
         raise InvalidUsage(msg, status_code=400)
 
+    if not validateDate(queryParameters['start']) or not validateDate(queryParameters['end']):
+        resp = jsonify({'message': "Incorrect date format, should be %Y-%m-%dT%H:%M:%SZ, e.g.: 2018-01-03T20:00:00Z"})
+        resp.status_code = 400
+
+        return resp
+
     dataSeries = []
     if queryParameters['sensorSource'] == 'airu':
         LOGGER.info('airu')

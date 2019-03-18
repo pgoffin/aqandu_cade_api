@@ -355,7 +355,7 @@ def getLiveSensors(sensorSource):
 
     if sensorSource not in ['purpleAir', 'airU', 'all']:
         LOGGER.info('sensorSource parameter is wrong')
-        InvalidUsage('The sensorSource has to be one of these: purpleAir, airU, all.', status_code=404)
+        raise InvalidUsage('The sensorSource has to be one of these: purpleAir, airU, all.', status_code=404)
 
     # now = datetime.now()
     #
@@ -456,7 +456,7 @@ def getLiveSensors(sensorSource):
     else:
         LOGGER.info('wrong path is not catched')
         # abort(404)
-        InvalidUsage('Something is really wrong, here!!', status_code=404)
+        raise InvalidUsage('Something is really wrong, here!!', status_code=404)
 
     end = time.time()
 
@@ -1939,7 +1939,7 @@ def getSensorsAtSelectTime():
     if sensorSource not in ['purpleAir', 'airU', 'all']:
         LOGGER.info('sensorSource parameter is wrong')
         # abort(404)
-        InvalidUsage('sensorSource parameter is wrong', status_code=404)
+        raise InvalidUsage('sensorSource parameter is wrong', status_code=404)
 
     selectedTimeStop = datetime.strptime(selectedTime, '%Y-%m-%dT%H:%M:%SZ')
     LOGGER.info('here 1')
@@ -2024,7 +2024,7 @@ def getSensorsAtSelectTime():
         LOGGER.info('wrong path is not catched')
         print('wrong path is not catched')
         # abort(404)
-        InvalidUsage('wrong path is not catched', status_code=404)
+        raise InvalidUsage('wrong path is not catched', status_code=404)
 
     end = time.time()
 

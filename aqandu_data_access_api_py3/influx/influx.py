@@ -601,21 +601,25 @@ def getRawDataFrom():
 
                 # dataSeries = [{y[0], y[1]} for elem in list(zip(dataSeries, newDataSeries)) if y[0]['time'].split('.')[0] == y[1]['time'].split('.')[0]]
 
-        queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get("pm25") + "), ID, \"SensorModel\" FROM pm25 " \
-                       "WHERE ID = '" + theID + "' "
-        LOGGER.info(queryForTags)
+                queryForTags = "SELECT LAST(" + lookupParameterToAirUInflux.get("pm25") + "), ID, \"SensorModel\" FROM pm25 " \
+                               "WHERE ID = '" + theID + "' "
+                LOGGER.info(queryForTags)
 
-        dataTags = influxClientAirU.query(queryForTags, epoch=None)
-        dataTags = dataTags.raw
-        # LOGGER.info(dataTags)
+                dataTags = influxClientAirU.query(queryForTags, epoch=None)
+                dataTags = dataTags.raw
+                # LOGGER.info(dataTags)
 
-        dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
-        dataSeries_Tags[0]['Sensor Source'] = 'airu'
-        # LOGGER.info(dataSeries_Tags)
+                dataSeries_Tags = list(map(lambda x: dict(zip(x['columns'], x['values'][0])), dataTags['series']))
+                dataSeries_Tags[0]['Sensor Source'] = 'airu'
+                # LOGGER.info(dataSeries_Tags)
 
-        newDataSeries = {}
-        newDataSeries["data"] = dataSeries
-        newDataSeries["tags"] = dataSeries_Tags
+                newDataSeries = {}
+                newDataSeries["data"] = dataSeries
+                newDataSeries["tags"] = dataSeries_Tags
+            else:
+                newDataSeries = {}
+                newDataSeries["data"] = []
+                newDataSeries["tags"] = []
 
         end = time.time()
 

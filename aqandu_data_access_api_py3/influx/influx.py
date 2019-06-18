@@ -2113,6 +2113,42 @@ def getBatchForMac():
     return resp
 
 
+@influx.route('/api/macToID', methods=['POST'])
+# where <sensorSource> is 'purpleAir', 'airU', or 'all'.
+# where <selectedTime> is a string formatted like 2019-01-04T22:00:00Z
+def getIDForMac():
+
+    print(request.is_json)
+    content = request.get_json()
+    print(content)
+
+    mongodb_url = 'mongodb://{user}:{password}@{host}:{port}/{database}'.format(
+        user=current_app.config['MONGO_USER'],
+        password=current_app.config['MONGO_PASSWORD'],
+        host=current_app.config['MONGO_HOST'],
+        port=current_app.config['MONGO_PORT'],
+        database=current_app.config['MONGO_DATABASE'])
+
+    mongoClient = MongoClient(mongodb_url)
+    db = mongoClient.airudb
+
+    theMappings = {}
+    for aMapping in db.mappingMACToSensorID.find():
+        # if aSensor['macAddress']:
+        aMac = aMapping['macAddress']
+        aSensorID = aMapping['customSensorID']
+
+        aMapping = theMappings.get(aMac)
+        if aMapping is not None:
+            theMappings[aMac].append(aSensorID)
+        else:
+            theMappings[aMac] = [aSensorID]
+
+    resp = jsonify(theMappings)
+    resp.status_code = 200
+
+    return resp
+
 # HELPER FUNCTIONS
 
 

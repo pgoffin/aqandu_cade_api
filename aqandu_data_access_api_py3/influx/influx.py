@@ -2041,8 +2041,6 @@ def getSensorsAtSelectTime():
 
 
 @influx.route('/api/macToBatch', methods=['POST'])
-# where <sensorSource> is 'purpleAir', 'airU', or 'all'.
-# where <selectedTime> is a string formatted like 2019-01-04T22:00:00Z
 def getBatchForMac():
 
     print(request.is_json)
@@ -2114,8 +2112,6 @@ def getBatchForMac():
 
 
 @influx.route('/api/macToID', methods=['POST'])
-# where <sensorSource> is 'purpleAir', 'airU', or 'all'.
-# where <selectedTime> is a string formatted like 2019-01-04T22:00:00Z
 def getIDForMac():
 
     print(request.is_json)
@@ -2144,7 +2140,17 @@ def getIDForMac():
         else:
             theMappings[aMac] = [aSensorID]
 
-    resp = jsonify(theMappings)
+    foundMappings = {}
+    for aMac in content['mac']:
+        aMacWithColon = aMac[0:2] + ':' + aMac[2:4] + ':' + aMac[4:6] + ':' + aMac[6:8] + ':' + aMac[8:10] + ':' + aMac[10:12]
+
+        mappingForMAC = theMappings.get(aMacWithColon)
+        if mappingForMAC is not None:
+            foundMappings[aMac] = mappingForMAC
+        else:
+            foundMappings[aMac] = []
+
+    resp = jsonify(foundMappings)
     resp.status_code = 200
 
     return resp

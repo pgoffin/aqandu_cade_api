@@ -2134,11 +2134,13 @@ def getIDForMac():
         aMac = aMapping['macAddress']
         aSensorID = aMapping['customSensorID']
 
+        assignedOn = aMapping.get('assignedOn')
+
         aMapping = theMappings.get(aMac)
         if aMapping is not None:
-            theMappings[aMac].append(aSensorID)
+            theMappings[aMac].append({'sensorID': aSensorID, 'assignedOn': assignedOn})
         else:
-            theMappings[aMac] = [aSensorID]
+            theMappings[aMac] = [{'sensorID': aSensorID, 'assignedOn': assignedOn}]
 
     foundMappings = {}
     for aMac in content['mac']:

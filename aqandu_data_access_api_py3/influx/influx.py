@@ -2134,7 +2134,10 @@ def getIDForMac():
         aMac = aMapping['macAddress']
         aSensorID = aMapping['customSensorID']
 
-        assignedOn = aMapping.get('assignedOn').isoformat()
+        assignedOn = aMapping.get('assignedOn')
+
+        if assignedOn is not None:
+            assignedOn = assignedOn.isoformat()
 
         aMapping = theMappings.get(aMac)
         if aMapping is not None:
